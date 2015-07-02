@@ -10,9 +10,9 @@ tend=1;
 % coefficients for time dependence of exact solution, if selected
 coef = [1 1 1 1]; % coef for t^0, t^1, t^2, t^3
 a_const=2;
-% a(t) choice
-a_type = 3;
-% solution type
+% a(t) choice 0(constant) 1(linear) 2(decay exp) 3(incr exp)
+a_type = 0;
+% solution type: 0(no mms) 1(linear) 2(quadratic) 3(cubic)
 solution_type = 3;
 % time_discretization 'Crank-Nicholson' or 'SDIRK33'
 time_discretization = 'Crank-Nicholson';
@@ -22,9 +22,7 @@ g=0.43586652150845899941601945119356;
 A=[g 0 0; ...
     ((1-g)/2) g 0;...
     (-(6*g^2-16*g+1)/4) ((6*g^2-20*g+5)/4) g];
-c=sum(A');
-b=A(end,:);
-
+c=sum(A'); b=A(end,:);
 % tolerances for odesolvers
 rtol = 1e-13; abso = 1e-13;
 atol  = abso*ones(length([1]),1);
@@ -63,6 +61,23 @@ switch solution_type
         % plot
         plot(tt,uu); hold all;
 
+    case 1 % u_exact is linear
+        exact = @(t)(coef(1)+coef(2)*t);
+        dexactdt = @(t)(coef(2));
+        % set q(t)
+        q = @(t) (dexactdt(t) - a(t)*exact(t));
+        % reference value
+        u_ref = exact(tend);
+        % plot
+        tt=linspace(0,tend);
+        plot(tt,exact(tt)); hold all;
+        % impose initial value
+        u0 = exact(0);
+        % solve the ODE to get the final time reference value
+        [tt,uu]=ode15s(@scalar_ssres,[0 tend],u0,options,a,q);
+        % plot
+        plot(tt,uu);u_ref-uu(end)
+
     case 2 % u_exact is quadratic
         exact = @(t)(coef(1)+coef(2)*t+coef(3)*t.^2);
         dexactdt = @(t)(coef(2)+2*coef(3)*t);
@@ -78,7 +93,7 @@ switch solution_type
         % solve the ODE to get the final time reference value
         [tt,uu]=ode15s(@scalar_ssres,[0 tend],u0,options,a,q);
         % plot
-        plot(tt,uu);
+        plot(tt,uu);u_ref-uu(end)
 
     case 3 % u_exact is cubic
         exact = @(t)(coef(1)+coef(2)*t+coef(3)*t.^2+coef(4)*t.^3);
@@ -95,16 +110,19 @@ switch solution_type
         % solve the ODE to get the final time reference value
         [tt,uu]=ode15s(@scalar_ssres,[0 tend],u0,options,a,q);
         % plot
-        plot(tt,uu);
+        plot(tt,uu);u_ref-uu(end)
 
     otherwise
         error('unknown type for solution');
 end
 
+% u_ref = uu(end);
 
 %%% convergence study
 n_runs=10;
 n_steps = 2.^linspace(1,n_runs,n_runs);
+
+% n_steps=1;
 
 for i_run=1:n_runs
 
