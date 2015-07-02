@@ -7,7 +7,7 @@ global dat npar
 
 % verbose/output parameters
 testing = false;
-console_print = false;
+console_print = true;
 plot_transient_figure = false;
 plot_power_figure = true;
 make_movie = false;
@@ -16,10 +16,10 @@ make_movie = false;
 npar.set_bc_last=true;
 
 % select problem
-pbID=10; refinements=5;
+pbID=10; refinements=1;
 problem_init(pbID,refinements);
 
-% compute eigenmode
+% compute fundamental eigenmode
 curr_time=0;
 [phi,keff]=steady_state_eigenproblem(curr_time);
 if plot_transient_figure
@@ -28,15 +28,6 @@ end
 if console_print
     fprintf('%10.8g \n',keff); 
 end
-
-
-% hold all
-% [phi1,keff1]=steady_state_eigenproblem(1);
-% plot(dat.x_dofs,phi1)
-%
-% [phi2,keff2]=steady_state_eigenproblem(3);
-% plot(dat.x_dofs,phi2)
-% [keff keff1 keff2]'
 
 % initialize kinetic values
 C = kinetics_init(phi,curr_time);
@@ -80,21 +71,7 @@ for it=1:ntimes
     
     TR = assemble_transient_operator(time_end);
     
-    %     load tr.mat
-    %     M=A+D;
-    %     M(end,end)=1;
-    %     M(1,1)=1;
-    %     P=NFId+NFIp;
-    %     eigs(P,M,1,'lm');
-    %     [uu,kk]=eigs(P,M,1,'lm');
-    %     if(sum(uu)<0), uu=-uu; end
-    %     flux=uu;
-    %     prec=u0(npar.n+1:end);
-    %     [ L*prec (NFIp-A)*flux]
-    
     M = assemble_time_dependent_operator(time_end);
-    
-    %     load tr2.mat;
     
     % M(unew-uold)/dt=TR.unew
     rhs = M*u;
