@@ -115,8 +115,8 @@ end
 %%% standard PRKE with initial shape
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-shape=phi0;
-[~,beff_MGT]=compute_prke_parameters(0.,shape);
+shape0=phi0;
+[~,beff_MGT]=compute_prke_parameters(0.,shape0);
 X=[1;beff_MGT/dat.lambda];
 Pnorm_prke(1)=X(1);
 
@@ -124,14 +124,8 @@ Pnorm_prke(1)=X(1);
 for it=1:ntimes
     time_end=it*dt;
     if console_print, fprintf('time end = %g \n',time_end); end
-    % recompute prke parameters if XS change in time (no need for
-    % up-to-date precursors, we only need rho and beta)
-    [rho_MGT,beff_MGT]=compute_prke_parameters(time_end,shape);
-    % build prke matrix
-    A=[(rho_MGT-beff_MGT) dat.lambda ; ...
-        beff_MGT         -dat.lambda];
-    % solve
-    X=(eye(2)-dt*A)\X;
+    % solve prke
+    X =  solve_prke(X,dt,time_end,shape0);
     % store power level for plotting
     Pnorm_prke(it+1)=X(1);
 end
@@ -141,8 +135,8 @@ end
 %%% prke using exact shape 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-shape=phi0;
-[~,beff_MGT]=compute_prke_parameters(0.,shape);
+shape0=phi0;
+[~,beff_MGT]=compute_prke_parameters(0.,shape0);
 X=[1;beff_MGT/dat.lambda];
 Pnorm_prkeEX(1)=X(1);
 IV = assemble_mass(dat.inv_vel ,0.);
@@ -153,14 +147,8 @@ for it=1:ntimes
     if console_print, fprintf('time end = %g \n',time_end); end
     % compute shape from saved flux
     shape_curr = phi_save(:,it) / (phi_adjoint'*IV*phi_save(:,it)) * npar.K0;
-    % recompute prke parameters  (no need for up-to-date precursors, 
-    % we only need rho and beta)
-    [rho_MGT,beff_MGT]=compute_prke_parameters(time_end,shape_curr);
-    % build prke matrix
-    A=[(rho_MGT-beff_MGT) dat.lambda ; ...
-        beff_MGT         -dat.lambda];
-    % solve
-    X=(eye(2)-dt*A)\X;
+    % solve prke
+    X =  solve_prke(X,dt,time_end,shape_curr);
     % store power level for plotting
     Pnorm_prkeEX(it+1)=X(1);   
 end
@@ -168,7 +156,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% prke using exact QS 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[~,beff_MGT]=compute_prke_parameters(0.,shape);
+
+shape0=phi0;
+[~,beff_MGT]=compute_prke_parameters(0.,shape0);
 X=[1;beff_MGT/dat.lambda];
 Pnorm_prkeQS(1)=X(1);
 IV = assemble_mass(dat.inv_vel ,0.);
@@ -179,14 +169,8 @@ for it=1:ntimes
     if console_print, fprintf('time end = %g \n',time_end); end
     % compute shape for steady state
     [shape_curr,~]=steady_state_eigenproblem(time_end);
-    % recompute prke parameters  (no need for up-to-date precursors, 
-    % we only need rho and beta)
-    [rho_MGT,beff_MGT]=compute_prke_parameters(time_end,shape_curr);
-    % build prke matrix
-    A=[(rho_MGT-beff_MGT) dat.lambda ; ...
-        beff_MGT         -dat.lambda];
-    % solve
-    X=(eye(2)-dt*A)\X;
+    % solve prke
+    X =  solve_prke(X,dt,time_end,shape_curr);
     % store power level for plotting
     Pnorm_prkeQS(it+1)=X(1);
 end
