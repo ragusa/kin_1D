@@ -116,8 +116,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 shape=phi0;
-[~,~,prec]=compute_prke_parameters(0.,shape,C0);
-X=[1;prec];
+[~,beff_MGT]=compute_prke_parameters(0.,shape);
+X=[1;beff_MGT/dat.lambda];
 Pnorm_prke(1)=X(1);
 
 % loop over time steps
@@ -126,7 +126,7 @@ for it=1:ntimes
     if console_print, fprintf('time end = %g \n',time_end); end
     % recompute prke parameters if XS change in time (no need for
     % up-to-date precursors, we only need rho and beta)
-    [rho_MGT,beff_MGT,~]=compute_prke_parameters(time_end,shape,C0);
+    [rho_MGT,beff_MGT]=compute_prke_parameters(time_end,shape);
     % build prke matrix
     A=[(rho_MGT-beff_MGT) dat.lambda ; ...
         beff_MGT         -dat.lambda];
@@ -142,8 +142,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 shape=phi0;
-[~,~,prec]=compute_prke_parameters(0.,shape,C0);
-X=[1;prec];
+[~,beff_MGT]=compute_prke_parameters(0.,shape);
+X=[1;beff_MGT/dat.lambda];
 Pnorm_prkeEX(1)=X(1);
 IV = assemble_mass(dat.inv_vel ,0.);
 
@@ -155,7 +155,7 @@ for it=1:ntimes
     shape_curr = phi_save(:,it) / (phi_adjoint'*IV*phi_save(:,it)) * npar.K0;
     % recompute prke parameters  (no need for up-to-date precursors, 
     % we only need rho and beta)
-    [rho_MGT,beff_MGT,~]=compute_prke_parameters(time_end,shape_curr,C0);
+    [rho_MGT,beff_MGT]=compute_prke_parameters(time_end,shape_curr);
     % build prke matrix
     A=[(rho_MGT-beff_MGT) dat.lambda ; ...
         beff_MGT         -dat.lambda];
@@ -168,8 +168,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% prke using exact QS 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[~,~,prec]=compute_prke_parameters(0.,shape,C0);
-X=[1;prec];
+[~,beff_MGT]=compute_prke_parameters(0.,shape);
+X=[1;beff_MGT/dat.lambda];
 Pnorm_prkeQS(1)=X(1);
 IV = assemble_mass(dat.inv_vel ,0.);
 
@@ -181,7 +181,7 @@ for it=1:ntimes
     [shape_curr,~]=steady_state_eigenproblem(time_end);
     % recompute prke parameters  (no need for up-to-date precursors, 
     % we only need rho and beta)
-    [rho_MGT,beff_MGT,~]=compute_prke_parameters(time_end,shape_curr,C0);
+    [rho_MGT,beff_MGT]=compute_prke_parameters(time_end,shape_curr);
     % build prke matrix
     A=[(rho_MGT-beff_MGT) dat.lambda ; ...
         beff_MGT         -dat.lambda];
