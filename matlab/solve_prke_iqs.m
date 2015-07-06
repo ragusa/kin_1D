@@ -38,11 +38,15 @@ for i=1:n_react
     beff_MGT_iqs = [ beff_MGT_iqs aux(2:end)];
 end
 
+% beff_MGT
+% rho_MGT
+% rho_MGT_iqs
+
 % loop over micro time steps
 for it=1:n_micro
     % build prke matrix
-    A=[(rho_MGT(it)-beff_MGT(it)) dat.lambda ; ...
-        beff_MGT                 -dat.lambda];
+    A=[(rho_MGT_iqs(it)-beff_MGT_iqs(it)) dat.lambda ; ...
+        beff_MGT_iqs(it)                 -dat.lambda];
     % solve
     X=(eye(2)-dt*A)\X;
 end

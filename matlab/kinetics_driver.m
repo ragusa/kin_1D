@@ -64,6 +64,44 @@ phi_save=zeros(length(phi0),ntimes);
 % npar.phi_adj(end)=0;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% IQS IQS IQS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% initial solution vector
+u_shape=[phi0;C0]; 
+[~,beff_MGT]=compute_prke_parameters(0.,phi0);
+X=[1;beff_MGT/dat.lambda];
+Pnorm_prkeIQS(1)=X(1);
+
+n_micro=10;
+freq_react=2;
+
+%%% loop on time steps %%%
+for it=1:ntimes
+    
+    time_end=it*dt;
+    if console_print, fprintf('time end = %g \n',time_end); end
+    
+    % solve time-dependent diffusion for flux
+    [u_shape,X] = solve_IQS_diffusion(u_shape,X,dt,time_end,n_micro,freq_react);
+    
+    % plot/movie
+    if plot_transient_figure
+        plot(npar.x_dofs,u(1:npar.n));drawnow; 
+        if make_movie, mov(it) = getframe(gca); end
+    end
+    % compute end time power for plotting  
+    dat.Ptot_iqs(it+1) = compute_power(dat.nusigf,time_end,X(1)*u_shape(1:npar.n));
+    
+    % ratio of <u*,IVu> to its initial value
+    amplitude_norm_iqs(it+1) = X(1)* (phi_adjoint'*IV*u_shape(1:npar.n))/npar.K0;
+    
+end
+
+
+error('qqqqq')
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% brute force discretization of 
 %%%   the TD neutron diffusion eq and precursors eq
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -170,6 +208,7 @@ if plot_power_figure
     plot(Pnorm_prkeEX,'x-');    leg=char(leg,'PRKE exact');
     plot(Pnorm_prke,'ro-');     leg=char(leg,'PRKE');
     plot(Pnorm_prkeQS,'mx-');   leg=char(leg,'PRKE QS');
+    plot(amplitude_norm_iqs,'gx-');  leg=char(leg,'PRKE IQS');
     legend(leg,'Location','Best')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
