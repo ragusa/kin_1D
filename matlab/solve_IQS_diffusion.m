@@ -2,24 +2,28 @@ function [u_shape, X] = solve_IQS_diffusion(u_shape,X,dt_macro,time_end,n_micro,
 
 global dat npar
 
-max_iter_iqs = 10;
-tol_iqs=1e-5;
+max_iter_iqs = 2;
+tol_iqs=1e-7;
 
 IV = assemble_mass(dat.inv_vel,time_end);
 
+% save values at beginning of macro time step: they are needed in the IQS iteration 
+X_beg=X;
+u_shape_beg=u_shape;
+% for clarity, I also single out the shape function at the beginning/end of the macro time step
 shape_beg=u_shape(1:npar.n);
 shape_end=shape_beg;
 
 for iter = 1: max_iter_iqs
     
     % solve for amplitude function
-    [X,dpdt] =  solve_prke_iqs(X,dt_macro,time_end,shape_beg,shape_end,n_micro,freq_react);
-    
+    [X,dpdt] =  solve_prke_iqs(X_beg,dt_macro,time_end,shape_beg,shape_end,n_micro,freq_react);
+%     [X(1) dpdt]
     % assemble IQS    
     TR = assemble_transient_operator_iqs(time_end,X(1),dpdt);
     M  = assemble_time_dependent_operator(time_end);
     % build rhs from backward Euler time discretization
-    rhs = M*u_shape;
+    rhs = M*u_shape_beg;
     % build system matrix
     A = M-dt_macro*TR;
     if npar.set_bc_last
@@ -36,10 +40,13 @@ for iter = 1: max_iter_iqs
     fprintf('  IQS iter %d, err %g \n',iter,err);
     if err<tol_iqs
         break
+    else
+        u_shape = u_shape / ((npar.phi_adj)'*IV*shape_end/npar.K0);
+        shape_end=u_shape(1:npar.n);
     end
 end
 
 if err>=tol_iqs
-    error('IQS did not converge');
+    warning('IQS did not converge');
 end
 

@@ -10,7 +10,7 @@ D    = assemble_stiffness(dat.cdiff   ,curr_time);
 A    = assemble_mass(     dat.siga    ,curr_time);
 NFIp = assemble_mass(     dat.nusigf_p,curr_time) / npar.keff;
 NFId = assemble_mass(     dat.nusigf_d,curr_time) / npar.keff * p;
-Aiqs = assemble_mass(     dat.inv_vel ,curr_time) * dpdt/p;
+Aiqs = assemble_mass(     dat.inv_vel ,curr_time) * dpdt/p; 
 
 % flux-flux matrix
 tmp=NFIp-(D+A+Aiqs);

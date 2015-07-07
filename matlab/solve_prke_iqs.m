@@ -27,7 +27,7 @@ for i=1:n_react+1 % same as length(times_react_update)
     [rho_MGT(i),beff_MGT(i)]=compute_prke_parameters(times_react_update(i),shape);
 end
 
-% make piecewise linear value for rho/beff at each micro time steps;
+% make piecewise linear value for rho/beff at each micro time step;
 % since we are using BE, we do not need the value at time_beg
 rho_MGT_iqs  = [];
 beff_MGT_iqs = [];
@@ -37,10 +37,6 @@ for i=1:n_react
     aux = linspace(beff_MGT(i),beff_MGT(i+1),freq_react+1);
     beff_MGT_iqs = [ beff_MGT_iqs aux(2:end)];
 end
-
-% beff_MGT
-% rho_MGT
-% rho_MGT_iqs
 
 % loop over micro time steps
 for it=1:n_micro
