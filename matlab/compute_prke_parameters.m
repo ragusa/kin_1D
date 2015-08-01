@@ -14,7 +14,8 @@ IV   = apply_BC_mat_only(IV,npar.add_zero_on_diagonal);
 NFId = apply_BC_mat_only(NFId,npar.add_zero_on_diagonal);
 
 PmM = apply_BC_mat_only(NFI-D-A,npar.add_zero_on_diagonal);
-% rho  = phi_adjoint' * (NFI-D-A) * shape;
+% PmM = apply_BC_mat_only(-D-A,npar.add_zero_on_diagonal);
+
 rho  = phi_adjoint' * (PmM) * shape;
 beff = phi_adjoint' * NFId * shape;
 MGT  = phi_adjoint' * IV * shape; % obviously, MGT = npar.K0 as well
@@ -22,6 +23,11 @@ MGT  = phi_adjoint' * IV * shape; % obviously, MGT = npar.K0 as well
 
 rho_MGT  = rho/MGT;
 beff_MGT = beff/MGT;
+
+% dat.Lambda_micro = MGT;
+% dat.rho_minus_beta_micro = rho_MGT-beff_MGT;
+% dat.beta_micro = beff_MGT;
+
 
 % prec_MGT = phi_adjoint' * C / MGT; 
 % % obviously, this is the same as beff_MGT/dat.lambda because, at steady

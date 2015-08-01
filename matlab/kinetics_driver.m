@@ -16,7 +16,7 @@ make_movie = false;
 npar.set_bc_last=true;
 
 % select problem
-pbID=10; refinements=3;
+pbID=2; refinements=8;
 problem_init(pbID,refinements);
 
 % compute fundamental eigenmode
@@ -42,8 +42,8 @@ IV   = assemble_mass(     dat.inv_vel ,curr_time);
 
 % time steping data
 dt=0.001;
-ntimes=1000; % 150*2;
-iqs_factor=100;
+ntimes=100; % 150*2;
+iqs_factor=1;
 
 
 if make_movie
@@ -117,8 +117,8 @@ Pnorm_prkeIQS(1)=X(1);
 
 dt=dt*iqs_factor; ntimes=ntimes/iqs_factor;
 
-n_micro=10;
-freq_react=2;
+n_micro=1000;
+freq_react=1;
 
 %%% loop on time steps %%%
 for it=1:ntimes
@@ -131,6 +131,8 @@ for it=1:ntimes
     
     % plot/movie
     if plot_transient_figure
+        % loop on micro step
+        % inside loop, linearly interpol shape
         figure(2)
         plot(npar.x_dofs,u_shape(1:npar.n));drawnow;
         if make_movie, mov(it) = getframe(gca); end
@@ -217,11 +219,57 @@ end
 % end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% brute force discretization of
+%%%   the TD neutron diffusion eq and precursors eq
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% amplitude_norm_fine=1;
+% 
+% %%% loop on time steps %%%
+% dt_fine=dt/n_micro;
+% ntimes_fine=ntimes*n_micro;
+% % initial solution vector
+% u=[phi0;C0];
+% % save a copy of it
+% u0=u;
+% for it=1:ntimes_fine
+%     
+%     time_end=it*dt_fine;
+%     if console_print, fprintf('time end = %g \n',time_end); end
+%     
+%     % solve time-dependent diffusion for flux
+%     u = solve_TD_diffusion(u,dt_fine,time_end);
+%     
+%     % plot/movie
+%     if plot_transient_figure
+%         figure(3);
+%         plot(npar.x_dofs,u(1:npar.n));drawnow;
+%         if make_movie, mov(it) = getframe(gca); end
+%     end
+%     % compute end time power for plotting
+%     dat.Ptot(it+1) = compute_power(dat.nusigf,time_end,u(1:npar.n));
+%     
+%     % ratio of <u*,IVu> to its initial value
+%     amplitude_norm_fine(it+1) = (phi_adjoint'*IV*u(1:npar.n))/npar.K0;
+%     
+%     
+% end
+% % make movie
+% if plot_transient_figure && make_movie
+%     close(gcf)
+%     % save as AVI file
+%     movie2avi(mov, 'PbID10_v2.avi', 'compression','None', 'fps',1);
+% end
+
+
 if plot_power_figure
-    figure(3); hold all;
+    figure(4); hold all;
     t_=linspace(0,dt*ntimes,ntimes+1);
+%     t_fine=linspace(0,dt_fine*ntimes_fine,ntimes_fine+1);
     ti=linspace(0,dt*ntimes,ntimes/iqs_factor+1);
     plot(t_,amplitude_norm,'+-');  leg=char('space-time');
+    plot(t_fine,amplitude_norm_fine,'k+-');  leg=char(leg,'space-time fine');
     plot(t_,Pnorm_prkeEX,'x-');    leg=char(leg,'PRKE exact');
     plot(t_,Pnorm_prke,'ro-');     leg=char(leg,'PRKE');
     %     plot(Pnorm_prkeQS,'mx-');   leg=char(leg,'PRKE QS');

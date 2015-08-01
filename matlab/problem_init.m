@@ -8,7 +8,7 @@ global dat npar
 dat.rod_mov.t_beg_1=0.1; 
 dat.rod_mov.t_end_1=0.6;
 dat.rod_mov.t_beg_2=1.; 
-dat.rod_mov.t_end_2=2.7;
+dat.rod_mov.t_end_2=1.7;
 
 % kinetic parameters 
 dat.beta_tot=600e-5;
@@ -24,7 +24,7 @@ switch problem_ID
         b=dat.beta_tot;
         iv=dat.invvel;
         dat.cdiff{1}   = create_material_prop('constant_in_time',1        ,[],'constant_in_space',0);
-        dat.siga{1}    = create_material_prop('constant_in_time',1.0      ,[],'constant_in_space',0);
+        dat.siga{1}    = create_material_prop('constant_in_time',1.1      ,[],'constant_in_space',0);
         dat.nusigf{1}  = create_material_prop('constant_in_time',1.1      ,[],'constant_in_space',0);
         dat.nusigf_p{1}= create_material_prop('constant_in_time',1.1*(1-b),[],'constant_in_space',0);
         dat.nusigf_d{1}= create_material_prop('constant_in_time',1.1*b    ,[],'constant_in_space',0);
@@ -44,7 +44,7 @@ switch problem_ID
         iv=dat.invvel;
         dat.cdiff{1}   = create_material_prop('constant_in_time',1        ,[],'constant_in_space',0);
         times = [dat.rod_mov.t_beg_1 dat.rod_mov.t_end_1];
-        dat.siga{1}    = create_material_prop('ramp_in_time' ,[1.0 0.98],times,'constant_in_space',0);
+        dat.siga{1}    = create_material_prop('ramp_in_time' ,[1.1 0.98],times,'constant_in_space',0);
         dat.nusigf{1}  = create_material_prop('constant_in_time',1.1      ,[],'constant_in_space',0);
         dat.nusigf_p{1}= create_material_prop('constant_in_time',1.1*(1-b),[],'constant_in_space',0);
         dat.nusigf_d{1}= create_material_prop('constant_in_time',1.1*b    ,[],'constant_in_space',0);
