@@ -1,7 +1,7 @@
 function [X,dpdt] =  solve_prke_iqs(X,dt_macro,time_end,shape_beg,shape_end,n_micro,freq_react)
 
 % make the problem-data a global variable
-global dat 
+global dat npar
 
 % time step for prke solve
 dt = dt_macro/n_micro;
@@ -15,6 +15,20 @@ end
 % time step
 time_beg = time_end - dt_macro;
 times_react_update = time_beg + linspace(0,n_react,n_react+1) * dt_macro/n_react;
+
+theta_beg = npar.phi_adj' * npar.IV(1:npar.n,1:npar.n) * shape_beg;
+theta_end = npar.phi_adj' * npar.IV(1:npar.n,1:npar.n) * shape_end;
+theta = -(theta_end-theta_beg)/dt_macro/npar.K0;
+
+if ~isempty(npar.theta_old)
+    % damping
+    a=1;
+    theta = a*theta+(1-a)*npar.theta_old;
+    theta=theta;
+else
+    npar.theta_old=theta;
+end
+
 
 % compute prke parameters at the above times 
 for i=1:n_react+1 % same as length(times_react_update)
@@ -41,11 +55,13 @@ end
 % loop over micro time steps
 for it=1:n_micro
     % build prke matrix
-    A=[(rho_MGT_iqs(it)-beff_MGT_iqs(it)) dat.lambda ; ...
-        beff_MGT_iqs(it)                 -dat.lambda];
+    A=[(rho_MGT_iqs(it)-beff_MGT_iqs(it)-theta) dat.lambda ; ...
+        beff_MGT_iqs(it)                 -(dat.lambda+theta)];
     % solve
     X=(eye(2)-dt*A)\X;
 end
+
+fprintf('theta = %g, power= %g \n',theta,X(1));
 
 % save value for dpdt at the end of the macro time step
 dXdt = A*X;

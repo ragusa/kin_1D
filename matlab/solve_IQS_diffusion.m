@@ -2,8 +2,9 @@ function [u_shape, X] = solve_IQS_diffusion(u_shape,X,dt_macro,time_end,n_micro,
 
 global dat npar
 
-max_iter_iqs = 2;
-tol_iqs=1e-7;
+max_iter_iqs = 3;
+tol_iqs=1e-6;
+npar.theta_old=[];
 
 IV = assemble_mass(dat.inv_vel,time_end);
 
@@ -41,8 +42,8 @@ for iter = 1: max_iter_iqs
     if err<tol_iqs
         break
     else
-        u_shape = u_shape / ((npar.phi_adj)'*IV*shape_end/npar.K0);
-        shape_end=u_shape(1:npar.n);
+%         u_shape = u_shape / ((npar.phi_adj)'*IV*shape_end/npar.K0);
+%         shape_end=u_shape(1:npar.n);
     end
 end
 

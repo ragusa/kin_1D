@@ -6,7 +6,7 @@ close all; clc;
 global dat npar
 
 % verbose/output parameters
-testing = false;
+testing = true;
 console_print = true;
 plot_transient_figure = true;
 plot_power_figure = true;
@@ -16,7 +16,7 @@ make_movie = false;
 npar.set_bc_last=true;
 
 % select problem
-pbID=10; refinements=3;
+pbID=2; refinements=8;
 problem_init(pbID,refinements);
 
 % compute fundamental eigenmode
@@ -39,11 +39,12 @@ u0=u;
 
 phi_adjoint = npar.phi_adj;
 IV   = assemble_mass(     dat.inv_vel ,curr_time);
+npar.IV=IV;
 
 % time steping data
-dt=0.001;
-ntimes=1000; % 150*2;
-iqs_factor=100;
+dt=0.01;
+ntimes=100; % 150*2;
+iqs_factor=10;
 
 
 if make_movie
@@ -118,7 +119,7 @@ Pnorm_prkeIQS(1)=X(1);
 dt=dt*iqs_factor; ntimes=ntimes/iqs_factor;
 
 n_micro=10;
-freq_react=2;
+freq_react=1;
 
 %%% loop on time steps %%%
 for it=1:ntimes
@@ -155,6 +156,9 @@ dt=dt/iqs_factor; ntimes=ntimes*iqs_factor;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% standard PRKE with initial shape
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% if testing
+%     return
+% end
 
 shape0=phi0;
 [~,beff_MGT]=compute_prke_parameters(0.,shape0);
