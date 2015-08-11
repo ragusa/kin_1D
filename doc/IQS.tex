@@ -1,0 +1,415 @@
+%% Based on a TeXnicCenter-Template, which was
+%% created by Christoph Börensen
+%% and slightly modified by Tino Weinkauf.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[12pt]{scrartcl} %This is a special class provided by the KOMA script, which does a lot of adjustments to adapt the standard LaTeX classes to european habits, change to [a4paper,12pt,twoside] for doublesided layout
+
+
+%########################### Preferences #################################
+
+
+% ******** vmargin settings *********
+\usepackage{vmargin} %This give you full control over the used page area, it maybe not the idea od Latex to do so, but I wanted to reduce to amount of white space on the page
+%\setpapersize{A4}
+%\setmargins{3.5cm}%			%linker Rand, left edge
+					 %{1.5cm}%     %oberer Rand, top edge
+           %{14.7cm}%		%Textbreite, text width
+           %{23.42cm}%   %Texthoehe, text hight
+           %{14pt}%			%Kopfzeilenhöhe, header hight
+           %{1cm}%   	  %Kopfzeilenabstand, header distance
+           %{0pt}%				%Fußzeilenhoehe footer hight
+           %{2cm}%    	  %Fusszeilenabstand, footer distance         
+
+% ********* Font definiton ************
+%\usepackage{t1enc} % as usual
+%\usepackage[latin1]{inputenc} % as usual
+%\usepackage{times}		
+%\usepackage{mathptmx}  	%mathematical fonts for use with times, I encountered some problems using this package togather with pdftex, which I was not able to resolve
+
+% ********* Graphics definition *******
+%\usepackage[pdftex]{graphicx} % required to import graphic files
+\usepackage{color} %allows to mark some entries in the tables with color
+%\usepackage{eso-pic} % these two are required to add the little picture on top of every page
+%\usepackage{everyshi} % these two are required to add the little picture on top of every page
+%\renewcommand{\floatpagefraction}{0.7} %default:0.5 allows two big pictures on one page
+
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amstext}
+\usepackage{amsbsy}
+\usepackage{mathbbol} 
+%\usepackage{pmatrix} 
+
+%********** Enybeling Hyperlinks *******
+%\usepackage[pdfborder=000,pdftex=true]{hyperref}% this enables jumping from a reference and table of content in the pdf file to its target
+
+% ********* Table layout **************
+\usepackage{booktabs}	  	%design of table, has an excellent documentation
+%\usepackage{lscape}			%use this if you want to rotate the table together with the lines around the table
+
+%  new definitions
+\renewcommand{\div}{\bs{\nabla}\! \cdot \!}
+\newcommand{\grad}{\bs{\nabla}}
+% extra space
+\newcommand{\qq}{\quad\quad}
+% common reference commands
+\newcommand{\eqt}[1]{Eq.~(\ref{#1})}                     % equation
+\newcommand{\fig}[1]{Fig.~\ref{#1}}                      % figure
+\newcommand{\tbl}[1]{Table~\ref{#1}}                     % table
+\newcommand{\sct}[1]{Section~\ref{#1}}                   % section
+\newcommand{\app}[1]{Appendix~\ref{#1}}                   % appendix
+
+\newcommand{\bs}[1]{\mathbf{#1}}
+\newcommand{\dd}{\mathrm{d}}
+
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\vn}{\vec{n}}
+\newcommand{\vel}{\vec{\mathrm{v}}}
+\newcommand{\adj}{\Phi^\dagger_0}
+
+% ********* Caption Layout ************
+\usepackage{ccaption} % allows special formating of the captions
+\captionnamefont{\bf\footnotesize\sffamily} % defines the font of the caption name (e.g. Figure: or Table:)
+\captiontitlefont{\footnotesize\sffamily} % defines the font of the caption text (same as above, but not bold)
+\setlength{\abovecaptionskip}{0mm} %lowers the distace of captions to the figure
+
+
+% ********* Header and Footer **********
+% This is something to play with forever. I use here the advanced settings of the KOMA script
+
+\usepackage{scrpage2} %header and footer using the options for the KOMA script
+\renewcommand{\headfont}{\footnotesize\sffamily} % font for the header
+\renewcommand{\pnumfont}{\footnotesize\sffamily} % font for the pagenumbers
+
+%the following lines define the pagestyle for the main document
+\defpagestyle{cb}{%
+(\textwidth,0pt)% sets the border line above the header
+{\pagemark\hfill\headmark\hfill}% doublesided, left page
+{\hfill\headmark\hfill\pagemark}% doublesided, right page
+{\hfill\headmark\hfill\pagemark}%  onesided
+(\textwidth,1pt)}% sets the border line below the header
+%
+{(\textwidth,1pt)% sets the border line above the footer
+{{\it Jean Ragusa}\hfill TAMU}% doublesided, left page
+{Jean Ragusa\hfill{\it TAMU}}% doublesided, right page
+{Jean Ragusa\hfill{\it TAMU}} % one sided printing
+(\textwidth,0pt)% sets the border line below the footer
+}
+
+%this defines the page style for the first pages: all empty
+\renewpagestyle{plain}%
+	{(\textwidth,0pt)%
+		{\hfill}{\hfill}{\hfill}%
+	(\textwidth,0pt)}%
+	{(\textwidth,0pt)%	
+		{\hfill}{\hfill}{\hfill}%
+	(\textwidth,0pt)}
+
+%********** Footnotes **********
+\renewcommand{\footnoterule}{\rule{5cm}{0.2mm} \vspace{0.3cm}} %increases the distance of footnotes from the text
+\deffootnote[1em]{1em}{1em}{\textsuperscript{\normalfont\thefootnotemark}} %some moe formattion on footnotes
+
+\renewcommand{\labelitemii}{$\diamond$}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% boxes
+\usepackage{color}
+\definecolor{myblue}{rgb}{.8, .8, 1}
+\usepackage{empheq}
+
+\newlength\mytemplen
+\newsavebox\mytempbox
+
+\makeatletter
+\newcommand\mybluebox{%
+    \@ifnextchar[%]
+       {\@mybluebox}%
+       {\@mybluebox[0pt]}}
+
+\def\@mybluebox[#1]{%
+    \@ifnextchar[%]
+       {\@@mybluebox[#1]}%
+       {\@@mybluebox[#1][0pt]}}
+
+\def\@@mybluebox[#1][#2]#3{
+    \sbox\mytempbox{#3}%
+    \mytemplen\ht\mytempbox
+    \advance\mytemplen #1\relax
+    \ht\mytempbox\mytemplen
+    \mytemplen\dp\mytempbox
+    \advance\mytemplen #2\relax
+    \dp\mytempbox\mytemplen
+    \colorbox{myblue}{\hspace{1em}\usebox{\mytempbox}\hspace{1em}}}
+
+\makeatother
+
+%################ End Preferences, Begin Document #####################
+
+\pagestyle{plain} % on headers or footers on the first page
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{center}
+
+\begin{figure}[th]
+    \centering
+		%\includegraphics[width=10cm]{logo.jpg}
+	\label{fig:logo}
+\end{figure}
+
+\vspace{2cm}
+\vspace{2cm}
+
+% There might be better solutions for the title page, giving all distances and sizes manually was simply the easiest solution
+
+{\Huge\bf\sf IQS Notes}
+
+\vspace{.5cm}
+
+{\Huge\bf\sf TAMU}
+
+\vspace{.5cm}
+
+%{\Huge\bf\sf to use with TeXnicCenter}
+
+\vspace{2cm}
+
+{\Large\bf\sf Jean C. Ragusa}
+\vspace{2cm}
+
+{\Large\bf\sf \today} %adds the current date
+
+\vspace{\fill}
+
+\tt{jean.ragusa@tamu.edu}
+
+\end{center}
+\newpage
+
+%%The following loads the picture on top of every page, the numbers in \put() define the position on the page:
+%\AddToShipoutPicture{\setlength\unitlength{0.1mm}\put(604,2522){\includegraphics[width=1.5cm]{logo.jpg}}}
+
+\pagestyle{cb} % now we want to have headers and footers
+
+\tableofcontents
+
+\newpage
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Time-dependent diffusion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\be
+\frac{1}{v} \frac{\partial \Phi }{\partial t} = \nu_p \sigma_f \Phi - \left( -\div D \grad \Phi + \sigma_a \Phi \right) + \lambda C
+\ee
+\be
+\frac{dC}{dt} = \nu_d \sigma_f \Phi - \lambda C
+\ee
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{IQS}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Factorization}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Factorization into amplitude and shape functions:
+\be
+\Phi(\vec{r},t) = p(t) \varphi(\vec{r},t)
+\ee
+
+Factorization is not unique:
+\[
+\Phi(\vec{r},t) = \frac{p(t)}{f(t)} \left( f(t) \varphi(\vec{r},t) \right)
+\]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Equations for the shape $\varphi$}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\be
+\frac{1}{v} \frac{\partial \varphi }{\partial t} = \nu_p \sigma_f \varphi - \left( -\div D \grad \varphi + (\sigma_a+\alpha(t)) \varphi \right) + \frac{1}{p}\lambda C
+\ee
+where
+\[
+\alpha(t) = \frac{1}{v} \frac{1}{p(t)}\frac{dp}{dt}
+\]
+Very little change in the precursor equation:
+\be
+\frac{dC}{dt} = \nu_d \sigma_f p \varphi - \lambda C
+\ee
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Equations for the amplitude $p$}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+These are simply obtained by integration of the shape equations over the entire space. We use the following short-cut notation:
+\[
+\langle f, g \rangle = \int_{\text{domain}} f(\vec{r})g(\vec{r}) d^3r
+\]
+The starting point is the shape equation (re-written below before division by $p$ occurred).
+\be
+\frac{1}{v} p \frac{\partial \varphi }{\partial t} + \frac{1}{v} \varphi \frac{dp}{dt} = \nu_p \sigma_f p \varphi - p \left( -\div D \grad \varphi + \sigma_a \varphi \right) + \lambda C
+\ee
+Before carrying out the integration over space, we multiply the equation by a time-independent weighting function (a common choice for this function is the initial adjoint flux, $\adj$).
+
+After a bit of algebra, we obtain
+\be
+\frac{dp}{dt} = \left(\frac{\rho}{\Lambda}-\frac{\beta}{\Lambda} - \theta \right) p + \lambda \xi
+\ee
+\be
+\frac{d\xi}{dt} = \frac{\beta}{\Lambda} p - \left( \lambda + \theta \right) \xi
+\ee 
+with the following definitions
+\begin{align}
+\frac{\rho}{\Lambda} &= \frac{\langle \adj,  \left[ \nu \sigma_f - \left( -\div D \grad  + \sigma_a  \right)\right] \varphi \rangle}{\langle \adj, v^{-1} \,\varphi \rangle}\\
+\frac{\beta}{\Lambda}&= \frac{\langle \adj,  \nu_d \sigma_f \varphi \rangle}{\langle \adj, v^{-1} \,\varphi \rangle}\\
+\theta               &= \frac{\langle \adj,  v^{-1} \frac{\partial \varphi}{\partial t} \rangle}{\langle \adj, v^{-1} \,\varphi \rangle}
+                      = \frac{\frac{d}{dt}\langle \adj,  v^{-1} \varphi \rangle}{\langle \adj, v^{-1} \,\varphi \rangle}
+\end{align}
+The total time derivative expression for $\theta$ is due to the fact that $v$ and the initial adjoint function are both independent of time.  
+
+We have also defined
+\[
+\xi = \frac{ \langle \adj, C \rangle}{\langle \adj, v^{-1} \,\varphi \rangle}
+\]
+which gives
+\[
+\langle \adj, \frac{dC}{dt} \rangle = \langle \adj, v^{-1} \,\varphi \rangle \frac{d \xi}{dt} + \xi \frac{d}{dt}\langle \adj, v^{-1} \,\varphi \rangle
+\]
+and explains the presence of the $\theta$ term in the PRKE equation for the precursor concentrations.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Normalization choice}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+We choose to have the following quantity constant in time
+\be
+\langle \adj, v^{-1} \,\varphi \rangle = K_0
+\ee
+even though the shape itself may still be allowed to change in time. 
+
+This makes the factorization {\bf unique} and lets $\theta=0$, yielding the standard form of the PRKE equations (note that
+in the PRKE approximation, i.e., when the shape is assume independent of time, we automatically have $\theta=0$).
+
+\be
+\frac{dp}{dt} = \left(\frac{\rho}{\Lambda}-\frac{\beta}{\Lambda} \right) p + \lambda \xi
+\ee
+\be
+\frac{d\xi}{dt} = \frac{\beta}{\Lambda} p - \lambda \xi
+\ee 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{IQS solution procedure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In the IQS method, the shape is solved for on macro time steps $[t^n,t^{n+1}]$ (one solve for the shape over that time step) while the 
+PRKE equations are solve on micro time steps: $t^n, t^{n+1/M}, \ldots, t^{n+m/M}, \ldots, t^{n+1}$ (for a total of $M$ solves 
+during one macro time step).
+
+Because of the factorization approximation, we are actually solving a nonlinear problem over the macro time step. Convergence is said to be reached 
+when the new shape $\varphi(\vec{r},t^{n+1})$ satisfies the normalize condition $\langle \adj, v^{-1} \,\varphi \rangle = K_0$.
+
+The process over $[t^n,t^{n+1}]$ is as follows. Let the nonlinear iteration index be $\ell$.
+\begin{enumerate}
+\item Set $\ell=0$
+\item Estimate the shape at the end time $\varphi^{n+1,\ell}$ (could be extrapolation, or just assume equal to begin time shape function)
+\item Using the begin time and end time shape to compute $\rho/\Lambda$ and $\beta/\Lambda$ at the micro time steps 
+(this is a bit costly, so in reality we only do this for a certain multiple of the micro time steps, assuming a linear variation in time of the shape and using the exact values of the XS at the evaluation instants). 
+\item Solve the PRKE equations using data from 3.
+\item Compute $\alpha(t^{n+1}) = \frac{1}{v} \frac{1}{p(t^{n+1})}\left.\frac{dp}{dt}\right|_{t^{n+1}}$
+\item Compute the shape at the end time $\varphi^{n+1,\ell+1}$
+\item Check for convergence in $K_0$. If so, EXIT
+\item Otherwise $\ell \leftarrow \ell+1$ and GO BACK to 3.
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Homogeneous perturbation in an homogenous domain}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In this Section I consider a ``simple'' test case which I was hoping to test the 
+implementation of IQS.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Problem description}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Consider an initially critical homogeneous slab reactor solved with 1-g diffusion theory.
+The initial flux/shape is therefore a cosine. We can make the reactor critical simply by dividing
+the $\nu$'s with k$_\text{eff}$.
+
+At time $t=0$, the $\sigma_a$ is subjected to a variation that is linear in time (and this, at all times,
+the domain remains homogenous, i.e., no spatially varying cross sections).
+
+Because the initial flux only contains the steady-state fundamental mode and because the modification is homogeneous,
+no other modes are excited and the flux function only changes in magnitude. That is, the shape function remains constant
+and the flux amplitude is actually given by the solution of the PRKE.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Brute force temporal discretization}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+A backward Euler time discretization yields, for the flux,
+
+\be
+\label{eq:ex1}
+\frac{1}{v} \frac{\Phi^{n+1}-\Phi^n }{\Delta t} = (\nu_p \sigma_f)^{n+1} \Phi^{n+1} - \left( -\div D \grad + \sigma_a \right)^{n+1} \Phi^{n+1} + \lambda C^{n+1}
+\ee
+For a constant shape, this becomes:
+\be
+\frac{\varphi_0}{v} \frac{p^{n+1}-p^n }{\Delta t} = (\nu_p \sigma_f)^{n+1} \varphi_0 p^{n+1} - \left( -\div D \grad + \sigma_a \right)^{n+1} \varphi_0 p^{n+1} + \lambda \varphi_0 \xi^{n+1}
+\ee
+What equations should be satisfied by $p^{n+1}$ and $\xi^{n+1}$? Simply the PRKE discretized with backward Euler over $[t^n,t^{n+1}]$ (one step!). This
+can be easily verified if you take the above equation, multiply it by $\adj$ and integrate over the entire domain.
+
+We numerically observed that the brute-force solve yielded the same results as the PRKE solve when using the initial shape in the PRKE parameters.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{IQS approach with NO subcycling for the PRKE}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+If the shape and the amplitude functions are solved using the same time step, then we have
+
+\be
+\label{eq:ex2}
+\frac{1}{v} \frac{\varphi^{n+1} -\varphi^n}{\Delta t} = (\nu_p \sigma_f)^{n+1} \varphi^{n+1} - \left( -\div D \grad + (\sigma_a+\alpha) \right)^{n+1} \varphi^{n+1} + \frac{1}{p^{n+1}}\lambda C^{n+1}
+\ee
+where 
+\[
+\alpha^{n+1} = \frac{1}{v} \frac{1}{p^{n+1}}\frac{p^{n+1}-p^{n}}{\Delta t}
+\]
+This form of $\alpha$ is due to the fact that we assumed here to employ only one time interval for the PRKE (no subcycling).
+Note that by letting $\varphi^{n+1}=\varphi^n=\varphi_0$,  we can re-arrange \eqt{eq:ex2} as \eqt{eq:ex1}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{IQS approach with subcycling for the PRKE}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Now, \eqt{eq:ex2} tells you also something quite important. If you solve \eqt{eq:ex2} for $\varphi^{n+1}$, you obtain a solution (we verified if 
+the PRKE are done with the same time step as the shape, that the shape solution remains constant). Now, 
+\eqt{eq:ex2} is a linear system ($A \varphi^{n+1} = b$), so if I change slightly the entry of matrix $A$, I should get another solution for 
+$\varphi^{n+1}$. Well, subcycling the PRKE gives us a better value for $\alpha$ (it is more accurate since we solve the PRKE on a finer time grid),
+so we automatically see that $\varphi^{n+1}$ cannot remain constant equal to its initial value. Where's the flaw ????
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
