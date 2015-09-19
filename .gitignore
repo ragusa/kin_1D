@@ -44,3 +44,4 @@ testing*.vtk
 *.m~
 untitled*.m
 *.fls
+*.o
