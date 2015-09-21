@@ -105,6 +105,46 @@ if plot_transient_figure && make_movie
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% brute force discretization of
+%%%   the TD neutron diffusion eq and 
+%%%   ANALYTICAL solution og the precursors eq
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+amplitude_norm_an_prec=1;
+
+%%% loop on time steps %%%
+for it=1:ntimes
+    
+    time_end=it*dt;
+    if console_print, fprintf('time end = %g \n',time_end); end
+    
+    % solve time-dependent diffusion for flux
+    u = solve_TD_diffusion_an_prec(u,dt,time_end);
+    
+    % plot/movie
+    if plot_transient_figure
+        figure(1);
+        plot(npar.x_dofs,u(1:npar.n));drawnow;
+        if make_movie, mov(it) = getframe(gca); end
+    end
+    % compute end time power for plotting
+    dat.Ptot_an_prec(it+1) = compute_power(dat.nusigf,time_end,u(1:npar.n));
+    
+    % ratio of <u*,IVu> to its initial value
+    amplitude_norm_an_prec(it+1) = (phi_adjoint'*IV*u(1:npar.n))/npar.K0;
+    
+    % save flux for usage in PRKE exact for testing purposes
+    phi_save(:,it)=u(1:npar.n); %/Pnorm(it+1);
+    
+end
+% make movie
+if plot_transient_figure && make_movie
+    close(gcf)
+    % save as AVI file
+    movie2avi(mov, 'PbID10_v2_an_prec.avi', 'compression','None', 'fps',1);
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% IQS IQS IQS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
