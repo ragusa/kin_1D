@@ -119,7 +119,7 @@ switch problem_ID
 end
 
 
-bc.left.type=2; %0=neumann, 1=robin, 2=dirichlet
+bc.left.type=2; % 0=neumann, 1=robin, 2=dirichlet
 bc.left.C=0; % (that data is C in: -Ddu/dn=C // u/4+D/2du/dn=C // u=C)
 bc.rite.type=2;
 bc.rite.C=0;

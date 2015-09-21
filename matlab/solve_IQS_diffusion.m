@@ -18,8 +18,8 @@ shape_end=shape_beg;
 for iter = 1: max_iter_iqs
     
     % solve for amplitude function
-    [X,dpdt] =  solve_prke_iqs(X_beg,dt_macro,time_end,shape_beg,shape_end,n_micro,freq_react);
-%     [X(1) dpdt]
+%     [X,dpdt] =  solve_prke_iqs(X_beg,dt_macro,time_end,shape_beg,shape_end,n_micro,freq_react);
+    [X,dpdt] =  solve_prke_ode(X_beg,dt_macro,time_end,shape_beg,shape_end);
     % assemble IQS    
     TR = assemble_transient_operator_iqs(time_end,X(1),dpdt);
     M  = assemble_time_dependent_operator(time_end);

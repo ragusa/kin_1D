@@ -26,7 +26,7 @@ if plot_transient_figure
     plot(npar.x_dofs,phi0);
 end
 if console_print
-    fprintf('%10.8g \n',keff);
+    fprintf('Initial SS eigenvalue = %10.8g \n',keff);
 end
 
 % initialize kinetic values
@@ -42,7 +42,7 @@ IV   = assemble_mass(     dat.inv_vel ,curr_time);
 npar.IV=IV;
 
 % time steping data
-dt=0.01;
+dt=0.01/2;
 ntimes=100; % 150*2;
 iqs_factor=10;
 

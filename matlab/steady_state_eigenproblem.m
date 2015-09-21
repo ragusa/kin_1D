@@ -2,15 +2,9 @@ function [u,keff]=steady_state_eigenproblem(curr_time)
 
 global npar
 [M,P]=assemble_steady_state_operator(curr_time);
-M_=M;
-P_=P;
-save  beforebc.mat M_ P_
 
 M=apply_BC_mat_only(M,npar.add_ones_on_diagonal);
 P=apply_BC_mat_only(P,npar.add_zero_on_diagonal);
-M_=M;
-P_=P;
-save  afterbc.mat M_ P_
 
 % % kold=1;uold=rand(length(M),1);
 % % uold=uold/norm(uold,2);
@@ -43,6 +37,7 @@ if curr_time < eps
     npar.keff=keff;
 end
 
+% make sure the fundamental mode has the right sign
 if sum(u)<0
     u=-u;
 end

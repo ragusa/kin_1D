@@ -29,6 +29,7 @@ else
     npar.theta_old=theta;
 end
 
+theta = 0;
 
 % compute prke parameters at the above times 
 for i=1:n_react+1 % same as length(times_react_update)
