@@ -42,8 +42,8 @@ IV   = assemble_mass(     dat.inv_vel ,curr_time);
 npar.IV=IV;
 
 % time steping data
-dt=0.01/2;
-ntimes=100; % 150*2;
+dt=0.001;
+ntimes=1000; % 150*2;
 iqs_factor=10;
 
 
@@ -103,6 +103,58 @@ if plot_transient_figure && make_movie
     % save as AVI file
     movie2avi(mov, 'PbID10_v2.avi', 'compression','None', 'fps',1);
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% brute force discretization of
+%%%   the TD neutron diffusion eq and ANALYTICAL 
+%%%   solution for the precursors eq
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+amplitude_norm_an_prec=1;
+u=u0;
+
+%%% loop on time steps %%%
+for it=1:ntimes
+    
+    time_end=it*dt;
+    if console_print, fprintf('time end = %g \n',time_end); end
+    
+    % solve time-dependent diffusion for flux
+    u = solve_TD_diffusion_an_prec(u,dt,time_end);
+    
+    % plot/movie
+    if plot_transient_figure
+        figure(1);
+        plot(npar.x_dofs,u(1:npar.n));drawnow;
+        if make_movie, mov(it) = getframe(gca); end
+    end
+    % compute end time power for plotting
+    dat.Ptot_an_prec(it+1) = compute_power(dat.nusigf,time_end,u(1:npar.n));
+    
+    % ratio of <u*,IVu> to its initial value
+    amplitude_norm_an_prec(it+1) = (phi_adjoint'*IV*u(1:npar.n))/npar.K0;
+    
+    % save flux for usage in PRKE exact for testing purposes
+    phi_save_an_prec(:,it)=u(1:npar.n); %/Pnorm(it+1);
+    
+end
+% make movie
+if plot_transient_figure && make_movie
+    close(gcf)
+    % save as AVI file
+    movie2avi(mov, 'PbID10_v2.avi', 'compression','None', 'fps',1);
+end
+
+if plot_power_figure
+    figure(3); hold all;
+    t_=linspace(0,dt*ntimes,ntimes+1);
+    plot(t_,amplitude_norm,'+-');  leg=char('space-time');
+    plot(t_,amplitude_norm_an_prec,'+-');  leg=char(leg,'space-time-ANALY');
+    legend(leg,'Location','Best')
+end
+
+error('done')
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% IQS IQS IQS
@@ -226,6 +278,7 @@ if plot_power_figure
     t_=linspace(0,dt*ntimes,ntimes+1);
     ti=linspace(0,dt*ntimes,ntimes/iqs_factor+1);
     plot(t_,amplitude_norm,'+-');  leg=char('space-time');
+    plot(t_,amplitude_norm_an_prec,'+-');  leg=char('space-time-ANALY');
     plot(t_,Pnorm_prkeEX,'x-');    leg=char(leg,'PRKE exact');
     plot(t_,Pnorm_prke,'ro-');     leg=char(leg,'PRKE');
     %     plot(Pnorm_prkeQS,'mx-');   leg=char(leg,'PRKE QS');
