@@ -21,3 +21,9 @@ Bt= @(t)(t-t1)/(t2-t1).*exp(lambda*(t-t2));
 
 quad(@(t)At(t),t1,t2)
 quad(@(t)Bt(t),t1,t2)
+
+%%%%%%% testing interpolation and quad 
+% pp = interp1(xdata,ydata,'pchip','pp');
+% f = @(x) ppval(pp,x);
+% max_energy = 1000;  
+% quad(f,0,max_energy)

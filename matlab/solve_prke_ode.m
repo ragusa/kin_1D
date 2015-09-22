@@ -1,4 +1,4 @@
-function [X,dpdt] =  solve_prke_ode(X,dt_macro,time_end,shape_beg,shape_end)
+function [X,dpdt,t,pow] =  solve_prke_ode(X,dt_macro,time_end,shape_beg,shape_end)
 
 % make the problem-data a global variable
 global dat
@@ -13,13 +13,14 @@ dat.ode.shape_beg = shape_beg;
 dat.ode.shape_end = shape_end;
 
 % tolerances for odesolvers
-rtol = 1e-13; abso = 1e-13;
+rtol = 3e-14; abso = 3e-14;
 atol  = abso*ones(length(X),1);
 options = odeset('RelTol',rtol,'AbsTol',atol,'InitialStep',1e-10);
 
 % ODE solve for PRKEs
 [t,y]=ode15s(@funprke,[time_beg time_end],X,options);
 X=(y(end,:))';
+pow=y(:,1);
 
 % save value for dpdt at the end of the macro time step
 dXdt=funprke(time_end,X);

@@ -42,8 +42,8 @@ IV   = assemble_mass(     dat.inv_vel ,curr_time);
 npar.IV=IV;
 
 % time steping data
-dt=0.001;
-ntimes=1000; % 150*2;
+dt=0.01;
+ntimes=100; % 150*2;
 iqs_factor=10;
 
 
@@ -145,15 +145,65 @@ if plot_transient_figure && make_movie
     movie2avi(mov, 'PbID10_v2.avi', 'compression','None', 'fps',1);
 end
 
-if plot_power_figure
-    figure(3); hold all;
-    t_=linspace(0,dt*ntimes,ntimes+1);
-    plot(t_,amplitude_norm,'+-');  leg=char('space-time');
-    plot(t_,amplitude_norm_an_prec,'+-');  leg=char(leg,'space-time-ANALY');
-    legend(leg,'Location','Best')
+% if plot_power_figure
+%     figure(3); hold all;
+%     t_=linspace(0,dt*ntimes,ntimes+1);
+%     plot(t_,amplitude_norm,'+-');  leg=char('space-time');
+%     plot(t_,amplitude_norm_an_prec,'+-');  leg=char(leg,'space-time-ANALY');
+%     legend(leg,'Location','Best')
+% end
+% 
+% error('done')
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% IQS IQS IQS with ANALYTICAL precursors
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+amplitude_norm_iqs2=1;
+
+% initial solution vector
+u_shape=[phi0;C0];
+[~,beff_MGT]=compute_prke_parameters(0.,phi0);
+X=[1;beff_MGT/dat.lambda];
+Pnorm_prkeIQS2(1)=X(1);
+
+dt=dt*iqs_factor; ntimes=ntimes/iqs_factor;
+
+n_micro=10;
+freq_react=1;
+
+%%% loop on time steps %%%
+for it=1:ntimes
+    
+    time_end=it*dt;
+    if console_print, fprintf('time end = %g \n',time_end); end
+    
+    % solve time-dependent diffusion for flux
+    [u_shape,X] = solve_IQS_diffusion_an_prec(u_shape,X,dt,time_end);
+    
+    % plot/movie
+    if plot_transient_figure
+        figure(2)
+        plot(npar.x_dofs,u_shape(1:npar.n));drawnow;
+        if make_movie, mov(it) = getframe(gca); end
+    end
+    % compute end time power for plotting
+    dat.Ptot_iqs2(it+1) = compute_power(dat.nusigf,time_end,X(1)*u_shape(1:npar.n));
+    
+    % ratio of <u*,IVu> to its initial value
+    amplitude_norm_iqs2(it+1) = X(1)* (phi_adjoint'*IV*u_shape(1:npar.n))/npar.K0;
+    
 end
 
-error('done')
+% make movie
+if plot_transient_figure && make_movie
+    close(gcf)
+    % save as AVI file
+    movie2avi(mov, 'PbID10_v2_iqs.avi', 'compression','None', 'fps',1);
+end
+% undo time step increase
+dt=dt/iqs_factor; ntimes=ntimes*iqs_factor;
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -204,6 +254,7 @@ if plot_transient_figure && make_movie
 end
 % undo time step increase
 dt=dt/iqs_factor; ntimes=ntimes*iqs_factor;
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% standard PRKE with initial shape
@@ -278,11 +329,12 @@ if plot_power_figure
     t_=linspace(0,dt*ntimes,ntimes+1);
     ti=linspace(0,dt*ntimes,ntimes/iqs_factor+1);
     plot(t_,amplitude_norm,'+-');  leg=char('space-time');
-    plot(t_,amplitude_norm_an_prec,'+-');  leg=char('space-time-ANALY');
+    plot(t_,amplitude_norm_an_prec,'+-');  leg=char(leg,'space-time-ANALY');
     plot(t_,Pnorm_prkeEX,'x-');    leg=char(leg,'PRKE exact');
     plot(t_,Pnorm_prke,'ro-');     leg=char(leg,'PRKE');
     %     plot(Pnorm_prkeQS,'mx-');   leg=char(leg,'PRKE QS');
     plot(ti,amplitude_norm_iqs,'gx-');  leg=char(leg,'PRKE IQS');
+    plot(ti,amplitude_norm_iqs2,'mx-'); leg=char(leg,'PRKE IQS2');
     legend(leg,'Location','Best')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
