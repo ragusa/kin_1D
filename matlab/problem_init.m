@@ -195,6 +195,9 @@ npar.x_dofs=linspace(0,dat.width,npar.ndofs(1));
 npar.add_zero_on_diagonal=true;
 npar.add_ones_on_diagonal=~npar.add_zero_on_diagonal;
 
+% IQS options
+npar.solve_prke_compute_rho_each_time = false;
+
 return
 end
 

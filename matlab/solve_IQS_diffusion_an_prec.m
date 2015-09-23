@@ -1,4 +1,4 @@
-function [u_shape, X] = solve_IQS_diffusion_an_prec(u_shape,X,dt_macro,time_end)
+function [u_shape, X,t,y] = solve_IQS_diffusion_an_prec(u_shape,X,dt_macro,time_end)
 
 global dat npar
 
@@ -7,8 +7,8 @@ lambda = dat.lambda;
 dt = dt_macro;
 C_old = u_shape(npar.n+1:end);
 
-max_iter_iqs = 3;
-tol_iqs=1e-6;
+max_iter_iqs = 10;
+tol_iqs=1e-7;
 npar.theta_old=[];
 
 % save values at beginning of macro time step: they are needed in the IQS iteration
