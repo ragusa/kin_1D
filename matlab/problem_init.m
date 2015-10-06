@@ -197,124 +197,13 @@ npar.add_ones_on_diagonal=~npar.add_zero_on_diagonal;
 
 % IQS options
 npar.solve_prke_compute_rho_each_time = false;
+npar.prke_solve = 'matlab' ;
 
 return
 end
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [u]=solve_ss_fem()
-
-% perform the Newton solve
-u = newton();
-
-
-return
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-function  T=newton()
-
-global dat npar prt
-
-% initial guess
-T=ones(sum(npar.ndofs),1)*400;
-T=linspace(1000,400,sum(npar.ndofs))';
-T=T/npar.scale;
-
-curr_time=0;
-% compute the residual
-resi = dat.myfunc(curr_time,T);
-% compute its norm
-norm_resi=norm(resi);
-% compute stopping criterion
-tol_newton = npar.atol_newton + npar.rtol_newton*norm_resi;
-
-eigstudy=false;
-if(npar.newton_solve_option>3),eigstudy=false;end
-
-inewton=0;
-while (inewton<npar.max_newton && norm_resi>tol_newton)
-    inewton=inewton+1;
-    if(prt.lev>=0), fprintf('Newton iteration %i, ',inewton); end
-    % compute the jacobian matrix
-    J = dat.myjac(curr_time,T,resi);
-    P = dat.myprec(curr_time,T);
-    if(eigstudy)
-%         P = compute_precond(T,npar,dat,1);
-        figure(2)
-        subplot(2,1,1);
-        eigplot(full(J),2);
-        subplot(2,1,2);
-        JiP=J*inv(P);
-        eigplot(full(JiP),2);
-        fprintf('\n\tEst. of cond number for J: %g, \t for JiP: %g\n',condest(J),condest(JiP));
-        figure(3);
-        subplot(2,1,1);   spy(J);
-        subplot(2,1,2);   spy(JiP);
-    end
-    % newton solve
-    switch npar.newton_solve_option
-        case {1}
-            dT = -J\resi;
-        case{2,3}
-            % gmres(A,b,restart,tol,maxit,M1,M2,x0)
-            restart=[];
-            tol_newton_lin=npar.tol_newton_lin;
-            [dT,flag,relres,iter,resvec] = gmres(J,-resi,restart,tol_newton_lin,[],P,[],[]);
-            if(prt.lev>=0 || flag==0)
-                switch flag
-                    case{0}
-                        fprintf('\tgmres converged');
-                    case{1}
-                        fprintf('\tgmres did not converge');
-                    case{2}
-                        fprintf('\tgmres: ill-conditioned');
-                    case{3}
-                        fprintf('\tgmres stagnation');
-                end
-            end
-            if(prt.lev>=0), fprintf('\titer statistics in gmres: %i, %i\n',iter(1),iter(2)); end
-        case {4,5}
-            restart=10;
-            tol_newton_lin=npar.tol_newton_lin;
-            [w,flag,relres,iter,resvec] = gmres(@Jv,-resi,restart,tol_newton_lin,150,[],[],[],... % the next line is for @afun arguments
-                T,resi,dat.myfunc,P,curr_time);
-            if(prt.lev>=0 || flag==0)
-                switch flag
-                    case{0}
-                        fprintf('\tgmres converged');
-                    case{1}
-                        fprintf('\tgmres did not converge');
-                    case{2}
-                        fprintf('\tgmres: ill-conditioned');
-                    case{3}
-                        fprintf('\tgmres stagnation');
-                end
-            end
-            if(prt.lev>=0), fprintf('\titer statistics in gmres: %i, %i\n',iter(1),iter(2)); end
-            dT=P\w;    
-    end
-    % new Newton iterate
-    T=T+dT;        
-    % compute the residual
-    resi = dat.myfunc(curr_time,T);
-    % compute its norm
-    norm_resi=norm(resi);
-    if(prt.lev>=0)
-        if(norm_resi<tol_newton)
-            fprintf(' CONVERGED with ');
-        end
-        fprintf('Nonlinear residual error=%g, delta solution %g \n\n',norm_resi,norm(dT));
-    end
-end
-% re-scale
-T=T*npar.scale;
-
-return
-end
 
 

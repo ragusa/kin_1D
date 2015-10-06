@@ -69,7 +69,7 @@ i=0;
 % i=i+1; list_runs{i}= 'brute_force';
 % i=i+1; list_runs{i}= 'brute_force_an_prec';
 i=i+1; list_runs{i}= 'iqs_an_prec';
-% i=i+1; list_runs{i}= 'iqs';
+i=i+1; list_runs{i}= 'iqs';
 % i=i+1; list_runs{i}= 'prke_initial_shape';
 % i=i+1; list_runs{i}= 'prke_exact_shape';
 % i=i+1; list_runs{i}= 'prke_qs_shape';

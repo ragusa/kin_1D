@@ -1,4 +1,4 @@
-function [X,dpdt] =  solve_prke_iqs(X,dt_macro,time_end,shape_beg,shape_end,n_micro,freq_react)
+function [X,dpdt,t,y] =  solve_prke_iqs(X,dt_macro,time_end,shape_beg,shape_end,n_micro,freq_react)
 
 % make the problem-data a global variable
 global dat npar
@@ -31,7 +31,7 @@ end
 
 theta = 0;
 
-% compute prke parameters at the above times 
+% compute prke parameters at the above times
 for i=1:n_react+1 % same as length(times_react_update)
     % weights for linear interpolation of the shape
     w1 = (time_end-times_react_update(i))/dt_macro;
@@ -53,6 +53,10 @@ for i=1:n_react
     beff_MGT_iqs = [ beff_MGT_iqs aux(2:end)];
 end
 
+% storage for t and y (for post-processing)
+t=zeros(nmicro+1,1); t(1) = time_beg;
+y=zeros(nmicro+1,1); y(1) = X(1);
+
 % loop over micro time steps
 for it=1:n_micro
     % build prke matrix
@@ -60,6 +64,9 @@ for it=1:n_micro
         beff_MGT_iqs(it)                 -(dat.lambda+theta)];
     % solve
     X=(eye(2)-dt*A)\X;
+    % storage
+    t(it+1)=t(it)+dt;
+    y(it+1)=X(1);
 end
 
 fprintf('theta = %g, power= %g \n',theta,X(1));

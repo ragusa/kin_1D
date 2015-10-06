@@ -21,18 +21,24 @@ shape_end=shape_beg;
 for iter = 1: max_iter_iqs
     
     % solve for amplitude function
-    %     [X,dpdt] =  solve_prke_iqs(X_beg,dt_macro,time_end,shape_beg,shape_end,n_micro,freq_react);
-    [X,dpdt,t,y] =  solve_prke_ode(X_beg,dt_macro,time_end,shape_beg,shape_end);
-    
+    if strcmpi(npar.prke_solve,'matlab')
+        [X,dpdt,t,y] =  solve_prke_ode(X_beg,dt_macro,time_end,shape_beg,shape_end);
+    else
+        [X,dpdt,t,y] =  solve_prke_iqs(X_beg,dt_macro,time_end,shape_beg,shape_end,n_micro,freq_react);
+    end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % assemble IQS
     
     % shortcut
     p=X(1);
     % interpolating polynomial
-    pp = interp1(t,y,'pchip','pp');
+    if strcmpi(npar.prke_solve,'matlab')
+        pp = interp1(t,y,'pchip','pp');
+    else
+        pp = interp1(t,y,'linear','pp');
+    end
     f = @(t) ppval(pp,t);
-
+    
     TR  = sparse(npar.n,npar.n,npar.nnz);
     
     D    = assemble_stiffness(dat.cdiff   ,time_end);
@@ -69,7 +75,7 @@ for iter = 1: max_iter_iqs
     % build system matrix
     A = IV-dt*TR;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-         
+    
     if npar.set_bc_last
         [A,rhs]=apply_BC(A,rhs,npar.add_ones_on_diagonal);
     else
@@ -77,7 +83,7 @@ for iter = 1: max_iter_iqs
     end
     % solve for new shape_end: M(unew-uold)/dt=TR.unew
     shape_end = A\rhs;
-
+    
     % update precursors
     C_new =  C_old*exp(-lambda*dt) + ( a1*NFId_old + a2*NFId_new )*shape_beg + ( a2*NFId_old + a3*NFId_new )*shape_end ;
     % re-package as single solution vector
