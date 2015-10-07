@@ -43,7 +43,7 @@ npar.IV=IV;
 
 % time steping data
 dt=0.005;
-ntimes=10/dt; % 150*2;
+ntimes=2/dt; % 150*2;
 iqs_factor=1;
 
 
@@ -69,6 +69,7 @@ i=0;
 % i=i+1; list_runs{i}= 'brute_force';
 % i=i+1; list_runs{i}= 'brute_force_an_prec';
 i=i+1; list_runs{i}= 'iqs_an_prec';
+i=i+1; list_runs{i}= 'iqs_theta_prec';
 i=i+1; list_runs{i}= 'iqs';
 % i=i+1; list_runs{i}= 'prke_initial_shape';
 % i=i+1; list_runs{i}= 'prke_exact_shape';
@@ -196,7 +197,7 @@ for it=1:ntimes
     
     time_end=it*dt;
     if console_print, fprintf('time end = %g \n',time_end); end
-    
+
     % solve time-dependent diffusion for flux
     [u_shape,X,t,y] = solve_IQS_diffusion_an_prec(u_shape,X,dt,time_end);
     
@@ -216,6 +217,59 @@ for it=1:ntimes
     time_prke_iqs=[time_prke_iqs ; t];
     power_prke_iqs=[power_prke_iqs; y];
 
+    
+end
+
+% make movie
+if plot_transient_figure && make_movie
+    close(gcf)
+    % save as AVI file
+    movie2avi(mov, 'PbID10_v2_iqs.avi', 'compression','None', 'fps',1);
+end
+% undo time step increase
+dt=dt/iqs_factor; ntimes=ntimes*iqs_factor;
+
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% IQS IQS IQS with Theta Discretized precursors
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if should_I_run_this(list_runs,'iqs_theta_prec')
+    
+amplitude_norm_iqs3=1;
+
+dt=dt*iqs_factor; ntimes=ntimes/iqs_factor;
+
+% initial solution vector
+u_shape=[phi0;C0];
+[~,beff_MGT]=compute_prke_parameters(0.,phi0);
+X=[1;beff_MGT/dat.lambda];
+Pnorm_prkeIQS3(1)=X(1);
+
+n_micro=10;
+freq_react=1;
+
+theta = 0.5;
+%%% loop on time steps %%%
+for it=1:ntimes
+    
+    time_end=it*dt; 
+    if console_print, fprintf('time end = %g \n',time_end); end
+    
+    % solve time-dependent diffusion for flux
+    [u_shape,X] = solve_IQS_diffusion_td_prec(u_shape,X,dt,time_end,theta);
+    
+    % plot/movie
+    if plot_transient_figure
+        figure(2)
+        plot(npar.x_dofs,u_shape(1:npar.n));drawnow;
+        if make_movie, mov(it) = getframe(gca); end
+    end
+    % compute end time power for plotting
+    dat.Ptot_iqs3(it+1) = compute_power(dat.nusigf,time_end,X(1)*u_shape(1:npar.n));
+    
+    % ratio of <u*,IVu> to its initial value
+    amplitude_norm_iqs3(it+1) = X(1)* (phi_adjoint'*IV*u_shape(1:npar.n))/npar.K0;
     
 end
 
@@ -391,6 +445,15 @@ if plot_power_figure
             leg=char(leg,'IQS2 fine');
         end
     end
+    if should_I_run_this(list_runs,'iqs_theta_prec')
+        plot(ti,amplitude_norm_iqs3,'kx-');
+        if ~has_leg
+            leg=char('IQS3');
+            has_leg=true;
+        else
+            leg=char(leg,'IQS3');
+        end
+    end
     if should_I_run_this(list_runs,'iqs')
         plot(ti,amplitude_norm_iqs,'gx-');
         if ~has_leg
@@ -429,7 +492,7 @@ if plot_power_figure
             leg=char(leg,'PRKE QS');
         end
     end
-    
+
     legend(leg,'Location','Best')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
