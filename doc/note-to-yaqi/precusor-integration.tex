@@ -1,0 +1,206 @@
+\documentclass[11pt]{tamurmemo} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{graphics}
+\usepackage{float}
+\usepackage{subfigure}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amstext}
+\usepackage{amsbsy}
+\usepackage{xspace}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% operators
+\renewcommand{\div}{\vec{\nabla}\! \cdot \!}
+\newcommand{\grad}{\vec{\nabla}}
+% latex shortcuts
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\bal}{\begin{align}}
+\newcommand{\eali}{\end{align}}
+\newcommand{\bi}{\begin{itemize}}
+\newcommand{\ei}{\end{itemize}}
+\newcommand{\ben}{\begin{enumerate}}
+\newcommand{\een}{\end{enumerate}}
+% DGFEM commands
+\newcommand{\jmp}[1]{[\![#1]\!]}                     % jump
+\newcommand{\mvl}[1]{\{\!\!\{#1\}\!\!\}}             % mean value
+\newcommand{\kef}{\ensuremath{k_{\textit{eff}}}}
+%\newcommand{\keff}{{\text{k}$_\textit{eff}$}\xspace}
+\newcommand{\keff}{\kef\xspace}
+% shortcut for domain notation
+%\newcommand{\D}{\mathcal{D}}
+% vector shortcuts
+\newcommand{\vo}{\vec{\Omega}}
+\newcommand{\vr}{\vec{r}}
+\newcommand{\vn}{\vec{n}}
+\newcommand{\vnk}{\vec{\mathbf{n}}}
+\newcommand{\vj}{\vec{J}}
+% extra space
+\newcommand{\qq}{\quad\quad}
+% common reference commands
+\newcommand{\eqt}[1]{Eq.~(\ref{#1})}                     % equation
+\newcommand{\fig}[1]{Fig.~\ref{#1}}                      % figure
+\newcommand{\tbl}[1]{Table~\ref{#1}}                     % table
+
+\newcommand{\ud}{\,\mathrm{d}}
+\newcommand{\mt}[1]{\marginpar{\tiny #1}}
+\newcommand{\D}{\ensuremath{\mathcal{D}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%   BEGIN DOCUMENT
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%---------------------------------------------------------------------------%%
+%% OPTIONS FOR NOTE
+%%---------------------------------------------------------------------------%%
+
+\toms{Distribution}
+\subject{Precursor Evaluation}
+
+%-------NO CHANGES
+\collegename{Dwight Look College of Engineering}
+\deptname{Department of Nuclear Engineering}
+\fromms{Zachary\ M.\ Prince}
+\originator{zmp}
+\typist{zmp}
+\date{\today}
+%-------NO CHANGES
+
+%-------OPTIONS
+%\reference{NPB Star Reimbursable Project}
+%\thru{}
+%\enc{list}      
+%\attachments{list}
+\cy{File}
+%\encas
+%\attachmentas
+%\attachmentsas 
+%-------OPTIONS
+
+%%---------------------------------------------------------------------------%%
+%% DISTRIBUTION LIST
+%%---------------------------------------------------------------------------%%
+
+\distribution {
+Yaqi Wang, INL, {\em yaqi.wang@inl.gov},\\
+Jean Ragusa, TAMU, {\em jean.ragusa@tamu.edu}
+}
+
+%%---------------------------------------------------------------------------%%
+%% BEGIN NOTE
+%%---------------------------------------------------------------------------%%
+
+\opening
+
+%%---------------------------------------------------------------------------%%
+\section{Precursor Solve for Shape Evaluation}
+%%---------------------------------------------------------------------------%%
+
+This document shows two different methods to solve precursor equations or IQS shape evaluation.  To begin, below is the shape equation coupled with its precursors; for simplicity, the problem is single group with a single precursor group.
+
+\be
+\frac{1}{v}\frac{\partial\varphi}{\partial t}=\nu\Sigma_f(1-\beta)\varphi-\left(-\div D \grad + \Sigma_a + \frac{1}{v}\frac{1}{p}\frac{dp}{dt}\right)\varphi+\frac{1}{p}\lambda C 
+\ee
+\be
+\frac{dC}{dt} = \beta\nu \Sigma_f \varphi p - \lambda C
+\ee
+
+It is possible to keep these equations separate and discretize them together; however, this is unnecessary and a memory expensive endeavor.  So solving the precursor equation using some discretization or integration scheme to solve the precursors with respect to the shape first, then insert that into the shape equation, solving only one equation at a time.  This document will discuss two techniques to solving the precursor equation.  First is a time discretization method that is currently being implemented in YAK.  The second is a analytical integration of the precursors, this method has proven to be more beneficial for IQS.
+
+\bigskip
+
+%%---------------------------------------------------------------------------%%
+\section{Time Discretization using Theta Method}
+%%---------------------------------------------------------------------------%%
+
+The simplest way to evaluate the precursor equation is to perform a implicit/explicit finite difference approximation known as the theta method.  The method entails discretizing the the precursor in time and including a weight $(\theta)$ to the implicit and explicit components.  Most generally, if there is a function $u$ defined as:
+
+\be
+\frac{du}{dt}=f(u,t)
+\ee
+
+Then the discretization would look like:
+
+\be
+\frac{u^{n+1}-u^n}{\Delta t}=(1-\theta)f(u^n,t) + \theta f(u^{n+1},t)
+\ee
+
+Applying this to the precursor equation:
+
+\be
+\frac{C^{n+1}-C^n}{\Delta t}=(1-\theta)\beta(\nu\Sigma_f)^n\varphi^n p^n-(1-\theta)\lambda C^n + \theta\beta(\nu\Sigma_f)^{n+1}\varphi^{n+1}p^{n+1}-\theta\lambda C^{n+1}
+\ee
+
+Rearranging to solve for the precursor at the new time step:
+
+\be
+C^{n+1}=\frac{1-(1-\theta)\Delta t\lambda}{1+\theta\Delta t\lambda}C^n + \frac{(1-\theta)\Delta t \beta (\nu\Sigma_f)^n}{1+\theta\Delta t\lambda}\varphi^n p^n +  \frac{(1-\theta)\Delta t \beta (\nu\Sigma_f)^{n+1}}{1+\theta\Delta t\lambda}\varphi^{n+1} p^{n+1}
+\ee
+
+This equation can then be plugged into the shape equation and solving for shape alone.  $\theta$ is a somewhat arbitrary constant $0\le\theta\le1$.  However, the purely explicit method shows when $\theta=0$, implicit when $\theta=1$, and Crank-Nicholson when $\theta=1/2$.  Due to instability, the explicit method is not a preferable option.  YAK currently implements both implicit and Crank-Nicholson as options for precursor evaluation.
+
+\bigskip
+
+
+%%---------------------------------------------------------------------------%%
+\section{Analytical Integration}
+%%---------------------------------------------------------------------------%%
+
+Through prototyping, it has been found that neither implicit nor Crank-Nicholson time discretization of precursors are preferable methods for solving the shape equation in IQS.  It has been found that these discretizations result in a lack of convergence of the shape over the IQS iteration process.  In order to remedy the error, a analytical representation of the precursors was implemented in the prototype and the shape solution was able to converge.  The following section shows how this method was implemented in the prototype and the desired implementation in YAK.
+
+Using an exponential operator, the precursor equation can be analytically solved for:
+
+\be
+Ce^{\lambda t}=\int\beta\nu\Sigma_f\varphi pe^{\lambda t'}dt'
+\ee
+
+The right hand side can be integrated over a time step in order to acquire the precursor at the next time step:
+
+\be
+C^{n+1}e^{\lambda t_{n+1}}=\beta\int_{t_n}^{t_{n+1}}\nu\Sigma_f(t')\varphi(t') p(t')e^{\lambda t'}dt' + \lambda C^n e^{\lambda t_n}
+\ee
+
+Dividing by $e^{\lambda t_{n+1}}$:
+
+\be
+C^{n+1} = \beta\int_{t_n}^{t_{n+1}}\nu\Sigma_f(t')\varphi(t') p(t')e^{-\lambda (t_{n+1}-t')}dt' + \lambda C^n e^{-\lambda \Delta t}
+\ee
+
+Because $\nu\Sigma_f$ and $\varphi$ being integrated are not known continuously over the time step, they can be interpolated linearly over the macro step.  Such that:
+
+\be
+f(t) \cong \frac{t-t_n}{t_{n+1}-t_n}(f^{n+1}-f^n) \quad t_n \le t \le t_{n+1}
+\ee
+
+So:
+
+\be
+C^{n+1} = \beta\left(a_3(\nu\Sigma_f)^{n+1}\varphi^{n+1}+a_2(\nu\Sigma_f)^{n+1}\varphi^n + a_2(\nu\Sigma_f)^n\varphi^{n+1} + a_1(\nu\Sigma_f)^n\varphi^n\right) + \lambda C^n e^{-\lambda \Delta t}
+\ee
+
+Where the integration coefficients are defined as:
+
+\begin{align}
+&a_1 = \int_{t_n}^{t_{n+1}}\left(\frac{t_{n+1}-t'}{\Delta t}\right)^2p(t')e^{-\lambda(t_{n+1}-t')}dt' \\
+&a_2= \int_{t_n}^{t_{n+1}}\frac{(t'-t_n)(t_{n+1}-t')}{(\Delta t)^2}p(t')e^{-\lambda(t_{n+1}-t')}dt' \\
+&a_3 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)^2p(t')e^{-\lambda(t_{n+1}-t')}dt'
+\end{align}
+
+The amplitude $(p)$ is included in the integration coefficient because it has been highly accurately calculated in the micro step scheme, so a piecewise interpolation between those points can be done to maximize accuracy.  However, this term in the integration makes it impossible to do analytically.  The prototype uses Matlab software to interpolate the amplitude between micro steps and a quadrature integration for the coefficients.  So the challenge for YAK is to replicate this procedure: passing the amplitude vector to the DNP auxkernel, interpolating it, and integrating the coefficients.  Applying these coefficients to the "fission source" term seems trivial after the procedure is completed.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\closing
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
