@@ -71,9 +71,9 @@
 %-------NO CHANGES
 \collegename{Dwight Look College of Engineering}
 \deptname{Department of Nuclear Engineering}
-\fromms{Zachary\ M.\ Prince}
-\originator{zmp}
-\typist{zmp}
+\fromms{Zachary\ M.\ Prince, Jean C. Ragusa}
+\originator{zmp,jcr}
+\typist{zmp,jcr}
 \date{\today}
 %-------NO CHANGES
 
@@ -93,8 +93,9 @@
 %%---------------------------------------------------------------------------%%
 
 \distribution {
-Yaqi Wang, INL, {\em yaqi.wang@inl.gov},\\
-Jean Ragusa, TAMU, {\em jean.ragusa@tamu.edu}
+Yaqi Wang, INL, {\em yaqi.wang@inl.gov}
+%,\\
+%Jean Ragusa, TAMU, {\em jean.ragusa@tamu.edu}
 }
 
 %%---------------------------------------------------------------------------%%
@@ -107,7 +108,8 @@ Jean Ragusa, TAMU, {\em jean.ragusa@tamu.edu}
 \section{Precursor Solve for Shape Evaluation}
 %%---------------------------------------------------------------------------%%
 
-This document shows two different methods to solve precursor equations or IQS shape evaluation.  To begin, below is the shape equation coupled with its precursors; for simplicity, the problem is single group with a single precursor group.
+This document presents two different time-integration methods to solve coupled IQS shape + precursor equations, recalled below
+using, for simplicity, a single neutron group and a single precursor group.
 
 \be
 \frac{1}{v}\frac{\partial\varphi}{\partial t}=\nu\Sigma_f(1-\beta)\varphi-\left(-\div D \grad + \Sigma_a + \frac{1}{v}\frac{1}{p}\frac{dp}{dt}\right)\varphi+\frac{1}{p}\lambda C 
@@ -116,24 +118,24 @@ This document shows two different methods to solve precursor equations or IQS sh
 \frac{dC}{dt} = \beta\nu \Sigma_f \varphi p - \lambda C
 \ee
 
-It is possible to keep these equations separate and discretize them together; however, this is unnecessary and a memory expensive endeavor.  So solving the precursor equation using some discretization or integration scheme to solve the precursors with respect to the shape first, then insert that into the shape equation, solving only one equation at a time.  This document will discuss two techniques to solving the precursor equation.  First is a time discretization method that is currently being implemented in YAK.  The second is a analytical integration of the precursors, this method has proven to be more beneficial for IQS.
+First, we note that we could keep this system of two time-dependent equations and solve it as a coupled system. 
+However, this is unnecessary and a memory expensive endeavor because the precursor equation is only an ODE and not a PDE. 
+Instead, one may discretize in time the shape equation, which typically requires the knowledge of the
+precursor concentrations at the end of the time step. This precursor value is taken from the solution, numerical or anlaytical,
+of the precursors ODE. This document will discuss two techniques for solving the precursor equation.  First is a time discretization method that is currently being implemented in YAK.  The second is a analytical integration of the precursors, the latter method has proven to be more beneficial for IQS convergence.
 
-\bigskip
 
 %%---------------------------------------------------------------------------%%
-\section{Time Discretization using Theta Method}
+\section{Time Discretization using the Theta Method}
 %%---------------------------------------------------------------------------%%
 
-The simplest way to evaluate the precursor equation is to perform a implicit/explicit finite difference approximation known as the theta method.  The method entails discretizing the the precursor in time and including a weight $(\theta)$ to the implicit and explicit components.  Most generally, if there is a function $u$ defined as:
+A fairly simple way to evaluate the precursor equation is to employ the $\theta$-scheme ($0\le\theta\le1$,
+explicit when $\theta=0$, implicit when $\theta=1$, and Crank-Nicholson when $\theta=1/2$).
+Generally, if there is a function $u$ whose governing equation is $\frac{du}{dt}=f(u,t)$,
+then the $\theta$-discretization is
 
 \be
-\frac{du}{dt}=f(u,t)
-\ee
-
-Then the discretization would look like:
-
-\be
-\frac{u^{n+1}-u^n}{\Delta t}=(1-\theta)f(u^n,t) + \theta f(u^{n+1},t)
+\frac{u^{n+1}-u^n}{\Delta t}=(1-\theta)f(u^n,t) + \theta f(u^{n+1},t) \,.
 \ee
 
 Applying this to the precursor equation:
@@ -142,13 +144,14 @@ Applying this to the precursor equation:
 \frac{C^{n+1}-C^n}{\Delta t}=(1-\theta)\beta(\nu\Sigma_f)^n\varphi^n p^n-(1-\theta)\lambda C^n + \theta\beta(\nu\Sigma_f)^{n+1}\varphi^{n+1}p^{n+1}-\theta\lambda C^{n+1}
 \ee
 
-Rearranging to solve for the precursor at the new time step:
+Rearranging to solve for the precursor at the end of the time step yields
 
 \be
-C^{n+1}=\frac{1-(1-\theta)\Delta t\lambda}{1+\theta\Delta t\lambda}C^n + \frac{(1-\theta)\Delta t \beta (\nu\Sigma_f)^n}{1+\theta\Delta t\lambda}\varphi^n p^n +  \frac{(1-\theta)\Delta t \beta (\nu\Sigma_f)^{n+1}}{1+\theta\Delta t\lambda}\varphi^{n+1} p^{n+1}
+C^{n+1} = \frac{1-(1-\theta)\Delta t\lambda}{1+\theta\Delta t\lambda}C^n + \frac{(1-\theta)\Delta t \beta (\nu\Sigma_f)^n}{1+\theta\Delta t\lambda}\varphi^n p^n +  \frac{(1-\theta)\Delta t \beta (\nu\Sigma_f)^{n+1}}{1+\theta\Delta t\lambda}\varphi^{n+1} p^{n+1}
 \ee
-
-This equation can then be plugged into the shape equation and solving for shape alone.  $\theta$ is a somewhat arbitrary constant $0\le\theta\le1$.  However, the purely explicit method shows when $\theta=0$, implicit when $\theta=1$, and Crank-Nicholson when $\theta=1/2$.  Due to instability, the explicit method is not a preferable option.  YAK currently implements both implicit and Crank-Nicholson as options for precursor evaluation.
+Reporting this value of $C^{n+1}$, one can solve for the shape $\varphi^{n+1}$ as a function of $\varphi^n$ and $C^n$
+(and $p^n$, $p^{n+1}$, $dp/dt|_n$ and  $dp/dt|_{n+1}$).
+Once $\varphi^{n+1}$ has been determined, $C^{n+1}$ is updated. YAK currently implements both implicit and Crank-Nicholson as options for precursor evaluation.
 
 \bigskip
 
@@ -157,36 +160,35 @@ This equation can then be plugged into the shape equation and solving for shape 
 \section{Analytical Integration}
 %%---------------------------------------------------------------------------%%
 
-Through prototyping, it has been found that neither implicit nor Crank-Nicholson time discretization of precursors are preferable methods for solving the shape equation in IQS.  It has been found that these discretizations result in a lack of convergence of the shape over the IQS iteration process.  In order to remedy the error, a analytical representation of the precursors was implemented in the prototype and the shape solution was able to converge.  The following section shows how this method was implemented in the prototype and the desired implementation in YAK.
+Through prototyping, it has been found that neither implicit nor Crank-Nicholson time discretization of precursors are preferable methods for solving the shape equation in IQS.  It has been found that these discretizations result in a lack of convergence of the shape over the IQS iteration process.  In order to remedy the error, a analytical representation of the precursors was implemented in the prototype and the shape solution was able to converge (the normalization constant of the IQS method can be preserved to $10^{-10}$ while the theta-scheme only allowed convergence in the normalization factor to about $10^{-3}$).  The following section shows how this method was implemented in the prototype and the desired implementation for YAK.
 
 Using an exponential operator, the precursor equation can be analytically solved for:
 
 \be
-Ce^{\lambda t}=\int\beta\nu\Sigma_f\varphi pe^{\lambda t'}dt'
+\int_{t_n}^{t_{n+1}} C(t')e^{\lambda t'} dt' = \int_{t_n}^{t_{n+1}} \beta\nu\Sigma_f(t')\varphi(t') p(t')e^{\lambda t'}dt'
 \ee
 
-The right hand side can be integrated over a time step in order to acquire the precursor at the next time step:
+yielding
 
 \be
-C^{n+1}e^{\lambda t_{n+1}}=\beta\int_{t_n}^{t_{n+1}}\nu\Sigma_f(t')\varphi(t') p(t')e^{\lambda t'}dt' + \lambda C^n e^{\lambda t_n}
+C^{n+1} =  C^n e^{-\lambda (t_{n+1} - t_n) }  + \int_{t_n}^{t_{n+1}} \beta\nu\Sigma_f(t')\varphi(t') p(t')e^{-\lambda (t_{n+1}-t')}dt'
 \ee
 
-Dividing by $e^{\lambda t_{n+1}}$:
+Because $\beta\nu\Sigma_f$ and $\varphi$ being integrated are not known continuously over the time step, they can be interpolated linearly over the macro step.  Such that:
 
 \be
-C^{n+1} = \beta\int_{t_n}^{t_{n+1}}\nu\Sigma_f(t')\varphi(t') p(t')e^{-\lambda (t_{n+1}-t')}dt' + \lambda C^n e^{-\lambda \Delta t}
+h(t) = \frac{t_{n+1}-t}{t_{n+1}-t_n}h^n  + \frac{t-t_n}{t_{n+1}-t_n}h^{n+1}  \quad t_n \le t \le t_{n+1}
 \ee
+% We let $\ell_n(t) = \frac{t_{n+1}-t}{t_{n+1}-t_n}$ and  $\ell_{n+1}(t) = \frac{t-t_n}{t_{n+1}-t_n}$ for simplicity. 
 
-Because $\nu\Sigma_f$ and $\varphi$ being integrated are not known continuously over the time step, they can be interpolated linearly over the macro step.  Such that:
+However, for the PRKE solve, we do have a very accurate representation of $p(t')$ over the time interval $[t_n,t_{n+1}]$.
 
-\be
-f(t) \cong \frac{t-t_n}{t_{n+1}-t_n}(f^{n+1}-f^n) \quad t_n \le t \le t_{n+1}
-\ee
-
-So:
+Finally, we have the final expression for the analytical value for $C^{n+1}$:
 
 \be
-C^{n+1} = \beta\left(a_3(\nu\Sigma_f)^{n+1}\varphi^{n+1}+a_2(\nu\Sigma_f)^{n+1}\varphi^n + a_2(\nu\Sigma_f)^n\varphi^{n+1} + a_1(\nu\Sigma_f)^n\varphi^n\right) + \lambda C^n e^{-\lambda \Delta t}
+C^{n+1} = C^n e^{-\lambda \Delta t} 
++ \left(a_3(\beta\nu\Sigma_f)^{n+1}+a_2(\beta\nu\Sigma_f)^n\right)\varphi^{n+1}
++ \left(a_2(\beta\nu\Sigma_f)^{n+1}+a_1(\beta\nu\Sigma_f)^n\right)\varphi^n 
 \ee
 
 Where the integration coefficients are defined as:
@@ -197,7 +199,17 @@ Where the integration coefficients are defined as:
 &a_3 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)^2p(t')e^{-\lambda(t_{n+1}-t')}dt'
 \end{align}
 
-The amplitude $(p)$ is included in the integration coefficient because it has been highly accurately calculated in the micro step scheme, so a piecewise interpolation between those points can be done to maximize accuracy.  However, this term in the integration makes it impossible to do analytically.  The prototype uses Matlab software to interpolate the amplitude between micro steps and a quadrature integration for the coefficients.  So the challenge for YAK is to replicate this procedure: passing the amplitude vector to the DNP auxkernel, interpolating it, and integrating the coefficients.  Applying these coefficients to the "fission source" term seems trivial after the procedure is completed.
+The amplitude $(p)$ is included in the integration coefficient because it has been highly accurately calculated in the micro step scheme, so a piecewise interpolation between those points can be done to maximize accuracy.  
+
+Our prototype code uses Matlab software to interpolate the amplitude between micro steps and a quadrature integration for the coefficients.  So the challenge for YAK is to replicate this procedure: passing the amplitude vector to the DNP auxkernel, interpolating it, and integrating the coefficients.  
+
+\underline{``Note-1'':} Applying this procedure to the fission source (assume a linear in time variation for 
+$\beta\nu\Sigma_f(t')\varphi(t')$) is simple. We just need to agree what to do with beta.
+
+
+\underline{``Note-2'':} We can apply this to the precursor spatial representations as done in YAK, even though
+we think the proper way to handle their spatial discretization is the one we proposed in our previous note.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
