@@ -1,0 +1,801 @@
+%\documentclass[compress]{beamer}
+\documentclass[8pt]{beamer}
+
+%-----------------------------------------------------------
+% PACKAGES
+
+%\usepackage[latin1]{inputenc}
+\mode<presentation>
+
+%\usepackage[T1]{fontenc}  
+\usetheme{Warsaw}
+
+\usepackage{graphicx}
+%\usepackage[section]{placeins} % force à mettre l'image où on veut
+%\usepackage{float} %utiliser H pour forcer à mettre l'image où on veut
+\usepackage{lscape} %utilisation du mode paysage
+%\usepackage{pslatex}
+\usepackage{url}
+\usepackage{subfigure}
+
+\usepackage{graphicx}
+\usepackage{tabls}
+\usepackage{afterpage}
+
+%\usepackage[]{media9}
+\usepackage{multimedia}
+
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amstext}
+\usepackage{amsbsy}
+\usepackage{mathbbol} 
+\usepackage{mathrsfs}
+
+\usepackage{epsfig}
+%\usepackage{epsfig}
+%\usepackage{cites}
+\usepackage{epsf}
+\usepackage{array}
+\usepackage{color}
+\usepackage{pdfpages}
+\usepackage{cancel}
+
+%-----------------------------------------------------------
+% NEW  DEFINITIONS
+%
+%=================================================================================================
+% new commands
+% +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\newcommand{\nc}{\newcommand}
+%
+% Ways of grouping things
+%
+\newcommand{\bracket}[1]{\left[ #1 \right]}
+\newcommand{\bracet}[1]{\left\{ #1 \right\}}
+\newcommand{\fn}[1]{\left( #1 \right)}
+\newcommand{\ave}[1]{\left\langle #1 \right\rangle}
+%
+% Derivative forms
+% 
+\newcommand{\dx}[1]{\,d#1}
+\newcommand{\dxdy}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\dxdt}[1]{\frac{\partial #1}{\partial t}}
+\newcommand{\dxdz}[1]{\frac{\partial #1}{\partial z}}
+\newcommand{\dfdt}[1]{\frac{\partial}{\partial t} \fn{#1}}
+\newcommand{\dfdz}[1]{\frac{\partial}{\partial z} \fn{#1}}
+\newcommand{\ddt}[1]{\frac{\partial}{\partial t} #1}
+\newcommand{\ddz}[1]{\frac{\partial}{\partial z} #1}
+\newcommand{\dd}[2]{\frac{\partial}{\partial #1} #2}
+\newcommand{\ddx}[1]{\frac{\partial}{\partial x} #1}
+\newcommand{\ddy}[1]{\frac{\partial}{\partial y} #1}
+%
+% Vector forms
+%
+%\renewcommand{\vec}[1]{\ensuremath{\stackrel{\rightarrow}{#1}}}
+%\renewcommand{\div}{\ensuremath{\vec{\nabla} \cdot}}
+%\newcommand{\grad}{\ensuremath{\vec{\nabla}}}
+
+\renewcommand{\div}{\vec{\nabla}\! \cdot \!}
+\newcommand{\grad}{\vec{\nabla}}
+\newcommand{\oa}[1]{\fn{\frac{1}{3}\hat{\Omega}\!\cdot\!\overrightarrow{A_{#1}}}}
+
+%
+% Equation beginnings and endings
+%
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\beas}{\begin{eqnarray*}}
+\newcommand{\eeas}{\end{eqnarray*}}
+\newcommand{\bdm}{\begin{displaymath}}
+\newcommand{\edm}{\end{displaymath}}
+%
+% Equation punctuation
+% 
+\newcommand{\pec}{\hspace{0.25in},}
+\newcommand{\pep}{\hspace{0.25in}.}
+\newcommand{\pev}{\hspace{0.25in}}
+%
+% Equation labels and references, figure references, table references
+% 
+\newcommand{\LEQ}[1]{\label{eq:#1}}
+\newcommand{\EQ}[1]{Eq.~(\ref{eq:#1})}
+\newcommand{\EQS}[1]{Eqs.~(\ref{eq:#1})}
+\newcommand{\REQ}[1]{\ref{eq:#1}}
+\newcommand{\LFI}[1]{\label{fi:#1}}
+\newcommand{\FI}[1]{Fig.~\ref{fi:#1}}
+\newcommand{\RFI}[1]{\ref{fi:#1}}
+\newcommand{\LTA}[1]{\label{ta:#1}}
+\newcommand{\TA}[1]{Table~\ref{ta:#1}}
+\newcommand{\RTA}[1]{\ref{ta:#1}}
+
+%
+% List beginnings and endings
+% 
+\newcommand{\bl}{\bss\begin{itemize}}
+\newcommand{\el}{\vspace{-.5\baselineskip}\end{itemize}\ess}
+\newcommand{\benu}{\bss\begin{enumerate}}
+\newcommand{\eenu}{\vspace{-.5\baselineskip}\end{enumerate}\ess}
+%
+% Figure and table beginnings and endings
+% 
+\newcommand{\bfg}{\begin{figure}}
+\newcommand{\efg}{\end{figure}}
+\newcommand{\bt}{\begin{table}}
+\newcommand{\et}{\end{table}}
+%
+% Tabular and center beginnings and endings
+% 
+\newcommand{\bc}{\begin{center}}
+\newcommand{\ec}{\end{center}}
+\newcommand{\btb}{\begin{center}\begin{tabular}}
+\newcommand{\etb}{\end{tabular}\end{center}}
+%
+% Single space command
+% 
+%\newcommand{\bss}{\begin{singlespace}}
+%\newcommand{\ess}{\end{singlespace}}
+\newcommand{\bss}{\singlespacing}
+\newcommand{\ess}{\doublespacing}
+%
+%---New environment "arbspace". (modeled after singlespace environment
+%                                in Doublespace.sty)
+%   The baselinestretch only takes effect at a size change, so do one.
+% 
+\def\arbspace#1{\def\baselinestretch{#1}\@normalsize}
+\def\endarbspace{}
+\newcommand{\bas}{\begin{arbspace}}
+\newcommand{\eas}{\end{arbspace}}
+%
+% An explanation for a function
+%
+\newcommand{\explain}[1]{\mbox{\hspace{2em} #1}}
+%
+% Quick commands for symbols
+%  
+\newcommand{\half}{\frac{1}{2}}
+\newcommand{\third}{\frac{1}{3}}
+\newcommand{\twothird}{\frac{2}{3}}
+\newcommand{\fourth}{\frac{1}{4}}
+\newcommand{\mdot}{\dot{m}}
+\newcommand{\ten}[1]{\times 10^{#1}\,}
+\newcommand{\cL}{{\cal L}}
+\newcommand{\cD}{{\cal D}}
+\newcommand{\cF}{{\cal F}}
+\newcommand{\cE}{{\cal E}}
+\renewcommand{\Re}{\mbox{Re}}
+\newcommand{\Ma}{\mbox{Ma}}
+%
+% Inclusion of Graphics Data
+%
+%\input{psfig}
+%\psfiginit
+%
+% More Quick Commands
+% 
+\newcommand{\bi}{\begin{itemize}}
+\newcommand{\ei}{\end{itemize}}
+\newcommand{\ben}{\begin{enumerate}}
+\newcommand{\een}{\end{enumerate}}
+\newcommand{\dxi}{\Delta x_i}
+\newcommand{\dyj}{\Delta y_j}
+\newcommand{\ts}[1]{\textstyle #1}
+
+
+\newcommand{\bu}{\boldsymbol{u}}
+\newcommand{\ber}{\boldsymbol{e}}
+\newcommand{\br}{\boldsymbol{r}} 
+\newcommand{\bo}{\boldsymbol{\Omega}}
+
+\newcommand{\bn}{\boldsymbol{\nabla}}
+
+% DGFEM commands
+\newcommand{\jmp}[1]{[\![#1]\!]}                     % jump
+\newcommand{\mvl}[1]{\{\!\!\{#1\}\!\!\}}             % mean value
+
+
+\newcommand{\boxedeqn}[1]{%
+  \[\fbox{%
+      \addtolength{\linewidth}{-2\fboxsep}%
+      \addtolength{\linewidth}{-2\fboxrule}%
+      \begin{minipage}{\linewidth}%
+      \begin{equation}#1\end{equation}%
+      \end{minipage}%
+    }\]%
+}
+\newcommand{\mboxed}[1]{\boxed{\phantom{#1}}}
+\newcommand{\ud}{\,\mathrm{d}}
+
+% keff
+\newcommand{\keff}{\ensuremath{k_{\textit{eff}}}}
+
+% margin par
+\newcommand{\mt}[1]{\marginpar{ {\footnotesize #1} }}
+
+% shortcut for aposterio in italics
+\newcommand{\apost}{\textit{a posteriori\xspace}}
+\newcommand{\Apost}{\textit{A posteriori}\xspace}
+
+% shortcut for multi-group
+\newcommand{\mg}{multigroup\xspace}
+\newcommand{\Mg}{Multigroup\xspace}
+\newcommand{\ho}{higher-order\xspace}
+\newcommand{\Ho}{Higher-order\xspace}
+\newcommand{\HO}{Higher-Order\xspace}
+\newcommand{\HObig}{HIGHER-ORDER\xspace}
+\newcommand{\Mgbig}{MULTIGROUP\xspace}
+
+% shortcut for domain notation
+\newcommand{\D}{\mathcal{D}}
+
+% shortcut for xuthus
+\newcommand{\psc}[1]{{\sc {#1}}}
+\newcommand{\xuthus}{\psc{xuthus}\xspace}
+
+% vector shortcuts
+\newcommand{\vo}{\vec{\Omega}}
+\newcommand{\vr}{\vec{r}}
+\newcommand{\vn}{\vec{n}}
+\newcommand{\vnk}{\vec{\mathbf{n}}}
+
+% extra space
+\newcommand{\qq}{\quad\quad}
+
+% sign function
+\DeclareMathOperator{\sgn}{sgn}
+
+
+\newcommand{\ensuretext}[1]{\ensuremath{\text{#1}}}
+
+% common reference commands
+\newcommand{\eqt}[1]{Eq.~(\ref{#1})}                     % equation
+\newcommand{\fig}[1]{Fig.~\ref{#1}}                      % figure
+\newcommand{\tbl}[1]{Table~\ref{#1}}                     % table
+
+
+
+\newcommand{\rhs}{right-hand-side\xspace}
+\newcommand{\clearemptydoublepage}{\newpage{\pagestyle{empty}\cleardoublepage}}
+
+
+\newcommand{\bs}[1]{\mathbf{#1}}
+\renewcommand{\bs}[1]{\vec{#1}}
+%\newcommand{\dd}{\mathrm{d}}
+\newcommand{\norm}{\textrm{norm}}
+\renewcommand{\Re}{\textrm{Re}}
+\newcommand{\Pe}{\textrm{P\'e}}
+\renewcommand{\Pr}{\textrm{Pr}}
+
+\newcommand{\resi}{R_e}
+%\newcommand{\resinew}{\tilde{D}_e}
+\newcommand{\resinew}{\widetilde{\resi}}
+\newcommand{\matder}[1]{\frac{\textrm{D} #1}{\textrm{D} t}}
+
+\newcommand{\divv}[1]{\vec{\nabla}^{#1}\! \cdot \!}
+\newcommand{\gradd}[1]{\vec{\nabla}^{#1}}
+
+\newcommand{\tcr}[1]{\textcolor{red}{#1}}
+\newcommand{\tcb}[1]{\textcolor{blue}{#1}}
+\newcommand{\tcm}[1]{\textcolor{magenta}{#1}}
+
+\renewcommand{\L}{\mathbf{L}}
+\renewcommand{\S}{\mathbf{\Sigma}}
+\newcommand{\M}{\mathbf{M}}
+\renewcommand{\D}{\mathbf{D}}
+%=================================================================================================
+
+%============================================================
+
+%style et couleur
+%\usetheme{Frankfurt}
+\date{\today}
+
+%\addtobeamertemplate{footline}{\hfill\insertframenumber/\inserttotalframenumber\hspace{2em}\null}
+
+\setbeamertemplate{footline}{
+\leavevmode%
+%\hbox{\hspace*{-0.06cm}
+\begin{beamercolorbox}[wd=.5\paperwidth,ht=3.25ex,dp=1ex,center]{author in head/foot}%
+	\usebeamerfont{author in head/foot}\insertshortauthor%~~(\insertshortinstitute)
+\end{beamercolorbox}%
+\begin{beamercolorbox}[wd=.25\paperwidth,ht=3.25ex,dp=1ex,center]{section in head/foot}%
+	\usebeamerfont{section in head/foot} IQS Oct. 2015 % \insertshorttitle
+\end{beamercolorbox}%
+\begin{beamercolorbox}[wd=.25\paperwidth,ht=3.25ex,dp=1ex,left]{section in head/foot}%
+	\usebeamerfont{section in head/foot}\insertshortdate{}\hspace*{2em}
+	\insertframenumber{} / \inserttotalframenumber %\hspace*{2ex}
+\end{beamercolorbox}}%
+%\vskip0pt%
+%}
+
+\beamertemplatetransparentcovered
+
+\urldef{\ragusa}\url{jean.ragusa@tamu.edu}
+
+\title{IQS: Status Update}
+
+\author{Jean C. Ragusa, Zach M. Prince}
+\institute{Department of Nuclear Engineering, Texas A\&M University, College Station, TX\\
+Institute for Scientific Computation, Texas A\&M University, College Station, TX\\
+Center for Exascale Radiation Transport, Texas A\&M University, College Station, TX}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%-------------------------------------------------------------------
+\begin{frame}
+%\vspace{-1.5cm}
+	\begin{figure}[t]
+		\centering
+			\includegraphics[width=.45\textwidth]{cert_logo_big.png}
+	\end{figure}
+\vspace{-0.5cm}
+\titlepage
+\small{email: {\ragusa} }
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}
+	\frametitle{Outline}
+	\tableofcontents 
+\end{frame}
+%-------------------------------------------------------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Theory}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Time-dependent Multigroup Diffusion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%-------------------------------------------------------------------
+\begin{frame}{Time-dependent Multigroup Diffusion}
+
+
+\begin{block}{Equations}
+Neutron flux $\phi^g$:
+\begin{align}
+\frac{1}{v^g} \frac{\partial \phi^g }{\partial t} =& \frac{\chi_p^g}{\keff} \sum_{g'=1}^G (1-\beta) \nu^{g'} \Sigma_f^{g'} \phi^{g'} -  \left( -\div D^g \grad  + \Sigma_r^g \right) \phi^g  \nonumber \\
+&  + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \phi^{g'}  + \sum_{i=1}^I\chi_{d,i}^g\lambda_i C_i \ , \quad 1 \le g \le G 
+\end{align}
+Precursors $C_i$
+\be
+\frac{dC_i}{dt} = \frac{\beta_i}{k_{eff}}\sum_{g=1}^G\nu^{g} \Sigma_f^g \phi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
+\ee
+with
+\be
+\beta = \sum_{i=1}^I \beta_{i} 
+\ee
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Factorization approach}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%-------------------------------------------------------------------
+\begin{frame}{Factorization}
+
+\begin{block}{Factorization}
+Decomposition of the multigroup flux into the product of a time-dependent amplitude ($p$) and a space-/time-dependent multigroup shape ($\varphi$):
+\be
+\boxed{
+\phi^g(\vec{r},t)=p(t)\varphi^g(\vec{r},t)
+}
+\ee
+When reporting this in the previous equations, this leads to the so-called \tcr{shape} equations.
+\end{block}
+
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{IQS equations}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%-------------------------------------------------------------------
+\begin{frame}{Shape equations}
+
+\begin{block}{Shape equations}
+The shape equations are similar to the original diffusion equations:
+\begin{align}
+\frac{1}{v^g} \frac{\partial \varphi^g }{\partial t} =& \frac{\chi_p^g}{\keff} \sum_{g'=1}^G (1-\beta) \nu^{g'} \Sigma_f^{g'} \varphi^{g'} -  \left( -\div D^g \grad  + \Sigma_r^g + \tcr{\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}}\right) \varphi^g  \nonumber \\
+&  + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'}  + \tcr{\frac{1}{p}}\sum_{i=1}^I\chi_{d,i}^g\lambda_i C_i \ , \quad 1 \le g \le G 
+\label{eq:shape}
+\end{align}
+\be
+\frac{dC_i}{dt} = \frac{\beta_i}{k_{eff}}\sum_{g=1}^G\nu^{g} \Sigma_f^g \tcr{p} \varphi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
+\ee
+\end{block}
+
+\begin{block}{Differences}
+\ben
+\item An additional removal term based on $\tcr{\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}} \varphi^g$
+\item Delayed neutron source term scaled by $\tcr{\frac{1}{p}}$
+\item \tcb{No change} in the precursor equations but we re-write them to show explicitly  $\tcr{p} \times \varphi^{g}$
+\een
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsection{Amplitude equations}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%-------------------------------------------------------------------
+\begin{frame}{Amplitude equations (PRKE)}
+
+\begin{block}{Principle}
+To obtain the amplitude equation, we multiply the shape equations with a weighting 
+function (initial adjoint flux, $\phi^*$), then integrate over phase-space.  
+\end{block}
+
+\begin{block}{Notation}
+For brevity, the adjoint flux product and integration over space will be represented with parenthetical notation:
+\be
+\int_D\phi^{*g}(\vec{r})f^g(\vec{r})d^3r=\left(\phi^{*g},f^g\right)
+\ee
+\end{block}
+
+
+\begin{block}{Uniqueness of the factorization}
+In order to impose uniqueness of the factorization, one requires:
+\be
+\tcr{K_0} = \sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)= constant
+\ee
+\end{block}
+
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{PRKE (continued)}
+
+\begin{block}{PRKE}
+\be
+\frac{dp}{dt}=\left[\frac{\rho-\bar{\beta}}{\Lambda}\right]p+\sum_{i=1}^I\bar{\lambda}_i\xi_i
+\ee
+\be
+\frac{d\xi_i}{dt}=\frac{\bar{\beta}_i}{\Lambda}-\bar{\lambda}_i\xi_i \quad 1 \le i \le I 
+\ee
+\end{block}
+
+\begin{block}{Coefficients}
+\be
+\frac{\rho}{\Lambda}=\sum_{g=1}^G\frac{ \left(\phi^{*g},\sum_{g'=1}^G\frac{\chi_p^g}{k_{eff}} \nu^{g'} \Sigma_f^{g'}\varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'} -\left( -\div D^g \grad  + \Sigma_r^g \right)\varphi^g\right)}{\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}
+\ee
+\be
+\frac{\bar{\beta}}{\Lambda}=\sum_{i=1}^I\frac{\bar{\beta}_i}{\Lambda}=\frac{1}{k_{eff}}\sum_{i=1}^I\sum_{g=1}^G\frac{(\phi^{*g}, \beta_i\nu^{g} \Sigma_f^g \varphi^{g})}{\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}
+\ee
+\be
+\bar{\lambda}_i=\sum_{g=1}^G\frac{(\phi^{*g},\chi_{d,i}^g\lambda_i C_i)}{(\phi^{*g},\chi_{d,i}^gC_i)}
+\ee
+
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{IQS method solution process}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%-------------------------------------------------------------------
+\begin{frame}{Coupling}
+
+\begin{block}{Factorization leads to a \tcr{nonlinear} system}
+The amplitude and shape equations form a system of \tcr{nonlinear} coupled equations: 
+\ben
+\item the coefficients appearing in the PRKEs depend upon the shape solution,
+\item the shape equation has a kernel dependent on amplitude and its derivative,  
+\item the delayed neutron source term is scaled by the amplitude.
+\een
+\end{block}
+
+\begin{block}{Time scales and IQS method solution process}
+Because solving for the shape can be expensive, especially in two or three dimensions, it is attractive to make the assumption that the shape is weakly time-dependent so the shape can be computed after a multitude of PRKE calculations which is the root of IQS: 
+%
+
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{figures/IQS_visualization.jpg}
+%\caption{IQS method solution process}
+\label{fig:IQS}
+\end{figure}
+
+\end{block}
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Convergence criteria}
+
+
+\begin{block}{Ideally}
+The normalization constant should not change
+\be
+\tcr{K_0} = \sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g(\tcr{t=0})\right)
+\ee
+So we use
+\be
+\left| \frac{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g(\tcb{t=t^{n+1}})\right)}{\tcr{K_0}}-1\right| 
+= \left| \frac{\tcb{K_{n+1}}}{{\tcr{K_0}}}-1\right|  < tol
+\ee
+\end{block}
+
+\begin{block}{We have seen in practice}
+\be
+\frac{ \| \varphi_{g,t_{n+1}}^{\tcr{\ell+1}} - \varphi_{g,t_{n+1}}^{\tcr{\ell}} \|}{\| \varphi_{g,t_{n+1}}^{\tcr{\ell+1}} \|} < tol 
+\quad \text{or even} \quad
+\frac{ \| \varphi_{g,t_{n+1}}^{\tcr{\ell+1}} - \varphi_{g,t_{n+1}}^{\tcr{0}} \|}{\| \varphi_{g,t_{n+1}}^{\tcr{0}} \|} < tol 
+\ee
+where $\tcr{\ell}=$IQS iteration index over a given macro time step $[t_n,t_{n+1}]$\\
+followed by a renormalization before starting the next time step $[t_{n+1},t_{n+2}]$
+\be
+\varphi_{g,t_{n+1}}^{\tcr{converged}} \leftarrow \varphi_{g,t_{n+1}}^{\tcr{converged}} \times \frac{K_{n+1}}{K_0}
+\ee
+\end{block}
+
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Precursors time-discretization}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%-------------------------------------------------------------------
+\begin{frame}{Theta-scheme}
+
+
+\begin{block}{Theta-scheme}
+\be
+C^{n+1} = \frac{1-(1-\theta)\Delta t\lambda}{1+\theta\Delta t\lambda}C^n + \frac{(1-\theta)\Delta t \beta (\nu\Sigma_f)^n}{1+\theta\Delta t\lambda}\varphi^n p^n +  \frac{\theta\Delta t \beta (\nu\Sigma_f)^{n+1}}{1+\theta\Delta t\lambda}\varphi^{n+1} p^{n+1}
+\ee
+Reporting this value of $C^{n+1}$, one can solve for the shape $\varphi^{n+1}$ as a function of $\varphi^n$ and $C^n$
+(and $p^n$, $p^{n+1}$, $dp/dt|_n$ and  $dp/dt|_{n+1}$).\\
+
+\bigskip
+Once $\varphi^{n+1}$ has been determined, $C^{n+1}$ is updated. \\
+
+\medskip
+YAK currently implements both implicit and Crank-Nicholson as options for precursor evaluation.
+
+
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Analytical Integration}
+
+
+\begin{block}{Analytical Integration}
+\be
+C^{n+1} =  C^n e^{-\lambda (t_{n+1} - t_n) }  + \int_{t_n}^{t_{n+1}} \beta\nu\Sigma_f(t')\varphi(t') p(t')e^{-\lambda (t_{n+1}-t')}dt'
+\ee
+\end{block}
+
+\begin{block}{}
+Assuming a linear in time variation over the macro time step $[t_n, t_{n+1}]$ for the shape and the fission cross section, we get:
+\be
+C^{n+1} = C^n e^{-\lambda \Delta t} 
++ \left(a_3(\beta\nu\Sigma_f)^{n+1}+a_2(\beta\nu\Sigma_f)^n\right)\varphi^{n+1}
++ \left(a_2(\beta\nu\Sigma_f)^{n+1}+a_1(\beta\nu\Sigma_f)^n\right)\varphi^n 
+\ee
+
+Where the integration coefficients are defined as:
+
+\begin{align}
+&a_1 = \int_{t_n}^{t_{n+1}}\left(\frac{t_{n+1}-t'}{\Delta t}\right)^2p(t')e^{-\lambda(t_{n+1}-t')}dt' \\
+&a_2= \int_{t_n}^{t_{n+1}}\frac{(t'-t_n)(t_{n+1}-t')}{(\Delta t)^2}p(t')e^{-\lambda(t_{n+1}-t')}dt' \\
+&a_3 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)^2p(t')e^{-\lambda(t_{n+1}-t')}dt'
+\end{align}
+
+
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Analytical Integration (continued)}
+
+Recall that we just need to compute  coefficients of the form:
+\be
+\int_{t_n}^{t_{n+1}}\left(\delta_2 t'^2 + \delta_1 t' +\delta_0\right) \tcr{p(t')}e^{-\lambda(t_{n+1}-t')}dt' 
+\ee
+
+\begin{block}{}
+
+The amplitude $(p)$ is contained in the $a_i$'s integration coefficients.\\
+$p(t)$ has been highly accurately calculated at the micro time step level.
+
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Implementation in YAK/RATTLESNAKE}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%-------------------------------------------------------------------
+\begin{frame}{Changes to MOOSE}
+
+
+\begin{block}{}
+Please add some quick blurb about the nature of the changes
+\bi
+\item action system
+\item postprocessors to compute $\rho$, $\bar{\beta}$, $\bar{\lambda}$
+\item IQS userobject (for PRKE solve using updated reactivity coefficients, $\rho$, $\bar{\beta}$,
+$\bar{\lambda}$)
+\item IQS executioner (use of the existing Picard iteration loop of the executioner; this can seamlessly enable IQS in multiphysics simulations without any further changes)
+\ei
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+
+%-------------------------------------------------------------------
+\begin{frame}{}
+
+
+\begin{block}{Add a couple of MOOSE graphs from our physor paper}
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Results}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Prototype code}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%-------------------------------------------------------------------
+\begin{frame}{}
+
+
+\begin{block}{Add}
+\bi
+\item results for null transients with analytical precs and not analytical precs. Pick what makes the most sense to show the issue. 
+\item Pick a graph that shows that it is the analyt prec and not a better prke solution that leads to the issue
+\item 1D heterogenous transient (pbID=10). Plot power versus time for brute force, IQS analy prec, classic prke. Let T be about the time when power peaks. Run the transients for end time = about 2-3 T.
+\item convergence study. Re run the transient, this time with end time T, and make a table or plot of error for IQS analy and brute force versus \# of diffusion solves. Of course, for brute force, the \# of diffusion solves = 1/delta t. For IQS, you need to keep track of the number of IQS iterations per delta t to get the \# of diffusion solves.
+\ei
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{YAK/RATTLESNAKE}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%-------------------------------------------------------------------
+\begin{frame}{}
+
+
+\begin{block}{Add whatever you have with MOOSE so far}
+\bi
+\item 
+\item 
+\item 
+\item 
+\ei
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%{
+%\setbeamercolor{background canvas}{bg=}
+%\includepdf[pages={9-24}]{./PDT-Scaling-MLA-DH-TS-TST-May14-final.pdf}
+%\includepdf[pages={26}]{./PDT-Scaling-MLA-DH-TS-TST-May14-final.pdf}
+%}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%{
+%\setbeamercolor{background canvas}{bg=}
+%\includepdf[pages={-}]{./RagusaPresentationV3-Copy.pdf}
+%}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Wrap-up}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%-------------------------------------------------------------------
+\begin{frame}{Conclusion and Outlook}
+
+\begin{block}{Completed}
+\bi
+\item Theoretical understanding of IQS convergence and selection of proper convergence criteria
+\item 1D prototype Matlab code for MOOSE comparison/verification
+\item IQS userobject and executioner (using Picard iterations)
+\item IQS for \tcr{CFEM Diffusion} action system
+\ei
+\end{block}
+
+\begin{block}{In progress}
+\bi
+\item Implementation of analytical precursor integration in YAK
+\item Further YAK verification
+\item YAK documentation
+\ei
+\end{block}
+\begin{block}{Next Steps}
+\bi
+\item DFEM Diffusion action system
+\item DFEM SN Transport action system
+\item Kinetics benchmarks (neutronics only, e.g., TWIGL, LMW)
+\item Dynamics benchmarks (with feedback, e.g., the LRA test case)
+\item Study of a JFNK-based algorithm to resolve the IQS nonlinearity between the amplitude/shape equations
+\ei
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%%-------------------------------------------------------------------
+%\begin{frame}{}
+%
+%
+%\begin{block}{}
+%\end{block}
+%
+%\end{frame}
+%%-------------------------------------------------------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{frame}{Thank you}
+%
+%\begin{block}{Computational Transport}
+%\begin{figure}
+%	\centering
+%	\includegraphics[scale=0.33]{./fig/crunching.png}
+%\end{figure}
+%\end{block}
+%
+%\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%************************************************
+
+\end{document}
