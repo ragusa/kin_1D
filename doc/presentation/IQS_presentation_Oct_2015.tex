@@ -11,8 +11,8 @@
 \usetheme{Warsaw}
 
 \usepackage{graphicx}
-%\usepackage[section]{placeins} % force à mettre l'image où on veut
-%\usepackage{float} %utiliser H pour forcer à mettre l'image où on veut
+%\usepackage[section]{placeins} % force ï¿½ mettre l'image oï¿½ on veut
+%\usepackage{float} %utiliser H pour forcer ï¿½ mettre l'image oï¿½ on veut
 \usepackage{lscape} %utilisation du mode paysage
 %\usepackage{pslatex}
 \usepackage{url}
@@ -42,6 +42,8 @@
 \usepackage{color}
 \usepackage{pdfpages}
 \usepackage{cancel}
+
+\usepackage{tikz}
 
 %-----------------------------------------------------------
 % NEW  DEFINITIONS
@@ -648,10 +650,9 @@ $p(t)$ has been highly accurately calculated at the micro time step level.
 \begin{block}{}
 Please add some quick blurb about the nature of the changes
 \bi
-\item action system
-\item postprocessors to compute $\rho$, $\bar{\beta}$, $\bar{\lambda}$
-\item IQS userobject (for PRKE solve using updated reactivity coefficients, $\rho$, $\bar{\beta}$,
-$\bar{\lambda}$)
+\item action system (adding IQS as an option to solve CFEM diffusion, collecting and initializing variables for postprocessor computation, and rearranging hierarchy of classes)
+\item postprocessors to compute $\rho$, $\bar{\beta}$, $\bar{\lambda}$ numerator and denominator (created four postprocessors that use element integrals to compute PRKE parameters)
+\item IQS userobject (combining postprocessor computed values for PRKE solve using updated reactivity coefficients, $\rho$, $\bar{\beta}$, $\bar{\lambda}$)
 \item IQS executioner (use of the existing Picard iteration loop of the executioner; this can seamlessly enable IQS in multiphysics simulations without any further changes)
 \ei
 \end{block}
@@ -664,7 +665,25 @@ $\bar{\lambda}$)
 \begin{frame}{}
 
 
-\begin{block}{Add a couple of MOOSE graphs from our physor paper}
+\begin{block}{Break down of IQS Action}
+\begin{figure}[h]
+\begin{tikzpicture}[every node/.style = {shape          = rectangle, rounded corners, fill = blue!60, minimum width  = 1.5cm, minimum height = 0.75cm, align= center, text = white},blue edge/.style  = { -, ultra thick, blue!60, shorten >= 4pt}]
+\node(0;0) at (-1,0) {CFEM \\ Diffusion \\ Action};
+  \node(1;3)  at (2, 1.5) {Neutronic \\ Kernels};   
+  \node(1;1)  at (2, 0.5) {IQS Removal \\ Kernel}; 
+  \node(1;-1)  at (2,-0.5) {PRKE User \\ Object}; 
+  \node(1;-3) at (2,-1.5) {PRKE \\ Parameter \\ Postprocessors}; 
+     \node(2;0)  at (5,0) {Transient \\ Executioner};
+     	\node(3;0)  at (8,0) {IQS Executioner};
+\foreach \j in {-3,-1,1,3}
+  { \draw[blue edge] (0;0.east) -- (1;\j.west); }
+\foreach \j in {-3,-1,1,3}
+  { \draw[blue edge] (1;\j.east) -- (2;0.west);} 
+\draw[blue edge] (2;0.east) -- (3;0.west);         
+\end{tikzpicture}
+%\caption{CFEM Diffusion Action Process Diagram}   
+\label{Action}
+\end{figure}
 \end{block}
 
 \end{frame}
