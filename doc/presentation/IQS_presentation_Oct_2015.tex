@@ -648,9 +648,8 @@ $p(t)$ has been highly accurately calculated at the micro time step level.
 
 
 \begin{block}{}
-Please add some quick blurb about the nature of the changes
 \bi
-\item action system (adding IQS as an option to solve CFEM diffusion, collecting and initializing variables for postprocessor computation, and rearranging hierarchy of classes)
+\item Diffusion Action System (adding IQS as an option to solve CFEM diffusion, collecting and initializing variables for postprocessor computation, and rearranging hierarchy of classes)
 \item postprocessors to compute $\rho$, $\bar{\beta}$, $\bar{\lambda}$ numerator and denominator (created four postprocessors that use element integrals to compute PRKE parameters)
 \item IQS userobject (combining postprocessor computed values for PRKE solve using updated reactivity coefficients, $\rho$, $\bar{\beta}$, $\bar{\lambda}$)
 \item IQS executioner (use of the existing Picard iteration loop of the executioner; this can seamlessly enable IQS in multiphysics simulations without any further changes)
@@ -699,38 +698,76 @@ Please add some quick blurb about the nature of the changes
 \subsection{Prototype code}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%\begin{block}{Add}
+%\bi
+%\item results for null transients with analytical precs and not analytical precs. Pick what makes the most sense to show the issue. 
+%\item Pick a graph that shows that it is the analyt prec and not a better prke solution that leads to the issue
+%\item 1D heterogenous transient (pbID=10). Plot power versus time for brute force, IQS analy prec, classic prke. Let T be about the time when power peaks. Run the transients for end time = about 2-3 T.
+%\item convergence study. Re run the transient, this time with end time T, and make a table or plot of error for IQS analy and brute force versus \# of diffusion solves. Of course, for brute force, the \# of diffusion solves = 1/delta t. For IQS, you need to keep track of the number of IQS iterations per delta t to get the \# of diffusion solves.
+%\ei
+%\end{block}
 %-------------------------------------------------------------------
-\begin{frame}{}
+\begin{frame}{Analytical precursors versus time-discrete precursors}
 
-
-\begin{block}{Add}
-\bi
-\item results for null transients with analytical precs and not analytical precs. Pick what makes the most sense to show the issue. 
-\item Pick a graph that shows that it is the analyt prec and not a better prke solution that leads to the issue
-\item 1D heterogenous transient (pbID=10). Plot power versus time for brute force, IQS analy prec, classic prke. Let T be about the time when power peaks. Run the transients for end time = about 2-3 T.
-\item convergence study. Re run the transient, this time with end time T, and make a table or plot of error for IQS analy and brute force versus \# of diffusion solves. Of course, for brute force, the \# of diffusion solves = 1/delta t. For IQS, you need to keep track of the number of IQS iterations per delta t to get the \# of diffusion solves.
-\ei
-\end{block}
+\begin{figure}[h]
+\includegraphics[width=0.9\linewidth]{figures/AnalyticalvsBE_Precursor_Power.png}
+%\caption{IQS method solution process}
+\label{fig:IQS}
+\end{figure}
 
 \end{frame}
 %-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Analytical precursors versus time-discrete precursors}
+
+\begin{figure}[h]
+\includegraphics[width=0.9\linewidth]{figures/AnalyticalvsBE_Precursor_Error.png}
+%\caption{IQS method solution process}
+\label{fig:IQS}
+\end{figure}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{1D Heterogeneous test case}
+
+\begin{figure}[h]
+\includegraphics[width=0.99\linewidth]{figures/heterogeneous_results.png}
+%\caption{IQS method solution process}
+\label{fig:IQS}
+\end{figure}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{1D Heterogeneous test case}
+
+\begin{figure}[h]
+\includegraphics[width=0.9\linewidth]{figures/heterogeneous_convergence.png}
+%\caption{IQS method solution process}
+\label{fig:IQS}
+\end{figure}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{YAK/RATTLESNAKE}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %-------------------------------------------------------------------
-\begin{frame}{}
+\begin{frame}{1D Heterogeneous test case with YAK}
 
-
-\begin{block}{Add whatever you have with MOOSE so far}
-\bi
-\item 
-\item 
-\item 
-\item 
-\ei
-\end{block}
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{figures/heterogeneous_YAK.png}
+%\caption{IQS method solution process}
+\label{fig:IQS}
+\end{figure}
 
 \end{frame}
 %-------------------------------------------------------------------
