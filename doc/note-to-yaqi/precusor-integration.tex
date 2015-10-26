@@ -141,13 +141,19 @@ then the $\theta$-discretization is
 Applying this to the precursor equation:
 
 \be
-\frac{C^{n+1}-C^n}{\Delta t}=(1-\theta)\beta(\nu\Sigma_f)^n\varphi^n p^n-(1-\theta)\lambda C^n + \theta\beta(\nu\Sigma_f)^{n+1}\varphi^{n+1}p^{n+1}-\theta\lambda C^{n+1}
+\frac{C^{n+1}-C^n}{\Delta t}=(1-\theta)\beta S_f^np^n-(1-\theta)\lambda C^n + \theta\beta S_f^{n+1}p^{n+1}-\theta\lambda C^{n+1}
+\ee
+
+Where $S_f$ is the fission source equivalent for shape:
+
+\be
+S_f^n=(\nu\Sigma_f)^n\varphi^n
 \ee
 
 Rearranging to solve for the precursor at the end of the time step yields
 
 \be
-C^{n+1} = \frac{1-(1-\theta)\Delta t\lambda}{1+\theta\Delta t\lambda}C^n + \frac{(1-\theta)\Delta t \beta (\nu\Sigma_f)^n}{1+\theta\Delta t\lambda}\varphi^n p^n +  \frac{(1-\theta)\Delta t \beta (\nu\Sigma_f)^{n+1}}{1+\theta\Delta t\lambda}\varphi^{n+1} p^{n+1}
+C^{n+1} = \frac{1-(1-\theta)\Delta t\lambda}{1+\theta\Delta t\lambda}C^n + \frac{(1-\theta)\Delta t \beta}{1+\theta\Delta t\lambda}S_f^n p^n +  \frac{\theta\Delta t \beta}{1+\theta\Delta t\lambda}S_f^{n+1} p^{n+1}
 \ee
 Reporting this value of $C^{n+1}$, one can solve for the shape $\varphi^{n+1}$ as a function of $\varphi^n$ and $C^n$
 (and $p^n$, $p^{n+1}$, $dp/dt|_n$ and  $dp/dt|_{n+1}$).
@@ -165,16 +171,16 @@ Through prototyping, it has been found that neither implicit nor Crank-Nicholson
 Using an exponential operator, the precursor equation can be analytically solved for:
 
 \be
-\int_{t_n}^{t_{n+1}} C(t')e^{\lambda t'} dt' = \int_{t_n}^{t_{n+1}} \beta\nu\Sigma_f(t')\varphi(t') p(t')e^{\lambda t'}dt'
+\int_{t_n}^{t_{n+1}} C(t')e^{\lambda t'} dt' = \int_{t_n}^{t_{n+1}} \beta(t') S_f(t') p(t')e^{\lambda t'}dt'
 \ee
 
 yielding
 
 \be
-C^{n+1} =  C^n e^{-\lambda (t_{n+1} - t_n) }  + \int_{t_n}^{t_{n+1}} \beta\nu\Sigma_f(t')\varphi(t') p(t')e^{-\lambda (t_{n+1}-t')}dt'
+C^{n+1} =  C^n e^{-\lambda (t_{n+1} - t_n) }  + \int_{t_n}^{t_{n+1}} \beta(t') S_f(t') p(t')e^{-\lambda (t_{n+1}-t')}dt'
 \ee
 
-Because $\beta\nu\Sigma_f$ and $\varphi$ being integrated are not known continuously over the time step, they can be interpolated linearly over the macro step.  Such that:
+Because $\beta$ and $\nu\Sigma_f\varphi$ being integrated are not known continuously over the time step, they can be interpolated linearly over the macro step.  Such that:
 
 \be
 h(t) = \frac{t_{n+1}-t}{t_{n+1}-t_n}h^n  + \frac{t-t_n}{t_{n+1}-t_n}h^{n+1}  \quad t_n \le t \le t_{n+1}
@@ -187,8 +193,8 @@ Finally, we have the final expression for the analytical value for $C^{n+1}$:
 
 \be
 C^{n+1} = C^n e^{-\lambda \Delta t} 
-+ \left(a_3(\beta\nu\Sigma_f)^{n+1}+a_2(\beta\nu\Sigma_f)^n\right)\varphi^{n+1}
-+ \left(a_2(\beta\nu\Sigma_f)^{n+1}+a_1(\beta\nu\Sigma_f)^n\right)\varphi^n 
++ \left(a_3\beta^{n+1}+a_2\beta^n\right)S_f^{n+1}
++ \left(a_2\beta^{n+1}+a_1\beta^n\right)S_f^n 
 \ee
 
 Where the integration coefficients are defined as:
@@ -204,7 +210,16 @@ The amplitude $(p)$ is included in the integration coefficient because it has be
 Our prototype code uses Matlab software to interpolate the amplitude between micro steps and a quadrature integration for the coefficients.  So the challenge for YAK is to replicate this procedure: passing the amplitude vector to the DNP auxkernel, interpolating it, and integrating the coefficients.  
 
 \underline{``Note-1'':} Applying this procedure to the fission source (assume a linear in time variation for 
-$\beta\nu\Sigma_f(t')\varphi(t')$) is simple. We just need to agree what to do with beta.
+$\beta\nu\Sigma_f(t')\varphi(t')$) is simple. We just need to agree what to do with beta. If beta is independent of time, the equation reduces to:
+
+\be
+C^{n+1} = C^n e^{-\lambda \Delta t} + \left(\hat{a}_2 S_f^{n+1}+\hat{a}_1 S_f^n\right)\beta
+\ee
+
+\begin{align}
+&\hat{a}_1= \int_{t_n}^{t_{n+1}}\frac{t_{n+1}-t'}{\Delta t}p(t')e^{-\lambda(t_{n+1}-t')}dt' \\
+&\hat{a}_2 = \int_{t_n}^{t_{n+1}}\frac{t'-t_n}{\Delta t}p(t')e^{-\lambda(t_{n+1}-t')}dt'
+\end{align}
 
 
 \underline{``Note-2'':} We can apply this to the precursor spatial representations as done in YAK, even though
