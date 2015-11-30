@@ -322,7 +322,7 @@
 \urldef{\ragusa}\url{jean.ragusa@tamu.edu}
 
 \title{TREAT Mission Supporting Problem\\
-Improved Quasi-Static Method in RattleSnake}
+Improved Quasi-Static Method in Rattlesnake}
 
 \author{Jean C. Ragusa, Zach M. Prince}
 \institute{Department of Nuclear Engineering, Texas A\&M University, College Station, TX}
@@ -402,7 +402,7 @@ In operator notation:
 \begin{block}{Precursors $C_i$ $(1 \le i \le I)$}
 \begin{equation*}
 \boxed{
-\frac{dC_i}{dt} = \sum_{g=1}^G \nu_{d,i}^{g} \Sigma_f^g(\vec{r},t) \Phi^{g}(\vec{r},t) - \lambda_i(\vec{r},t) C_i(\vec{r},t) 
+\frac{dC_i}{dt} = \sum_{g=1}^G \nu_{d,i} \Sigma_f^g(\vec{r},t) \Phi^{g}(\vec{r},t) - \lambda_i(\vec{r},t) C_i(\vec{r},t) 
 }
 \end{equation*}
 %with
@@ -505,7 +505,7 @@ The shape equations are similar to the original transport equations:
 %\end{align}
 \begin{equation*}
 \boxed{
-\frac{dC_i}{dt} = \sum_{g=1}^G \nu_{d,i}^{g} \Sigma_f^g(\vec{r},t) \tcr{p} \tcb{\varphi^{g}}(\vec{r},t) - \lambda_i(\vec{r},t) C_i(\vec{r},t) 
+\frac{dC_i}{dt} = \sum_{g=1}^G \nu_{d,i} \Sigma_f^g(\vec{r},t) \tcr{p} \tcb{\varphi^{g}}(\vec{r},t) - \lambda_i(\vec{r},t) C_i(\vec{r},t) 
 }
 \end{equation*}
 %\be
@@ -689,10 +689,10 @@ These empirical criteria must be followed by a renormalization before starting t
 A simple ODE:
 \begin{equation*}
 \boxed{
-\frac{dC_i}{dt} = \sum_{g=1}^G \nu_{d,i}^{g} \Sigma_f^g(\vec{r},t) \tcr{p} \tcb{\varphi^{g}}(\vec{r},t) - \lambda_i(\vec{r},t) C_i(\vec{r},t) 
+\frac{dC_i}{dt} = \sum_{g=1}^G \nu_{d,i} \Sigma_f^g(\vec{r},t) \tcr{p} \tcb{\varphi^{g}}(\vec{r},t) - \lambda_i(\vec{r},t) C_i(\vec{r},t) 
 }
 \end{equation*}
-\begin{block}{Numerical integration: Theta-scheme (already in RattleSnake)}
+\begin{block}{Numerical integration: Theta-scheme (already in Rattlesnake)}
 \be
 C^{n+1} = \frac{1-(1-\theta)\Delta t\lambda}{1+\theta\Delta t\lambda}C^n 
 + \frac{(1-\theta)\Delta t \beta (\nu\Sigma_f)^n}    {1+\theta\Delta t\lambda}\tcb{\varphi^n}     \tcr{p^n }
@@ -705,7 +705,7 @@ Reporting this value of $C^{n+1}$ in $S_d^{n+1}$, one can solve for the shape $\
 Once $\psi^{n+1}$ has been determined, $C^{n+1}$ is updated. \\
 
 \medskip
-RattleSnake currently implements both implicit ($\theta=1$) and Crank-Nicholson ($\theta=1/2$) as options for precursor evaluation.
+Rattlesnake currently implements both implicit ($\theta=1$) and Crank-Nicholson ($\theta=1/2$) as options for precursor evaluation.
 
 \end{block}
 
@@ -765,14 +765,14 @@ The amplitude $\tcr{p}$ is contained in the $a_i$'s integration coefficients.\\
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Implementation in RATTLESNAKE}
+\section{Implementation in Rattlesnake}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Changes to RATTLESNAKE}
+\subsection{Changes to Rattlesnake}
 
 %-------------------------------------------------------------------
-\begin{frame}{Changes to RATTLESNAKE}
+\begin{frame}{Changes to Rattlesnake}
 
 \begin{block}{Action Systems}
 \bi
@@ -842,8 +842,6 @@ Note that the numerator of $\rho-\bar{\beta}$, i.e., $\left( \Psi^{*}, (H+P_p-L)
 
 \begin{figure}[h]
 \includegraphics[width=\linewidth]{figures/twigl_geom.png}
-%\caption{IQS method solution process}
-\label{fig:IQS}
 \end{figure}
 
 \end{frame}
@@ -852,12 +850,41 @@ Note that the numerator of $\rho-\bar{\beta}$, i.e., $\left( \Psi^{*}, (H+P_p-L)
 %-------------------------------------------------------------------
 \begin{frame}{TWIGL:  Computational Efficacy}
 
-Relative error versus \# of linear iterations:
+Relative error versus \# of linear iterations: \\
+\footnotesize{\underline{Note:} saturation due to ref. solution not (yet) accurate enough}
+
 \begin{figure}[h]
-\includegraphics[width=0.9\linewidth]{figures/twigl_convergence_iqs.png}
-%\caption{IQS method solution process}
-\label{fig:IQS}
+\includegraphics[width=0.88\linewidth]{figures/twigl_convergence_iqs.png}
 \end{figure}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{TWIGL:  Timing}
+
+
+\begin{block}{Hot off the press: CPU time}
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline 
+Method   &  CPU (s)  \\ \hline 
+IQS      &  205.2    \\ \hline 
+standard &  789.5    \\ \hline 
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{itemize}
+\item
+IQS is about 4 times faster for the same macro time step size.
+\item
+Additional gains are expected when time-step control will be implemented (as larger time steps may be taken for the shape equations)
+\end{itemize}
+
+\end{block}
 
 \end{frame}
 %-------------------------------------------------------------------
@@ -913,7 +940,7 @@ Relative error versus \# of linear iterations:
 
 \begin{block}{In progress}
 \bi
-\item RattleSnake documentation
+\item Rattlesnake documentation
 \item Time step adaptation/control
 \item Kinetics benchmarks (neutronics only, e.g., TWIGL, LMW, TREAT)
 \ei
@@ -936,7 +963,7 @@ Relative error versus \# of linear iterations:
 
 \begin{block}{Thanks}
 \begin{itemize}
-\item Yaqi Wang (INL, RattleSnake code lead)
+\item Yaqi Wang (INL, Rattlesnake code lead)
 \item Mark DeHart (INL, TREAT M\&S lead)
 \item NEAMS
 \end{itemize}
