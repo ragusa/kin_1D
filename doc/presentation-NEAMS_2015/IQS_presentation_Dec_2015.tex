@@ -904,25 +904,24 @@ Relative error versus \# of linear iterations:
 \begin{block}{Completed}
 \bi
 \item Theoretical understanding of IQS convergence and selection of proper convergence criteria
-\item 1D prototype Matlab code for MOOSE comparison/verification
-\item IQS userobject and executioner (using Picard iterations)
+%\item 1D prototype Matlab code for MOOSE comparison/verification
+%\item IQS userobject and executioner (using Picard iterations)
+\item Implementation of analytical precursor integration
 \item IQS for \tcr{CFEM Diffusion} action system
 \ei
 \end{block}
 
 \begin{block}{In progress}
 \bi
-\item Implementation of analytical precursor integration in YAK
-\item Further YAK verification
-\item YAK documentation
+\item RattleSnake documentation
+\item Kinetics benchmarks (neutronics only, e.g., TWIGL, LMW, TREAT)
 \ei
 \end{block}
 \begin{block}{Next Steps}
 \bi
 \item DFEM Diffusion action system
 \item DFEM SN Transport action system
-\item Kinetics benchmarks (neutronics only, e.g., TWIGL, LMW)
-\item Dynamics benchmarks (with feedback, e.g., the LRA test case)
+\item Dynamics benchmarks (i.e., with feedback, e.g., the LRA test case, TREAT)
 \item Study of a JFNK-based algorithm to resolve the IQS nonlinearity between the amplitude/shape equations
 \ei
 \end{block}
