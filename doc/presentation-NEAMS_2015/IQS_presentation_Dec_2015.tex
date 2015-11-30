@@ -8,7 +8,8 @@
 \mode<presentation>
 
 %\usepackage[T1]{fontenc}  
-\usetheme{Warsaw}
+%\usetheme{Warsaw}
+\usetheme{Frankfurt}
 
 \usepackage{graphicx}
 %\usepackage[section]{placeins} % force � mettre l'image o� on veut
@@ -45,6 +46,8 @@
 
 \usepackage{tikz}
 
+%\usepackage{multimedia}
+\usepackage[]{media9}
 %-----------------------------------------------------------
 % NEW  DEFINITIONS
 %
@@ -305,7 +308,7 @@
 	\usebeamerfont{author in head/foot}\insertshortauthor%~~(\insertshortinstitute)
 \end{beamercolorbox}%
 \begin{beamercolorbox}[wd=.25\paperwidth,ht=3.25ex,dp=1ex,center]{section in head/foot}%
-	\usebeamerfont{section in head/foot} IQS Oct. 2015 % \insertshorttitle
+	\usebeamerfont{section in head/foot} IQS NEAMS 2015 % \insertshorttitle
 \end{beamercolorbox}%
 \begin{beamercolorbox}[wd=.25\paperwidth,ht=3.25ex,dp=1ex,left]{section in head/foot}%
 	\usebeamerfont{section in head/foot}\insertshortdate{}\hspace*{2em}
@@ -318,12 +321,11 @@
 
 \urldef{\ragusa}\url{jean.ragusa@tamu.edu}
 
-\title{IQS: Status Update}
+\title{TREAT Mission Supporting Problem\\
+Improved Quasi-Static Method in RattleSnake}
 
 \author{Jean C. Ragusa, Zach M. Prince}
-\institute{Department of Nuclear Engineering, Texas A\&M University, College Station, TX\\
-Institute for Scientific Computation, Texas A\&M University, College Station, TX\\
-Center for Exascale Radiation Transport, Texas A\&M University, College Station, TX}
+\institute{Department of Nuclear Engineering, Texas A\&M University, College Station, TX}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -338,7 +340,7 @@ Center for Exascale Radiation Transport, Texas A\&M University, College Station,
 %\vspace{-1.5cm}
 	\begin{figure}[t]
 		\centering
-			\includegraphics[width=.45\textwidth]{cert_logo_big.png}
+			\includegraphics[width=.45\textwidth]{figures/Treat_core_view.png}
 	\end{figure}
 \vspace{-0.5cm}
 \titlepage
@@ -361,49 +363,123 @@ Center for Exascale Radiation Transport, Texas A\&M University, College Station,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Time-dependent Multigroup Diffusion}
+\subsection{Time-dependent Multigroup Transport}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %-------------------------------------------------------------------
-\begin{frame}{Time-dependent Multigroup Diffusion}
+\begin{frame}{Time-dependent Multigroup Transport}
 
 
-\begin{block}{Equations}
-Neutron flux $\phi^g$:
-\begin{align}
-\frac{1}{v^g} \frac{\partial \phi^g }{\partial t} =& \frac{\chi_p^g}{\keff} \sum_{g'=1}^G (1-\beta) \nu^{g'} \Sigma_f^{g'} \phi^{g'} -  \left( -\div D^g \grad  + \Sigma_r^g \right) \phi^g  \nonumber \\
-&  + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \phi^{g'}  + \sum_{i=1}^I\chi_{d,i}^g\lambda_i C_i \ , \quad 1 \le g \le G 
-\end{align}
-Precursors $C_i$
-\be
-\frac{dC_i}{dt} = \frac{\beta_i}{k_{eff}}\sum_{g=1}^G\nu^{g} \Sigma_f^g \phi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
-\ee
-with
-\be
-\beta = \sum_{i=1}^I \beta_{i} 
-\ee
+\begin{block}{Fluxes $(1 \le g \le G )$}
+\begin{multline}
+\frac{1}{v^g}\frac{\partial \Psi^g ( \vec{r},\vec{\Omega },t) }{\partial t} 
+=
+\sum_{g^\prime=1}^{G} \int\nolimits_{4\pi }d\Omega ^{\prime }
+\left[
+\Sigma _{s}^{g^\prime\to g}(\vec{r},\vec{\Omega ^{\prime }} \cdot \vec{\Omega },t)
++ 
+\frac{\chi _{p}^g}{4\pi } \nu_{p}\Sigma ^{g^\prime}_{f}(\vec{r},t)
+\right]
+\Psi^{g^\prime} ( \vec{r},\vec{\Omega ^{\prime }},t)  \\
+% 
+-div\left[ \vec{\Omega }\Psi ^g ( \vec{r},\vec{\Omega },t) \right]
+-\Sigma ^g(\vec{r},t)\Psi ^g( \vec{r},\vec{\Omega },t) 
+%
++\sum\limits_{i=1}^{I} \frac{\chi ^g _{d,i}(\vec{r})}{4\pi} \lambda _{i}C_{i}(\vec{r},t)  \notag 
+\end{multline}
++ IC + BC \\
+\medskip
+In operator notation:
+\begin{equation*}
+\boxed{
+\frac{1}{v}\frac{\partial \Psi }{\partial t} = (H + P_p - L) \Psi  + S_{d} 
+}
+\end{equation*}
+\end{block}
+
+\vspace{-4mm}
+
+\begin{block}{Precursors $C_i$ $(1 \le i \le I)$}
+\begin{equation*}
+\boxed{
+\frac{dC_i}{dt} = \sum_{g=1}^G \nu_{d,i}^{g} \Sigma_f^g(\vec{r},t) \Phi^{g}(\vec{r},t) - \lambda_i(\vec{r},t) C_i(\vec{r},t) 
+}
+\end{equation*}
+%with
+%\be
+%\beta = \sum_{i=1}^I \beta_{i} 
+%\ee
 \end{block}
 
 \end{frame}
 %-------------------------------------------------------------------
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\subsection{Time-dependent Multigroup Diffusion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%%-------------------------------------------------------------------
+%\begin{frame}{Time-dependent Multigroup Diffusion}
+%
+%
+%\begin{block}{Equations}
+%Neutron flux $\phi^g$:
+%\begin{align}
+%\frac{1}{v^g} \frac{\partial \phi^g }{\partial t} =& \frac{\chi_p^g}{\keff} \sum_{g'=1}^G (1-\beta) \nu^{g'} \Sigma_f^{g'} \phi^{g'} -  \left( -\div D^g \grad  + \Sigma_r^g \right) \phi^g  \nonumber \\
+%&  + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \phi^{g'}  + \sum_{i=1}^I\chi_{d,i}^g\lambda_i C_i \ , \quad 1 \le g \le G 
+%\end{align}
+%Precursors $C_i$
+%\be
+%\frac{dC_i}{dt} = \frac{\beta_i}{k_{eff}}\sum_{g=1}^G\nu^{g} \Sigma_f^g \phi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
+%\ee
+%with
+%\be
+%\beta = \sum_{i=1}^I \beta_{i} 
+%\ee
+%\end{block}
+%
+%\end{frame}
+%%-------------------------------------------------------------------
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Factorization approach}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %-------------------------------------------------------------------
-\begin{frame}{Factorization}
+\begin{frame}{Flux Factorization}
 
 \begin{block}{Factorization}
-Decomposition of the multigroup flux into the product of a time-dependent amplitude ($p$) and a space-/time-dependent multigroup shape ($\varphi$):
-\be
+Decomposition of the multigroup flux into the \tcm{product} of a time-dependent \tcr{amplitude} ($p$) and a space-/time-dependent multigroup \tcb{shape} ($\psi$):
+\begin{equation*}
 \boxed{
-\phi^g(\vec{r},t)=p(t)\varphi^g(\vec{r},t)
+\Psi^g(\vec{r},\vec{\Omega},t) = \tcr{p(t)} \tcb{\psi^g (\vec{r},\vec{\Omega},t)}
 }
-\ee
-When reporting this in the previous equations, this leads to the so-called \tcr{shape} equations.
+\end{equation*}
+and, for the scalar flux,
+\begin{equation*}
+\boxed{
+\Phi^g(\vec{r},t) = \tcr{p(t)} \tcb{\varphi^g(\vec{r},t)}
+}
+\end{equation*}
+with, obviously,
+\begin{equation*}
+\varphi^g(\vec{r},t) = \int_{4\pi} d\Omega^\prime\, \psi^g(\vec{r},\vec{\Omega}^\prime,t)
+\end{equation*}
 \end{block}
 
+\begin{block}{}
+\begin{itemize}
+\item 
+Factorization is \tcm{not} an approximation
+\item
+When reporting these in the previous equations, one obtains to the so-called \tcb{shape} equations.
+\item
+Note that \tcm{factorization is not unique}: 
+\[
+\Psi= \tcr{p} \times \tcb{\psi} = \tcr{\frac{p}{a}} \times \tcb{\left( a \psi \right)}
+\]
+\end{itemize}
+\end{block}
 
 \end{frame}
 %-------------------------------------------------------------------
@@ -416,22 +492,63 @@ When reporting this in the previous equations, this leads to the so-called \tcr{
 \begin{frame}{Shape equations}
 
 \begin{block}{Shape equations}
-The shape equations are similar to the original diffusion equations:
-\begin{align}
-\frac{1}{v^g} \frac{\partial \varphi^g }{\partial t} =& \frac{\chi_p^g}{\keff} \sum_{g'=1}^G (1-\beta) \nu^{g'} \Sigma_f^{g'} \varphi^{g'} -  \left( -\div D^g \grad  + \Sigma_r^g + \tcr{\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}}\right) \varphi^g  \nonumber \\
-&  + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'}  + \tcr{\frac{1}{p}}\sum_{i=1}^I\chi_{d,i}^g\lambda_i C_i \ , \quad 1 \le g \le G 
-\label{eq:shape}
-\end{align}
-\be
-\frac{dC_i}{dt} = \frac{\beta_i}{k_{eff}}\sum_{g=1}^G\nu^{g} \Sigma_f^g \tcr{p} \varphi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
-\ee
+The shape equations are similar to the original transport equations:
+\begin{equation*}
+\boxed{
+\frac{1}{v}\frac{\partial \tcb{\psi} }{\partial t} = (H + P_p - \tcb{\tilde{L}}) \tcb{\psi}  + \tcr{\frac{1}{p}} S_{d} 
+}
+\end{equation*}
+%\begin{align}
+%\frac{1}{v^g} \frac{\partial \varphi^g }{\partial t} =& \frac{\chi_p^g}{\keff} \sum_{g'=1}^G (1-\beta) \nu^{g'} \Sigma_f^{g'} \varphi^{g'} -  \left( -\div D^g \grad  + \Sigma_r^g + \tcr{\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}}\right) \varphi^g  \nonumber \\
+%&  + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'}  + \tcr{\frac{1}{p}}\sum_{i=1}^I\chi_{d,i}^g\lambda_i C_i \ , \quad 1 \le g \le G 
+%\label{eq:shape}
+%\end{align}
+\begin{equation*}
+\boxed{
+\frac{dC_i}{dt} = \sum_{g=1}^G \nu_{d,i}^{g} \Sigma_f^g(\vec{r},t) \tcr{p} \tcb{\varphi^{g}}(\vec{r},t) - \lambda_i(\vec{r},t) C_i(\vec{r},t) 
+}
+\end{equation*}
+%\be
+%\frac{dC_i}{dt} = \frac{\beta_i}{k_{eff}}\sum_{g=1}^G\nu^{g} \Sigma_f^g \tcr{p} \varphi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
+%\ee
 \end{block}
 
-\begin{block}{Differences}
+\begin{block}{Differences with original transport equation}
 \ben
-\item An additional removal term based on $\tcr{\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}} \varphi^g$
+\item An additional removal term based on $\tcr{\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}} \tcb{\psi^g}$
+\vspace{-3mm}
+\begin{equation*}
+\boxed{
+\tcb{\tilde{L}^g} = L^g + \tcr{\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}} 
+}
+\end{equation*}
+\vspace{-3mm}
 \item Delayed neutron source term scaled by $\tcr{\frac{1}{p}}$
-\item \tcb{No change} in the precursor equations but we re-write them to show explicitly  $\tcr{p} \times \varphi^{g}$
+\item \tcm{No change} in the precursor equations but we have re-written them to show explicitly  $\tcr{p} \times \tcb{\varphi^{g}}$
+\een
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Shape equations: Implementation within the MOOSE framework}
+
+\begin{block}{Shape equations $\to$ \tcr{FEM solver + implicit time integration}}
+\begin{equation*}
+\boxed{
+\frac{1}{v}\frac{\tcb{\psi}^{n+1}-\tcb{\psi}^n }{\Delta t} = \left(H^{n+1} + P_p^{n+1} - L^{n+1} -\tcr{\frac{1}{v}\frac{1}{p^{n+1}}\left.\frac{dp}{dt}\right|_{n+1}} \right) \tcb{\psi}^{n+1}  + \tcr{\frac{1}{p^{n+1}}} S_{d}^{n+1} 
+}
+\end{equation*}
+\end{block}
+
+\begin{block}{Modification to the original transport equation}
+\ben
+\item An additional removal term based on $\tcr{\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}} \tcb{\psi^g}$\\
+\tcm{$\to$ add a new kernel}
+\item Delayed neutron source term scaled by $\tcr{\frac{1}{p}}$\\
+\tcm{$\to$ scale the delayed neutron source kernel}
+\item nonlinear coupling between shape variable $\tcb{\psi^{n+1}}$ and amplitude variable $\tcr{p^{n+1}}$
 \een
 \end{block}
 
@@ -446,23 +563,23 @@ The shape equations are similar to the original diffusion equations:
 \begin{frame}{Amplitude equations (PRKE)}
 
 \begin{block}{Principle}
-To obtain the amplitude equation, we multiply the shape equations with a weighting 
-function (initial adjoint flux, $\phi^*$), then integrate over phase-space.  
+To obtain the \tcr{amplitude} equation, we multiply the shape equations with a weighting 
+function (initial adjoint flux, $\Psi^*$), then integrate over phase-space.  
 \end{block}
 
 \begin{block}{Notation}
-For brevity, the adjoint flux product and integration over space will be represented with parenthetical notation:
-\be
-\int_D\phi^{*g}(\vec{r})f^g(\vec{r})d^3r=\left(\phi^{*g},f^g\right)
-\ee
+For brevity, the adjoint flux product and integration over phase-space will be represented with parenthetical notation:
+\[
+\int_{4\pi}\int_D\Psi^{*g}(\vec{r},\vec{\Omega})f^g(\vec{r},\vec{\Omega})d^3rd\Omega=\left(\Psi^{*g},f^g\right)
+\]
 \end{block}
 
 
 \begin{block}{Uniqueness of the factorization}
 In order to impose uniqueness of the factorization, one requires:
-\be
-\tcr{K_0} = \sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)= constant
-\ee
+\[
+\tcr{K_0} = \sum_{g=1}^G\left(\Psi^{*g},\frac{1}{v^g}\psi^g\right)= constant
+\]
 \end{block}
 
 
@@ -473,25 +590,26 @@ In order to impose uniqueness of the factorization, one requires:
 \begin{frame}{PRKE (continued)}
 
 \begin{block}{PRKE}
-\be
-\frac{dp}{dt}=\left[\frac{\rho-\bar{\beta}}{\Lambda}\right]p+\sum_{i=1}^I\bar{\lambda}_i\xi_i
-\ee
-\be
-\frac{d\xi_i}{dt}=\frac{\bar{\beta}_i}{\Lambda}-\bar{\lambda}_i\xi_i \quad 1 \le i \le I 
-\ee
+\[
+\frac{d\tcr{p}}{dt}=\left[\frac{\rho-\bar{\beta}}{\Lambda}\right]\tcr{p}+\sum_{i=1}^I\bar{\lambda}_i\xi_i
+\]
+\[
+\frac{d\xi_i}{dt}=\frac{\bar{\beta}_i}{\Lambda}\tcr{p} - \bar{\lambda}_i\xi_i \quad 1 \le i \le I 
+\]
 \end{block}
 
-\begin{block}{Coefficients}
-\be
-\frac{\rho}{\Lambda}=\sum_{g=1}^G\frac{ \left(\phi^{*g},\sum_{g'=1}^G\frac{\chi_p^g}{k_{eff}} \nu^{g'} \Sigma_f^{g'}\varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'} -\left( -\div D^g \grad  + \Sigma_r^g \right)\varphi^g\right)}{\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}
-\ee
-\be
-\frac{\bar{\beta}}{\Lambda}=\sum_{i=1}^I\frac{\bar{\beta}_i}{\Lambda}=\frac{1}{k_{eff}}\sum_{i=1}^I\sum_{g=1}^G\frac{(\phi^{*g}, \beta_i\nu^{g} \Sigma_f^g \varphi^{g})}{\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}
-\ee
-\be
-\bar{\lambda}_i=\sum_{g=1}^G\frac{(\phi^{*g},\chi_{d,i}^g\lambda_i C_i)}{(\phi^{*g},\chi_{d,i}^gC_i)}
-\ee
-
+\begin{block}{PRKE Coefficients}
+\[
+\frac{\rho-\bar{\beta}}{\Lambda}=
+\frac{ \left( \Psi^{*}, (H+P_p-L) \tcb{\psi} \right)}{K_0}
+\]
+\[
+\frac{\bar{\beta}}{\Lambda}=\sum_{i=1}^I\frac{\bar{\beta}_i}{\Lambda}=
+\sum_{i=1}^I \frac{ \left(\Psi^{*}, P_{d,i} \tcb{\psi} \right)}{K_0}
+\]
+\[
+\bar{\lambda}_i=\frac{(\Psi^{*},\chi_{d,i}\lambda_i \tcb{C_i})}{(\Psi^{*},\chi_{d,i}\tcb{C_i})}
+\]
 \end{block}
 
 \end{frame}
@@ -507,8 +625,8 @@ In order to impose uniqueness of the factorization, one requires:
 \begin{block}{Factorization leads to a \tcr{nonlinear} system}
 The amplitude and shape equations form a system of \tcr{nonlinear} coupled equations: 
 \ben
-\item the coefficients appearing in the PRKEs depend upon the shape solution,
-\item the shape equation has a kernel dependent on amplitude and its derivative,  
+\item the coefficients appearing in the \tcr{PRKE}s depend upon the \tcb{shape} solution,
+\item the \tcb{shape} equation has a kernel dependent on \tcr{amplitude} and its derivative,  
 \item the delayed neutron source term is scaled by the amplitude.
 \een
 \end{block}
@@ -532,28 +650,29 @@ Because solving for the shape can be expensive, especially in two or three dimen
 
 
 \begin{block}{Ideally}
-The normalization constant should not change
-\be
-\tcr{K_0} = \sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g(\tcr{t=0})\right)
-\ee
-So we use
-\be
-\left| \frac{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g(\tcb{t=t^{n+1}})\right)}{\tcr{K_0}}-1\right| 
+The normalization constant should not change over time !
+\[
+\tcr{K_0} = \sum_{g=1}^G\left(\Psi^{*g},\frac{1}{v^g}\psi^g(\tcr{t=0})\right)= constant
+\]
+\[
+\text{Thus, we employ }\quad
+\left| \frac{\sum_{g=1}^G\left(\Psi^{*g},\frac{1}{v^g}\psi^g(\tcb{t=t^{n+1}})\right)}{\tcr{K_0}}-1\right| 
 = \left| \frac{\tcb{K_{n+1}}}{{\tcr{K_0}}}-1\right|  < tol
-\ee
+\]
 \end{block}
 
-\begin{block}{We have seen in practice}
-\be
-\frac{ \| \varphi_{g,t_{n+1}}^{\tcr{\ell+1}} - \varphi_{g,t_{n+1}}^{\tcr{\ell}} \|}{\| \varphi_{g,t_{n+1}}^{\tcr{\ell+1}} \|} < tol 
+\begin{block}{Note that we have seen in practice ... }
+\[
+\frac{ \| \psi^{g,_{t_{n+1}}^{\tcr{\ell+1}}} - \psi^{g,_{t_{n+1}}^{\tcr{\ell}}} \|}{\| \psi^{g,_{t_{n+1}}^{\tcr{\ell+1}}} \|} < tol 
 \quad \text{or even} \quad
-\frac{ \| \varphi_{g,t_{n+1}}^{\tcr{\ell+1}} - \varphi_{g,t_{n+1}}^{\tcr{0}} \|}{\| \varphi_{g,t_{n+1}}^{\tcr{0}} \|} < tol 
-\ee
+\frac{ \| \psi^{g,_{t_{n+1}}^{\tcr{\ell+1}}} - \psi^{g,_{t_{n+1}}^{\tcr{0}}} \|}{\| \psi^{g,_{t_{n+1}}^{\tcr{0}}} \|} < tol 
+\]
 where $\tcr{\ell}=$IQS iteration index over a given macro time step $[t_n,t_{n+1}]$\\
-followed by a renormalization before starting the next time step $[t_{n+1},t_{n+2}]$
-\be
-\varphi_{g,t_{n+1}}^{\tcr{converged}} \leftarrow \varphi_{g,t_{n+1}}^{\tcr{converged}} \times \frac{K_{n+1}}{K_0}
-\ee
+\smallskip
+These empirical criteria must be followed by a renormalization before starting the next time step $[t_{n+1},t_{n+2}]$
+\[
+\psi^{g,_{t_{n+1}}^{\tcr{converged}}} \leftarrow \psi^{g,_{t_{n+1}}^{\tcr{converged}}} \times \frac{K_{n+1}^{\tcr{converged}}}{K_0}
+\]
 \end{block}
 
 
@@ -565,22 +684,28 @@ followed by a renormalization before starting the next time step $[t_{n+1},t_{n+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %-------------------------------------------------------------------
-\begin{frame}{Theta-scheme}
+\begin{frame}{Precursors time-discretization}
 
-
-\begin{block}{Theta-scheme}
+A simple ODE:
+\begin{equation*}
+\boxed{
+\frac{dC_i}{dt} = \sum_{g=1}^G \nu_{d,i}^{g} \Sigma_f^g(\vec{r},t) \tcr{p} \tcb{\varphi^{g}}(\vec{r},t) - \lambda_i(\vec{r},t) C_i(\vec{r},t) 
+}
+\end{equation*}
+\begin{block}{Numerical integration: Theta-scheme (already in RattleSnake)}
 \be
-C^{n+1} = \frac{1-(1-\theta)\Delta t\lambda}{1+\theta\Delta t\lambda}C^n + \frac{(1-\theta)\Delta t \beta (\nu\Sigma_f)^n}{1+\theta\Delta t\lambda}\varphi^n p^n +  \frac{\theta\Delta t \beta (\nu\Sigma_f)^{n+1}}{1+\theta\Delta t\lambda}\varphi^{n+1} p^{n+1}
+C^{n+1} = \frac{1-(1-\theta)\Delta t\lambda}{1+\theta\Delta t\lambda}C^n 
++ \frac{(1-\theta)\Delta t \beta (\nu\Sigma_f)^n}    {1+\theta\Delta t\lambda}\tcb{\varphi^n}     \tcr{p^n }
++ \frac{\theta\Delta t     \beta (\nu\Sigma_f)^{n+1}}{1+\theta\Delta t\lambda}\tcb{\varphi^{n+1}} \tcr{p^{n+1}}
 \ee
-Reporting this value of $C^{n+1}$, one can solve for the shape $\varphi^{n+1}$ as a function of $\varphi^n$ and $C^n$
+Reporting this value of $C^{n+1}$ in $S_d^{n+1}$, one can solve for the shape $\psi^{n+1}$ as a function of $\psi^n$ and $C^n$
 (and $p^n$, $p^{n+1}$, $dp/dt|_n$ and  $dp/dt|_{n+1}$).\\
 
 \bigskip
-Once $\varphi^{n+1}$ has been determined, $C^{n+1}$ is updated. \\
+Once $\psi^{n+1}$ has been determined, $C^{n+1}$ is updated. \\
 
 \medskip
-YAK currently implements both implicit and Crank-Nicholson as options for precursor evaluation.
-
+RattleSnake currently implements both implicit ($\theta=1$) and Crank-Nicholson ($\theta=1/2$) as options for precursor evaluation.
 
 \end{block}
 
@@ -592,67 +717,80 @@ YAK currently implements both implicit and Crank-Nicholson as options for precur
 
 
 \begin{block}{Analytical Integration}
-\be
-C^{n+1} =  C^n e^{-\lambda (t_{n+1} - t_n) }  + \int_{t_n}^{t_{n+1}} \beta\nu\Sigma_f(t')\varphi(t') p(t')e^{-\lambda (t_{n+1}-t')}dt'
-\ee
+\[
+C^{n+1} =  C^n e^{-\lambda (t_{n+1} - t_n) }  + \int_{t_n}^{t_{n+1}} \nu_d\Sigma_f(t')\tcb{\varphi(t')} \tcr{p(t')} e^{-\lambda (t_{n+1}-t')}dt'
+\]
 \end{block}
 
 \begin{block}{}
-Assuming a linear in time variation over the macro time step $[t_n, t_{n+1}]$ for the shape and the fission cross section, we get:
-\be
+Assuming a \tcm{linear in time variation} over the macro time step $[t_n, t_{n+1}]$ for the \tcb{shape} and the \tcb{fission cross section}, we get:
+\[
 C^{n+1} = C^n e^{-\lambda \Delta t} 
-+ \left(a_3(\beta\nu\Sigma_f)^{n+1}+a_2(\beta\nu\Sigma_f)^n\right)\varphi^{n+1}
-+ \left(a_2(\beta\nu\Sigma_f)^{n+1}+a_1(\beta\nu\Sigma_f)^n\right)\varphi^n 
-\ee
-
-Where the integration coefficients are defined as:
-
++ \left[\tcm{a_3}(\nu_d\Sigma_f)^{n+1}+\tcm{a_2}(\nu_d\Sigma_f)^n\right]\tcb{\varphi^{n+1}}
++ \left[\tcm{a_2}(\nu_d\Sigma_f)^{n+1}+\tcm{a_1}(\nu_d\Sigma_f)^n\right]\tcb{\varphi^n    }
+\]
+where the integration coefficients are defined as:
 \begin{align}
-&a_1 = \int_{t_n}^{t_{n+1}}\left(\frac{t_{n+1}-t'}{\Delta t}\right)^2p(t')e^{-\lambda(t_{n+1}-t')}dt' \\
-&a_2= \int_{t_n}^{t_{n+1}}\frac{(t'-t_n)(t_{n+1}-t')}{(\Delta t)^2}p(t')e^{-\lambda(t_{n+1}-t')}dt' \\
-&a_3 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)^2p(t')e^{-\lambda(t_{n+1}-t')}dt'
+&a_1 = \int_{t_n}^{t_{n+1}}\left(\frac{t_{n+1}-t'}{\Delta t}\right)^2 \tcr{p(t')} e^{-\lambda(t_{n+1}-t')}dt' \notag \\
+&a_2= \int_{t_n}^{t_{n+1}}\frac{(t'-t_n)(t_{n+1}-t')}{(\Delta t)^2}   \tcr{p(t')} e^{-\lambda(t_{n+1}-t')}dt'   \notag \\
+&a_3 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)^2     \tcr{p(t')} e^{-\lambda(t_{n+1}-t')}dt'     \notag 
 \end{align}
 
 
-\end{block}
-
-\end{frame}
-%-------------------------------------------------------------------
-
-%-------------------------------------------------------------------
-\begin{frame}{Analytical Integration (continued)}
-
-Recall that we just need to compute  coefficients of the form:
-\be
-\int_{t_n}^{t_{n+1}}\left(\delta_2 t'^2 + \delta_1 t' +\delta_0\right) \tcr{p(t')}e^{-\lambda(t_{n+1}-t')}dt' 
-\ee
-
-\begin{block}{}
-
-The amplitude $(p)$ is contained in the $a_i$'s integration coefficients.\\
-$p(t)$ has been highly accurately calculated at the micro time step level.
+The amplitude $\tcr{p}$ is contained in the $a_i$'s integration coefficients.\\
+\tcr{$p(t)$} has been \tcm{accurately} calculated at the \tcm{micro time} step level.
 
 \end{block}
 
 \end{frame}
 %-------------------------------------------------------------------
 
+%%-------------------------------------------------------------------
+%\begin{frame}{Analytical Integration (continued)}
+%
+%Recall that we just need to compute  coefficients of the form:
+%\[
+%\int_{t_n}^{t_{n+1}}\left(\delta_2 t'^2 + \delta_1 t' +\delta_0\right) \tcr{p(t')}e^{-\lambda(t_{n+1}-t')}dt' 
+%\]
+%
+%\begin{block}{}
+%
+%The amplitude $(p)$ is contained in the $a_i$'s integration coefficients.\\
+%$p(t)$ has been highly accurately calculated at the micro time step level.
+%
+%\end{block}
+%
+%\end{frame}
+%%-------------------------------------------------------------------
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Implementation in YAK/RATTLESNAKE}
+\section{Implementation in RATTLESNAKE}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Changes to RATTLESNAKE}
 
 %-------------------------------------------------------------------
-\begin{frame}{Changes to MOOSE}
+\begin{frame}{Changes to RATTLESNAKE}
 
+\begin{block}{Action Systems}
+\bi
+\item Continuous FEM Diffusion (\tcr{completed})
+\item Discontinuous FEM Diffusion
+\item Discontinuous FEM Sn Transport (first-order form)
+\item Discontinuous FEM Sn Transport (SAAF form)
+\ei
+Four action systems \tcr{$\ne$} four times the work!
+\end{block}
 
 \begin{block}{}
 \bi
-\item Diffusion Action System (adding IQS as an option to solve CFEM diffusion, collecting and initializing variables for postprocessor computation, and rearranging hierarchy of classes)
-\item postprocessors to compute $\rho$, $\bar{\beta}$, $\bar{\lambda}$ numerator and denominator (created four postprocessors that use element integrals to compute PRKE parameters)
-\item IQS userobject (combining postprocessor computed values for PRKE solve using updated reactivity coefficients, $\rho$, $\bar{\beta}$, $\bar{\lambda}$)
-\item IQS executioner (use of the existing Picard iteration loop of the executioner; this can seamlessly enable IQS in multiphysics simulations without any further changes)
+\item \tcm{Action System} (adding IQS as an option)
+\item Post-processors (\tcm{element integrals}) for PRKE coefficients: $\rho-\bar{\beta}$, $\bar{\beta}_i$, $\bar{\lambda}_i$\\
+Note that the numerator of $\rho-\bar{\beta}$, i.e., $\left( \Psi^{*}, (H+P_p-L) \psi \right)$, is particularly easy thanks to the residual {\tt save\_in} option of MOOSE.
+\item IQS \tcm{userobject} (PRKE solve using updated PRKE coefficients)
+\item IQS \tcm{executioner} derived from MOOSE executioner (use of the existing Picard iteration loop in the {\tt transient} executioner; this can seamlessly enable IQS in multiphysics simulations without any further changes)
 \ei
 \end{block}
 
@@ -664,7 +802,7 @@ $p(t)$ has been highly accurately calculated at the micro time step level.
 \begin{frame}{}
 
 
-\begin{block}{Break down of IQS Action}
+\begin{block}{Break down of IQS Changes}
 \begin{figure}[h]
 \begin{tikzpicture}[every node/.style = {shape          = rectangle, rounded corners, fill = blue!60, minimum width  = 1.5cm, minimum height = 0.75cm, align= center, text = white},blue edge/.style  = { -, ultra thick, blue!60, shorten >= 4pt}]
 \node(0;0) at (-1,0) {CFEM \\ Diffusion \\ Action};
@@ -694,83 +832,47 @@ $p(t)$ has been highly accurately calculated at the micro time step level.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Prototype code}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%\begin{block}{Add}
-%\bi
-%\item results for null transients with analytical precs and not analytical precs. Pick what makes the most sense to show the issue. 
-%\item Pick a graph that shows that it is the analyt prec and not a better prke solution that leads to the issue
-%\item 1D heterogenous transient (pbID=10). Plot power versus time for brute force, IQS analy prec, classic prke. Let T be about the time when power peaks. Run the transients for end time = about 2-3 T.
-%\item convergence study. Re run the transient, this time with end time T, and make a table or plot of error for IQS analy and brute force versus \# of diffusion solves. Of course, for brute force, the \# of diffusion solves = 1/delta t. For IQS, you need to keep track of the number of IQS iterations per delta t to get the \# of diffusion solves.
-%\ei
-%\end{block}
-%-------------------------------------------------------------------
-\begin{frame}{Analytical precursors versus time-discrete precursors}
-
-\begin{figure}[h]
-\includegraphics[width=0.9\linewidth]{figures/AnalyticalvsBE_Precursor_Power.png}
-%\caption{IQS method solution process}
-\label{fig:IQS}
-\end{figure}
-
-\end{frame}
-%-------------------------------------------------------------------
-
-%-------------------------------------------------------------------
-\begin{frame}{Analytical precursors versus time-discrete precursors}
-
-\begin{figure}[h]
-\includegraphics[width=0.9\linewidth]{figures/AnalyticalvsBE_Precursor_Error.png}
-%\caption{IQS method solution process}
-\label{fig:IQS}
-\end{figure}
-
-\end{frame}
-%-------------------------------------------------------------------
-
-%-------------------------------------------------------------------
-\begin{frame}{1D Heterogeneous test case}
-
-\begin{figure}[h]
-\includegraphics[width=0.99\linewidth]{figures/heterogeneous_results.png}
-%\caption{IQS method solution process}
-\label{fig:IQS}
-\end{figure}
-
-\end{frame}
-%-------------------------------------------------------------------
-
-%-------------------------------------------------------------------
-\begin{frame}{1D Heterogeneous test case}
-
-\begin{figure}[h]
-\includegraphics[width=0.9\linewidth]{figures/heterogeneous_convergence.png}
-%\caption{IQS method solution process}
-\label{fig:IQS}
-\end{figure}
-
-\end{frame}
-%-------------------------------------------------------------------
-
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{YAK/RATTLESNAKE}
+\subsection{TWIGL benchmark}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %-------------------------------------------------------------------
-\begin{frame}{1D Heterogeneous test case with YAK}
+\begin{frame}{TWIGL benchmark}
 
 \begin{figure}[h]
-\includegraphics[width=\linewidth]{figures/heterogeneous_YAK.png}
+\includegraphics[width=\linewidth]{figures/twigl_geom.png}
 %\caption{IQS method solution process}
 \label{fig:IQS}
 \end{figure}
 
 \end{frame}
 %-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{TWIGL:  Computational Efficacy}
+
+Relative error versus \# of linear iterations:
+\begin{figure}[h]
+\includegraphics[width=0.9\linewidth]{figures/twigl_convergence_iqs.png}
+%\caption{IQS method solution process}
+\label{fig:IQS}
+\end{figure}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+\begin{frame}{$2$-D Mach $3$ flow over a forward facing step}
+  \begin{columns}
+    \column{.5\textwidth}
+       \includemedia[addresource=ndiff_twigl_ramp_03.mpg, activate=pageopen, deactivate=pageclose, width=6.5cm, height=5cm, flashvars={source=ndiff_twigl_ramp_03.mpg & autoPlay=true & loop=true }]{}{VPlayer.swf}
+    \column{.5\textwidth}
+      \includemedia[addresource=iqs_twigl_ramp_03.mpg, activate=pageopen, deactivate=pageclose, width=6.5cm, height=5cm, flashvars={source=iqs_twigl_ramp_03.mpg & autoPlay=true & loop=true }]{}{VPlayer.swf}
+  \end{columns}
+%%\begin{center}
+%%\movie[width=6cm,height=4cm,showcontrols=true,externalviewer]{\includegraphics[width=6cm,height=4cm]{crunching.png}}{FFS_density_movie.mp4}\\
+%%\end{center}
+\end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -826,6 +928,30 @@ $p(t)$ has been highly accurately calculated at the micro time step level.
 
 \end{frame}
 %-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Questions ?}
+
+
+\begin{block}{Thanks}
+\begin{itemize}
+\item Yaqi Wang (INL, RattleSnake code lead)
+\item Mark DeHart (INL, TREAT M\&S lead)
+\item NEAMS
+\end{itemize}
+
+\begin{block}{}
+\begin{figure}
+	\centering
+	\includegraphics[scale=0.3]{./crunching.png}
+\end{figure}
+\end{block}
+
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
 
 %%-------------------------------------------------------------------
 %\begin{frame}{}
