@@ -46,7 +46,7 @@
 
 \usepackage{tikz}
 
-%\usepackage{multimedia}
+\usepackage{multimedia}
 \usepackage[]{media9}
 %-----------------------------------------------------------
 % NEW  DEFINITIONS
@@ -862,16 +862,17 @@ Relative error versus \# of linear iterations:
 \end{frame}
 %-------------------------------------------------------------------
 
-\begin{frame}{$2$-D Mach $3$ flow over a forward facing step}
-  \begin{columns}
-    \column{.5\textwidth}
-       \includemedia[addresource=ndiff_twigl_ramp_03.mpg, activate=pageopen, deactivate=pageclose, width=6.5cm, height=5cm, flashvars={source=ndiff_twigl_ramp_03.mpg & autoPlay=true & loop=true }]{}{VPlayer.swf}
-    \column{.5\textwidth}
-      \includemedia[addresource=iqs_twigl_ramp_03.mpg, activate=pageopen, deactivate=pageclose, width=6.5cm, height=5cm, flashvars={source=iqs_twigl_ramp_03.mpg & autoPlay=true & loop=true }]{}{VPlayer.swf}
-  \end{columns}
-%%\begin{center}
-%%\movie[width=6cm,height=4cm,showcontrols=true,externalviewer]{\includegraphics[width=6cm,height=4cm]{crunching.png}}{FFS_density_movie.mp4}\\
-%%\end{center}
+\begin{frame}{TWIGL:  Shape and flux movies (thermal group)}
+%  \begin{columns}
+%    \column{.5\textwidth}
+%       \includemedia[addresource=ndiff_twigl_ramp_03.mpg, activate=pageopen, deactivate=pageclose, width=6.5cm, height=5cm, flashvars={source=ndiff_twigl_ramp_03.mpg & autoPlay=true & loop=true }]{}{VPlayer.swf}
+%    \column{.5\textwidth}
+%      \includemedia[addresource=iqs_twigl_ramp_03.mpg, activate=pageopen, deactivate=pageclose, width=6.5cm, height=5cm, flashvars={source=iqs_twigl_ramp_03.mpg & autoPlay=true & loop=true }]{}{VPlayer.swf}
+%  \end{columns}
+\begin{center}
+\movie[width=5cm,height=4cm,showcontrols=true,externalviewer]{IQS}{iqs_twigl_ramp_03.mpg}
+\movie[width=5cm,height=4cm,showcontrols=true,externalviewer]{Flux}{ndiff_twigl_ramp_03.mpg}
+\end{center}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
