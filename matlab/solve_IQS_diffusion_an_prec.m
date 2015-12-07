@@ -7,8 +7,8 @@ lambda = dat.lambda;
 dt = dt_macro;
 C_old = u_shape(npar.n+1:end);
 
-max_iter_iqs = 10;
-tol_iqs=1e-7;
+max_iter_iqs = 6;
+tol_iqs=1e-15;
 npar.theta_old=[];
 
 % save values at beginning of macro time step: they are needed in the IQS iteration
@@ -33,7 +33,7 @@ for iter = 1: max_iter_iqs
     p=X(1);
     % interpolating polynomial
     if strcmpi(npar.prke_solve,'matlab')
-        pp = interp1(t,y,'pchip','pp');
+        pp = interp1(t,y,'spline','pp');
     else
         pp = interp1(t,y,'linear','pp');
     end

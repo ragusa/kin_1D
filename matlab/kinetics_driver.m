@@ -2,6 +2,7 @@ function kinetics_driver
 
 clear all;
 close all; clc;
+warning('off','all');
 
 global dat npar
 
@@ -16,7 +17,7 @@ make_movie = false;
 npar.set_bc_last=true;
 
 % select problem
-pbID=10; refinements=1;
+pbID=10; refinements=5;
 problem_init(pbID,refinements);
 
 % compute fundamental eigenmode
@@ -69,8 +70,8 @@ i=0;
 % i=i+1; list_runs{i}= 'brute_force';
 % i=i+1; list_runs{i}= 'brute_force_an_prec';
 i=i+1; list_runs{i}= 'iqs_an_prec';
-i=i+1; list_runs{i}= 'iqs_theta_prec';
-i=i+1; list_runs{i}= 'iqs';
+% i=i+1; list_runs{i}= 'iqs_theta_prec';
+% i=i+1; list_runs{i}= 'iqs';
 % i=i+1; list_runs{i}= 'prke_initial_shape';
 % i=i+1; list_runs{i}= 'prke_exact_shape';
 % i=i+1; list_runs{i}= 'prke_qs_shape';
