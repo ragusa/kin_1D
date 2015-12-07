@@ -198,6 +198,8 @@ npar.add_ones_on_diagonal=~npar.add_zero_on_diagonal;
 % IQS options
 npar.solve_prke_compute_rho_each_time = false;
 npar.prke_solve = 'matlab' ;
+npar.int_order = 2;
+% npar.prke_solve = 'no' ;
 
 return
 end

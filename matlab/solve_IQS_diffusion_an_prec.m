@@ -33,7 +33,13 @@ for iter = 1: max_iter_iqs
     p=X(1);
     % interpolating polynomial
     if strcmpi(npar.prke_solve,'matlab')
-        pp = interp1(t,y,'spline','pp');
+        if npar.int_order==3
+            pp = interp1(t,y,'spline','pp');
+        elseif npar.int_order==2
+            pp = interp1(t,y,'pchip','pp');
+        elseif npar.int_order==1
+            pp = interp1(t,y,'linear','pp');
+        end        
     else
         pp = interp1(t,y,'linear','pp');
     end
@@ -61,9 +67,9 @@ for iter = 1: max_iter_iqs
     A2= @(t)( (t-t1).*(t2-t)/dt^2 .*exp(-lambda*(t2-t)) .*f(t) );
     A3= @(t)( ((t-t1)/dt).^2      .*exp(-lambda*(t2-t)) .*f(t) );
     
-    a1= quad(@(t)A1(t),t1,t2);
-    a2= quad(@(t)A2(t),t1,t2);
-    a3= quad(@(t)A3(t),t1,t2);
+    a1= integral(@(t)A1(t),t1,t2,'Reltol',eps);
+    a2= integral(@(t)A2(t),t1,t2,'Reltol',eps);
+    a3= integral(@(t)A3(t),t1,t2,'Reltol',eps);
     
     
     % build transient matrix (divide lambda by p)
