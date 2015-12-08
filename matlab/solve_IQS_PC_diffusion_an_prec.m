@@ -1,24 +1,35 @@
-function [u_shape, X,t,y] = solve_IQS_diffusion_an_prec(u_shape,X,dt_macro,time_end)
+function [u_end, X,t,y] = solve_IQS_PC_diffusion_an_prec(u,X,dt_macro,time_end)
 
 global dat npar
 
 % shortcuts
 lambda = dat.lambda;
 dt = dt_macro;
-C_old = u_shape(npar.n+1:end);
+C_old = u(npar.n+1:end);
 
-max_iter_iqs = 6;
-tol_iqs=1e-10;
+max_iter_iqs = 1;
+tol_iqs=1e-15;
 npar.theta_old=[];
 
 % save values at beginning of macro time step: they are needed in the IQS iteration
 X_beg=X;
-u_shape_beg=u_shape;
+u_beg=u;
 % for clarity, I also single out the shape function at the beginning/end of the macro time step
-shape_beg=u_shape(1:npar.n);
-shape_end=shape_beg;
+IV   = assemble_mass(     dat.inv_vel ,time_end);
+z = (npar.phi_adj)'*IV*u(1:npar.n)/npar.K0;
+shape_beg=u(1:npar.n)/z;
 
 for iter = 1: max_iter_iqs
+    
+    % solve time-dependent diffusion for flux
+    u_end = solve_TD_diffusion_an_prec(u_beg,dt_macro,time_end);
+    
+    % get a predicted value of the end flux
+    flux_end = u_end(1:npar.n);
+    
+    % get a shape
+    z = (npar.phi_adj)'*IV*flux_end/npar.K0;
+    shape_end = u_end(1:npar.n) / z;
     
     % solve for amplitude function
     if strcmpi(npar.prke_solve,'matlab')
@@ -43,21 +54,7 @@ for iter = 1: max_iter_iqs
     else
         pp = interp1(t,y,'linear','pp');
     end
-    f = @(t) ppval(pp,t);
-    
-    TR  = sparse(npar.n,npar.n,npar.nnz);
-    
-    D    = assemble_stiffness(dat.cdiff   ,time_end);
-    A    = assemble_mass(     dat.siga    ,time_end);
-    NFIp = assemble_mass(     dat.nusigf_p,time_end) / npar.keff;
-    IV   = assemble_mass(     dat.inv_vel ,time_end);
-    Aiqs = assemble_mass(     dat.inv_vel ,time_end) * dpdt/p;
-    
-    NFId_old = assemble_mass(dat.nusigf_d,time_end-dt) / npar.keff ;
-    NFId_new = assemble_mass(dat.nusigf_d,time_end)    / npar.keff ;
-    
-    % flux-flux matrix
-    TR=NFIp-(D+A+Aiqs);
+    f = @(t) ppval(pp,t);   
     
     % integrals for the analytical expressions for the precursors
     t2=time_end;
@@ -71,29 +68,13 @@ for iter = 1: max_iter_iqs
     a2= integral(@(t)A2(t),t1,t2,'Reltol',eps);
     a3= integral(@(t)A3(t),t1,t2,'Reltol',eps);
     
-    
-    % build transient matrix (divide lambda by p)
-    TR = TR + lambda/p * ( a2*NFId_old + a3*NFId_new ) ;
-    
-    % build rhs (divide lambda by p)
-    rhs = IV*shape_beg + dt * lambda/p *( C_old*exp(-lambda*dt) + ( a1*NFId_old + a2*NFId_new )*shape_beg );
-    
-    % build system matrix
-    A = IV-dt*TR;
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    if npar.set_bc_last
-        [A,rhs]=apply_BC(A,rhs,npar.add_ones_on_diagonal);
-    else
-        rhs=apply_BC_vec_only(rhs);
-    end
-    % solve for new shape_end: M(unew-uold)/dt=TR.unew
-    shape_end = A\rhs;
-    
+    NFId_old = assemble_mass(dat.nusigf_d,time_end-dt) / npar.keff ;
+    NFId_new = assemble_mass(dat.nusigf_d,time_end)    / npar.keff ;
+
     % update precursors
     C_new =  C_old*exp(-lambda*dt) + ( a1*NFId_old + a2*NFId_new )*shape_beg + ( a2*NFId_old + a3*NFId_new )*shape_end ;
     % re-package as single solution vector
-    u_shape = [ shape_end ; C_new];
+    u_end = [ X(1)*shape_end ; C_new];
     
     % check for tolerance
     err = abs( (npar.phi_adj)'*IV*shape_end/npar.K0  - 1);
@@ -107,6 +88,6 @@ for iter = 1: max_iter_iqs
 end
 
 if err>=tol_iqs
-    warning('IQS did not converge');
+    warning('IQS_PC did not converge');
 end
 

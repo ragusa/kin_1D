@@ -17,7 +17,7 @@ make_movie = false;
 npar.set_bc_last=true;
 
 % select problem
-pbID=10; refinements=5;
+pbID=10; refinements=1;
 problem_init(pbID,refinements);
 
 % compute fundamental eigenmode
@@ -44,7 +44,7 @@ npar.IV=IV;
 
 % time steping data
 dt=0.005;
-ntimes=2/dt; % 150*2;
+ntimes=.2/dt; % 150*2;
 iqs_factor=1;
 
 
@@ -70,6 +70,7 @@ i=0;
 % i=i+1; list_runs{i}= 'brute_force';
 % i=i+1; list_runs{i}= 'brute_force_an_prec';
 i=i+1; list_runs{i}= 'iqs_an_prec';
+i=i+1; list_runs{i}= 'iqsPC_an_prec';
 % i=i+1; list_runs{i}= 'iqs_theta_prec';
 % i=i+1; list_runs{i}= 'iqs';
 % i=i+1; list_runs{i}= 'prke_initial_shape';
@@ -183,7 +184,6 @@ amplitude_norm_iqs2=1;
 u_shape=[phi0;C0];
 [~,beff_MGT]=compute_prke_parameters(0.,phi0);
 X=[1;beff_MGT/dat.lambda];
-Pnorm_prkeIQS2(1)=X(1);
 
 dt=dt*iqs_factor; ntimes=ntimes/iqs_factor;
 
@@ -226,6 +226,62 @@ if plot_transient_figure && make_movie
     close(gcf)
     % save as AVI file
     movie2avi(mov, 'PbID10_v2_iqs.avi', 'compression','None', 'fps',1);
+end
+% undo time step increase
+dt=dt/iqs_factor; ntimes=ntimes*iqs_factor;
+
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% IQS version inspired from the PC-IQS method, with ANALYTICAL precursors
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if should_I_run_this(list_runs,'iqsPC_an_prec')
+ 
+amplitude_norm_iqs_pc=1;
+
+% initial solution vector
+u=[phi0;C0];
+[~,beff_MGT]=compute_prke_parameters(0.,phi0);
+X=[1;beff_MGT/dat.lambda];
+
+dt=dt*iqs_factor; ntimes=ntimes/iqs_factor;
+
+time_prke_iqs_pc=[];
+power_prke_iqs_pc=[];
+
+%%% loop on time steps %%%
+for it=1:ntimes
+    
+    time_end=it*dt;
+    if console_print, fprintf('time end = %g \n',time_end); end
+
+    % solve time-dependent diffusion for flux
+    [u,X,t,y] = solve_IQS_PC_diffusion_an_prec(u,X,dt,time_end);
+    
+    % plot/movie
+    if plot_transient_figure
+        figure(2)
+        plot(npar.x_dofs,u(1:npar.n));drawnow;
+        if make_movie, mov(it) = getframe(gca); end
+    end
+    % compute end time power for plotting
+    dat.Ptot_iqs_pc(it+1) = compute_power(dat.nusigf,time_end,u(1:npar.n));
+    
+    % ratio of <u*,IVu> to its initial value
+    amplitude_norm_iqs_pc(it+1) = (phi_adjoint'*IV*u(1:npar.n))/npar.K0;
+    
+    % save fine-scale data
+    time_prke_iqs_pc =[time_prke_iqs_pc ; t];
+    power_prke_iqs_pc=[power_prke_iqs_pc; y];
+
+    
+end
+
+% make movie
+if plot_transient_figure && make_movie
+    close(gcf)
+    % save as AVI file
+    movie2avi(mov, 'PbID10_v2_iqsPC.avi', 'compression','None', 'fps',1);
 end
 % undo time step increase
 dt=dt/iqs_factor; ntimes=ntimes*iqs_factor;
@@ -444,6 +500,18 @@ if plot_power_figure
         else
             leg=char(leg,'IQS2');
             leg=char(leg,'IQS2 fine');
+        end
+    end
+    if should_I_run_this(list_runs,'iqsPC_an_prec')
+        plot(ti,amplitude_norm_iqs_pc,'o-');
+        plot(time_prke_iqs_pc,power_prke_iqs_pc,'c.-');
+        if ~has_leg
+            leg=char('IQS_PC');
+            leg=char(leg,'IQS_PC fine');
+            has_leg=true;
+        else
+            leg=char(leg,'IQS_PC');
+            leg=char(leg,'IQS_PC fine');
         end
     end
     if should_I_run_this(list_runs,'iqs_theta_prec')

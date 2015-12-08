@@ -43,9 +43,9 @@ A1= @(t)( ((t2-t)/dt).^2      .*exp(-lambda*(t2-t)) );
 A2= @(t)( (t-t1).*(t2-t)/dt^2 .*exp(-lambda*(t2-t)) );
 A3= @(t)( ((t-t1)/dt).^2      .*exp(-lambda*(t2-t)) );
 
-a1= quad(@(t)A1(t),t1,t2);
-a2= quad(@(t)A2(t),t1,t2);
-a3= quad(@(t)A3(t),t1,t2);
+a1= integral(@(t)A1(t),t1,t2);
+a2= integral(@(t)A2(t),t1,t2);
+a3= integral(@(t)A3(t),t1,t2);
 
 
 % build transient matrix
