@@ -1,9 +1,10 @@
-function [u_shape, X] = solve_IQS_diffusion(u_shape,X,dt_macro,time_end,n_micro,freq_react)
+function [u_shape, X] = solve_IQS_diffusion(u_shape,X,dt_macro,time_end)
 
 global dat npar
 
-max_iter_iqs = 3;
-tol_iqs=1e-6;
+max_iter_iqs = npar.max_iter_iqs;
+tol_iqs      = npar.tol_iqs;
+
 npar.theta_old=[];
 
 IV = assemble_mass(dat.inv_vel,time_end);
@@ -21,7 +22,7 @@ for iter = 1: max_iter_iqs
     if strcmpi(npar.prke_solve,'matlab')
         [X,dpdt,~,~] =  solve_prke_ode(X_beg,dt_macro,time_end,shape_beg,shape_end);
     else
-        [X,dpdt,~,~] =  solve_prke_iqs(X_beg,dt_macro,time_end,shape_beg,shape_end,n_micro,freq_react);
+        [X,dpdt,~,~] =  solve_prke_iqs(X_beg,dt_macro,time_end,shape_beg,shape_end,npar.n_micro,npar.freq_react);
     end
     % assemble IQS    
     TR = assemble_transient_operator_iqs(time_end,X(1),dpdt);

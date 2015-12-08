@@ -7,8 +7,9 @@ lambda = dat.lambda;
 dt = dt_macro;
 C_old = u_shape(npar.n+1:end);
 
-max_iter_iqs = 6;
-tol_iqs=1e-10;
+max_iter_iqs = npar.max_iter_iqs;
+tol_iqs      = npar.tol_iqs;
+
 npar.theta_old=[];
 
 % save values at beginning of macro time step: they are needed in the IQS iteration

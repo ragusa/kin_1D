@@ -7,8 +7,9 @@ lambda = dat.lambda;
 dt = dt_macro;
 C_old = u(npar.n+1:end);
 
-max_iter_iqs = 1;
-tol_iqs=1e-15;
+max_iter_iqs = npar.max_iter_iqs;
+tol_iqs      = npar.tol_iqs;
+
 npar.theta_old=[];
 
 % save values at beginning of macro time step: they are needed in the IQS iteration
@@ -35,7 +36,7 @@ for iter = 1: max_iter_iqs
     if strcmpi(npar.prke_solve,'matlab')
         [X,dpdt,t,y] =  solve_prke_ode(X_beg,dt_macro,time_end,shape_beg,shape_end);
     else
-        [X,dpdt,t,y] =  solve_prke_iqs(X_beg,dt_macro,time_end,shape_beg,shape_end,n_micro,freq_react);
+        [X,dpdt,t,y] =  solve_prke_iqs(X_beg,dt_macro,time_end,shape_beg,shape_end);
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % assemble IQS

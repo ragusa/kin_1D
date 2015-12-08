@@ -2,15 +2,15 @@ function problem_init(problem_ID,nbr_refinements_per_region)
 % load the data structure with info pertaining to the physical problem
 
 % make the problem data a global variable
-global dat npar 
+global dat npar
 
 % rod mov times
-dat.rod_mov.t_beg_1=0.1; 
+dat.rod_mov.t_beg_1=0.1;
 dat.rod_mov.t_end_1=0.6;
-dat.rod_mov.t_beg_2=1.; 
+dat.rod_mov.t_beg_2=1.;
 dat.rod_mov.t_end_2=2.7;
 
-% kinetic parameters 
+% kinetic parameters
 dat.beta_tot=600e-5;
 dat.lambda=0.1;
 dat.invvel=1e-3;
@@ -19,7 +19,7 @@ dat.invvel=1e-3;
 switch problem_ID
     
     case 1
-        % one material, constant in space and time   
+        % one material, constant in space and time
         
         b=dat.beta_tot;
         iv=dat.invvel;
@@ -30,15 +30,15 @@ switch problem_ID
         dat.nusigf_d{1}= create_material_prop('constant_in_time',1.1*b    ,[],'constant_in_space',0);
         dat.inv_vel{1} = create_material_prop('constant_in_time',iv       ,[],'constant_in_space',0);
         dat.ext_src{1} = create_material_prop('constant_in_time',0        ,[],'constant_in_space',0);
-
+        
         n_regions=1;
         region_width=400;
         dat.width = region_width * n_regions;
-
+        
         imat = ones(n_regions,1);
-
+        
     case 2
-        % one material, constant in space      
+        % one material, constant in space
         
         b=dat.beta_tot;
         iv=dat.invvel;
@@ -50,36 +50,36 @@ switch problem_ID
         dat.nusigf_d{1}= create_material_prop('constant_in_time',1.1*b    ,[],'constant_in_space',0);
         dat.inv_vel{1} = create_material_prop('constant_in_time',iv       ,[],'constant_in_space',0);
         dat.ext_src{1} = create_material_prop('constant_in_time',0        ,[],'constant_in_space',0);
-
+        
         n_regions=1;
         region_width=400;
         dat.width = region_width * n_regions;
-
+        
         imat = ones(n_regions,1);
-
+        
     case 3
-        % one material, constant in space      
+        % one material, constant in space
         
         b=dat.beta_tot;
         iv=dat.invvel;
         dat.cdiff{1}   = create_material_prop('constant_in_time',1        ,[],'constant_in_space',0);
         times = [dat.rod_mov.t_beg_1 dat.rod_mov.t_end_1 ...
-                 dat.rod_mov.t_beg_2 dat.rod_mov.t_end_2 ]/10;
+            dat.rod_mov.t_beg_2 dat.rod_mov.t_end_2 ]/10;
         dat.siga{1}    = create_material_prop('ramp2_in_time' ,[1 0.98 1],times,'constant_in_space',0);
         dat.nusigf{1}  = create_material_prop('constant_in_time',1.1      ,[],'constant_in_space',0);
         dat.nusigf_p{1}= create_material_prop('constant_in_time',1.1*(1-b),[],'constant_in_space',0);
         dat.nusigf_d{1}= create_material_prop('constant_in_time',1.1*b    ,[],'constant_in_space',0);
         dat.inv_vel{1} = create_material_prop('constant_in_time',iv       ,[],'constant_in_space',0);
         dat.ext_src{1} = create_material_prop('constant_in_time',0        ,[],'constant_in_space',0);
-
+        
         n_regions=1;
         region_width=400;
         dat.width = region_width * n_regions;
-
+        
         imat = ones(n_regions,1);
-
+        
     case 10
-        % have material identifiers 
+        % have material identifiers
         n_regions = 20; % assumption: each region has the same width
         region_width=400/n_regions;
         dat.width = region_width * n_regions;
@@ -111,7 +111,7 @@ switch problem_ID
         dat.siga{2} = create_material_prop('ramp_in_time',[1.1 1.095],times,'constant_in_space',0);
         dat.siga{4} = create_material_prop('ramp_in_time',[1.1 1.105],times,'constant_in_space',0);
         times = [dat.rod_mov.t_beg_1 dat.rod_mov.t_end_1 ...
-                 dat.rod_mov.t_beg_2 dat.rod_mov.t_end_2 ];
+            dat.rod_mov.t_beg_2 dat.rod_mov.t_end_2 ];
         dat.siga{3} = create_material_prop('ramp2_in_time',[1.1 1.09 1.1],times,'constant_in_space',0);
         
     otherwise
@@ -131,7 +131,7 @@ npar.keff=1.;
 % load the numerical parameters, npar, structure pertaining to numerics
 % nbr of cells/region = nbr_refinements_per_region
 % elem_to_mat = [];
-% for ireg=1:dat.n_regions 
+% for ireg=1:dat.n_regions
 %     elem_to_mat = [elem_to_mat imat(ireg)*ones(nbr_refinements_per_region,1)];
 % end
 % npar.elem_to_mat = elem_to_mat; clear elem_to_mat
@@ -171,7 +171,7 @@ npar.tol_newton_lin = 1e-5;
 % 4=matfree + Gmres
 % 5=matfree + Precond Gmres
 npar.newton_solve_option = 1;
-myoptP=1; 
+myoptP=1;
 optP=0;  if(npar.newton_solve_option==3 || npar.newton_solve_option==5), optP=myoptP; end
 npar.prec_opt=optP;
 
@@ -200,6 +200,16 @@ npar.solve_prke_compute_rho_each_time = false;
 npar.prke_solve = 'matlab' ;
 npar.int_order = 3;
 % npar.prke_solve = 'no' ;
+npar.max_iter_iqs = 6;
+npar.tol_iqs      = 1e-11;
+
+if ~strcmpi(npar.prke_solve,'matlab')
+    npar.n_micro=10;
+    npar.freq_react=1;
+end
+
+% movie options
+dat.max_y_val_movie = 2.;
 
 return
 end

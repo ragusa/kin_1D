@@ -1,17 +1,18 @@
 function kinetics_driver
 
+clc;
 clear all;
-close all; clc;
-warning('off','all');
+close all; 
+% turn off warning due to interp1
+warning('OFF','MATLAB:interp1:ppGriddedInterpolant')
 
 global dat npar
 
 % verbose/output parameters
-testing = true;
-console_print = true;
+console_print         = true;
 plot_transient_figure = true;
-plot_power_figure = true;
-make_movie = false;
+plot_power_figure     = true;
+make_movie            = false;
 
 % one of the two choices for applying BC
 npar.set_bc_last=true;
@@ -38,21 +39,23 @@ u=[phi0;C0];
 % save a copy of it
 u0=u;
 
+% short-cut for initial adjoint flux 
 phi_adjoint = npar.phi_adj;
+% store constant IV matrix
 IV   = assemble_mass(     dat.inv_vel ,curr_time);
 npar.IV=IV;
 
 % time steping data
 dt=0.005;
-ntimes=.2/dt; % 150*2;
+ntimes=1.2/dt; % 150*2;
 iqs_factor=1;
 
 
-
+% prepare for movie
 if make_movie
     %# figure
     figure, set(gcf, 'Color','white')
-    axis([0 400 0 0.65]);
+    axis([0 400 0 dat.max_y_val_movie]);
     set(gca, 'nextplot','replacechildren', 'Visible','off');
     %# preallocate
     mov(1:ntimes) = struct('cdata',[], 'colormap',[]);
@@ -67,9 +70,10 @@ phi_save=zeros(length(phi0),ntimes);
 % npar.phi_adj(end)=0;
 
 i=0;
+i=i+1; list_runs{i}= 'brute_force_matlab';
 % i=i+1; list_runs{i}= 'brute_force';
 % i=i+1; list_runs{i}= 'brute_force_an_prec';
-i=i+1; list_runs{i}= 'iqs_an_prec';
+% i=i+1; list_runs{i}= 'iqs_an_prec';
 i=i+1; list_runs{i}= 'iqsPC_an_prec';
 % i=i+1; list_runs{i}= 'iqs_theta_prec';
 % i=i+1; list_runs{i}= 'iqs';
@@ -77,6 +81,43 @@ i=i+1; list_runs{i}= 'iqsPC_an_prec';
 % i=i+1; list_runs{i}= 'prke_exact_shape';
 % i=i+1; list_runs{i}= 'prke_qs_shape';
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% MATLAB time discretization of
+%%%   the TD neutron diffusion eq and precursors eq
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if should_I_run_this(list_runs,'brute_force_matlab')
+    
+u=u0;
+
+% options = odeset('RelTol',rtol,'AbsTol',atol,'InitialStep',1e-10,'OutputFcn',@odephas2,'OutputSel',[1:npar.ndofs]);
+% options = odeset('RelTol',rtol,'AbsTol',atol,'InitialStep',1e-10,'OutputFcn',@odeplot,'OutputSel',[1:npar.ndofs]);
+% options = odeset('RelTol',rtol,'AbsTol',atol);
+options = odeset('RelTol',1e-10,'AbsTol',1e-10,'InitialStep',1e-8,'Stats','on','MaxStep',1e-1);
+% options = odeset('RelTol',1e-4,'AbsTol',1e-4);
+[t_ref,u_arr]=ode15s(@residual_TD_diffusion,[0 (ntimes*dt)],u0,options);
+u_arr=u_arr';
+
+%%% post-process solution %%%
+for it=1:length(t_ref)  
+    % plot/movie
+    if plot_transient_figure
+        figure(1);
+        plot(npar.x_dofs,u_arr(1:npar.n,it));drawnow;
+        if make_movie && it>1, mov(it) = getframe(gca); end
+    end
+    % compute end time power for plotting
+    dat.Ptot(it) = compute_power(dat.nusigf,t_ref(it),u_arr(1:npar.n,it));
+    % ratio of <u*,IVu> to its initial value
+    amplitude_norm_ref(it) = (phi_adjoint'*IV*u_arr(1:npar.n,it))/npar.K0;    
+end
+% make movie
+if plot_transient_figure && make_movie
+    close(gcf)
+    % save as AVI file
+    movie2avi(mov, 'PbID10_v2_REF.avi', 'compression','None', 'fps',1);
+end
+
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% brute force discretization of
 %%%   the TD neutron diffusion eq and precursors eq
@@ -185,11 +226,6 @@ u_shape=[phi0;C0];
 [~,beff_MGT]=compute_prke_parameters(0.,phi0);
 X=[1;beff_MGT/dat.lambda];
 
-dt=dt*iqs_factor; ntimes=ntimes/iqs_factor;
-
-n_micro=10;
-freq_react=1;
-
 time_prke_iqs=[];
 power_prke_iqs=[];
 
@@ -227,8 +263,6 @@ if plot_transient_figure && make_movie
     % save as AVI file
     movie2avi(mov, 'PbID10_v2_iqs.avi', 'compression','None', 'fps',1);
 end
-% undo time step increase
-dt=dt/iqs_factor; ntimes=ntimes*iqs_factor;
 
 end
 
@@ -243,8 +277,6 @@ amplitude_norm_iqs_pc=1;
 u=[phi0;C0];
 [~,beff_MGT]=compute_prke_parameters(0.,phi0);
 X=[1;beff_MGT/dat.lambda];
-
-dt=dt*iqs_factor; ntimes=ntimes/iqs_factor;
 
 time_prke_iqs_pc=[];
 power_prke_iqs_pc=[];
@@ -283,8 +315,6 @@ if plot_transient_figure && make_movie
     % save as AVI file
     movie2avi(mov, 'PbID10_v2_iqsPC.avi', 'compression','None', 'fps',1);
 end
-% undo time step increase
-dt=dt/iqs_factor; ntimes=ntimes*iqs_factor;
 
 end
 
@@ -295,16 +325,11 @@ if should_I_run_this(list_runs,'iqs_theta_prec')
     
 amplitude_norm_iqs3=1;
 
-dt=dt*iqs_factor; ntimes=ntimes/iqs_factor;
-
 % initial solution vector
 u_shape=[phi0;C0];
 [~,beff_MGT]=compute_prke_parameters(0.,phi0);
 X=[1;beff_MGT/dat.lambda];
 Pnorm_prkeIQS3(1)=X(1);
-
-n_micro=10;
-freq_react=1;
 
 theta = 0.5;
 %%% loop on time steps %%%
@@ -336,8 +361,6 @@ if plot_transient_figure && make_movie
     % save as AVI file
     movie2avi(mov, 'PbID10_v2_iqs.avi', 'compression','None', 'fps',1);
 end
-% undo time step increase
-dt=dt/iqs_factor; ntimes=ntimes*iqs_factor;
 
 end
 
@@ -353,11 +376,6 @@ u_shape=[phi0;C0];
 [~,beff_MGT]=compute_prke_parameters(0.,phi0);
 X=[1;beff_MGT/dat.lambda];
 Pnorm_prkeIQS(1)=X(1);
-
-dt=dt*iqs_factor; ntimes=ntimes/iqs_factor;
-
-n_micro=10;
-freq_react=1;
 
 %%% loop on time steps %%%
 for it=1:ntimes
@@ -388,8 +406,6 @@ if plot_transient_figure && make_movie
     % save as AVI file
     movie2avi(mov, 'PbID10_v2_iqs.avi', 'compression','None', 'fps',1);
 end
-% undo time step increase
-dt=dt/iqs_factor; ntimes=ntimes*iqs_factor;
 
 end
 
@@ -441,7 +457,7 @@ end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% prke using exact QS
+%%% prke using QS approximation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if should_I_run_this(list_runs,'prke_qs_shape')
 
@@ -472,6 +488,15 @@ if plot_power_figure
     ti=linspace(0,dt*ntimes,ntimes/iqs_factor+1);
     has_leg=false;
     
+    if should_I_run_this(list_runs,'brute_force_matlab')
+        plot(t_ref,amplitude_norm_ref,'+-');
+        if ~has_leg
+            leg=char('space-time-matlab');
+            has_leg=true;
+        else
+            leg=char(leg,'space-time-matlab');
+        end
+    end
     if should_I_run_this(list_runs,'brute_force')
         plot(t_,amplitude_norm,'+-');
         if ~has_leg
@@ -494,33 +519,33 @@ if plot_power_figure
         plot(ti,amplitude_norm_iqs2,'mx-');
         plot(time_prke_iqs,power_prke_iqs,'m.-');
         if ~has_leg
-            leg=char('IQS2');
-            leg=char(leg,'IQS2 fine');
+            leg=char('IQS-an');
+            leg=char(leg,'IQS-an fine');
             has_leg=true;
         else
-            leg=char(leg,'IQS2');
-            leg=char(leg,'IQS2 fine');
+            leg=char(leg,'IQS-an');
+            leg=char(leg,'IQS-an fine');
         end
     end
     if should_I_run_this(list_runs,'iqsPC_an_prec')
         plot(ti,amplitude_norm_iqs_pc,'o-');
         plot(time_prke_iqs_pc,power_prke_iqs_pc,'c.-');
         if ~has_leg
-            leg=char('IQS_PC');
-            leg=char(leg,'IQS_PC fine');
+            leg=char('IQS-PC-an');
+            leg=char(leg,'IQS-PC-an fine');
             has_leg=true;
         else
-            leg=char(leg,'IQS_PC');
-            leg=char(leg,'IQS_PC fine');
+            leg=char(leg,'IQS-PC-an');
+            leg=char(leg,'IQS-PC-an fine');
         end
     end
     if should_I_run_this(list_runs,'iqs_theta_prec')
         plot(ti,amplitude_norm_iqs3,'kx-');
         if ~has_leg
-            leg=char('IQS3');
+            leg=char('IQS-theta-prec');
             has_leg=true;
         else
-            leg=char(leg,'IQS3');
+            leg=char(leg,'IQS-theta-prec');
         end
     end
     if should_I_run_this(list_runs,'iqs')
