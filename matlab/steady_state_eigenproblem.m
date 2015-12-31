@@ -1,6 +1,7 @@
-function [u,keff]=steady_state_eigenproblem(curr_time)
+function [u]=steady_state_eigenproblem(curr_time)
 
-global npar
+global npar io
+
 [M,P]=assemble_steady_state_operator(curr_time);
 
 M=apply_BC_mat_only(M,npar.add_ones_on_diagonal);
@@ -40,6 +41,13 @@ end
 % make sure the fundamental mode has the right sign
 if sum(u)<0
     u=-u;
+end
+
+if io.plot_transient_figure
+    plot(npar.x_dofs,u);
+end
+if io.console_print
+    fprintf('Initial SS eigenvalue = %10.8g \n',keff);
 end
 
 return

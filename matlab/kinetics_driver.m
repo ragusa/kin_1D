@@ -6,13 +6,13 @@ close all;
 % turn off warning due to interp1
 warning('OFF','MATLAB:interp1:ppGriddedInterpolant')
 
-global dat npar
+global dat npar io
 
 % verbose/output parameters
-console_print         = true;
-plot_transient_figure = true;
-plot_power_figure     = true;
-make_movie            = false;
+io.console_print         = true;
+io.plot_transient_figure = true;
+io.plot_power_figure     = true;
+io.make_movie            = false;
 
 % one of the two choices for applying BC
 npar.set_bc_last=true;
@@ -23,13 +23,7 @@ problem_init(pbID,refinements);
 
 % compute fundamental eigenmode
 curr_time=0;
-[phi0,keff]=steady_state_eigenproblem(curr_time);
-if plot_transient_figure
-    plot(npar.x_dofs,phi0);
-end
-if console_print
-    fprintf('Initial SS eigenvalue = %10.8g \n',keff);
-end
+[phi0]=steady_state_eigenproblem(curr_time);
 
 % initialize kinetic values
 C0 = kinetics_init(phi0,curr_time);
@@ -52,10 +46,10 @@ iqs_factor=1;
 
 
 % prepare for movie
-if make_movie
+if io.make_movie
     %# figure
     figure, set(gcf, 'Color','white')
-    axis([0 400 0 dat.max_y_val_movie]);
+    axis([0 dat.width 0 dat.max_y_val_movie]);
     set(gca, 'nextplot','replacechildren', 'Visible','off');
     %# preallocate
     mov(1:ntimes) = struct('cdata',[], 'colormap',[]);
@@ -100,10 +94,10 @@ u_arr=u_arr';
 %%% post-process solution %%%
 for it=1:length(t_ref)  
     % plot/movie
-    if plot_transient_figure
+    if io.plot_transient_figure
         figure(1);
         plot(npar.x_dofs,u_arr(1:npar.n,it));drawnow;
-        if make_movie && it>1, mov(it) = getframe(gca); end
+        if io.make_movie && it>1, mov(it) = getframe(gca); end
     end
     % compute end time power for plotting
     dat.Ptot(it) = compute_power(dat.nusigf,t_ref(it),u_arr(1:npar.n,it));
@@ -111,7 +105,7 @@ for it=1:length(t_ref)
     amplitude_norm_ref(it) = (phi_adjoint'*IV*u_arr(1:npar.n,it))/npar.K0;    
 end
 % make movie
-if plot_transient_figure && make_movie
+if io.plot_transient_figure && io.make_movie
     close(gcf)
     % save as AVI file
     movie2avi(mov, 'PbID10_v2_REF.avi', 'compression','None', 'fps',1);
@@ -131,16 +125,16 @@ u=u0;
 for it=1:ntimes
     
     time_end=it*dt;
-    if console_print, fprintf('time end = %g \n',time_end); end
+    if io.console_print, fprintf('time end = %g \n',time_end); end
     
     % solve time-dependent diffusion for flux
     u = solve_TD_diffusion(u,dt,time_end);
     
     % plot/movie
-    if plot_transient_figure
+    if io.plot_transient_figure
         figure(1);
         plot(npar.x_dofs,u(1:npar.n));drawnow;
-        if make_movie, mov(it) = getframe(gca); end
+        if io.make_movie, mov(it) = getframe(gca); end
     end
     % compute end time power for plotting
     dat.Ptot(it+1) = compute_power(dat.nusigf,time_end,u(1:npar.n));
@@ -153,7 +147,7 @@ for it=1:ntimes
     
 end
 % make movie
-if plot_transient_figure && make_movie
+if io.plot_transient_figure && io.make_movie
     close(gcf)
     % save as AVI file
     movie2avi(mov, 'PbID10_v2.avi', 'compression','None', 'fps',1);
@@ -174,16 +168,16 @@ u=u0;
 for it=1:ntimes
     
     time_end=it*dt;
-    if console_print, fprintf('time end = %g \n',time_end); end
+    if io.console_print, fprintf('time end = %g \n',time_end); end
     
     % solve time-dependent diffusion for flux
     u = solve_TD_diffusion_an_prec(u,dt,time_end);
     
     % plot/movie
-    if plot_transient_figure
+    if io.plot_transient_figure
         figure(1);
         plot(npar.x_dofs,u(1:npar.n));drawnow;
-        if make_movie, mov(it) = getframe(gca); end
+        if io.make_movie, mov(it) = getframe(gca); end
     end
     % compute end time power for plotting
     dat.Ptot_an_prec(it+1) = compute_power(dat.nusigf,time_end,u(1:npar.n));
@@ -196,13 +190,13 @@ for it=1:ntimes
     
 end
 % make movie
-if plot_transient_figure && make_movie
+if io.plot_transient_figure && io.make_movie
     close(gcf)
     % save as AVI file
     movie2avi(mov, 'PbID10_v2_an_prec.avi', 'compression','None', 'fps',1);
 end
 
-% if plot_power_figure
+% if io.plot_power_figure
 %     figure(3); hold all;
 %     t_=linspace(0,dt*ntimes,ntimes+1);
 %     plot(t_,amplitude_norm,'+-');  leg=char('space-time');
@@ -233,16 +227,16 @@ power_prke_iqs=[];
 for it=1:ntimes
     
     time_end=it*dt;
-    if console_print, fprintf('time end = %g \n',time_end); end
+    if io.console_print, fprintf('time end = %g \n',time_end); end
 
     % solve time-dependent diffusion for flux
     [u_shape,X,t,y] = solve_IQS_diffusion_an_prec(u_shape,X,dt,time_end);
     
     % plot/movie
-    if plot_transient_figure
+    if io.plot_transient_figure
         figure(2)
         plot(npar.x_dofs,u_shape(1:npar.n));drawnow;
-        if make_movie, mov(it) = getframe(gca); end
+        if io.make_movie, mov(it) = getframe(gca); end
     end
     % compute end time power for plotting
     dat.Ptot_iqs2(it+1) = compute_power(dat.nusigf,time_end,X(1)*u_shape(1:npar.n));
@@ -258,7 +252,7 @@ for it=1:ntimes
 end
 
 % make movie
-if plot_transient_figure && make_movie
+if io.plot_transient_figure && io.make_movie
     close(gcf)
     % save as AVI file
     movie2avi(mov, 'PbID10_v2_iqs.avi', 'compression','None', 'fps',1);
@@ -285,16 +279,16 @@ power_prke_iqs_pc=[];
 for it=1:ntimes
     
     time_end=it*dt;
-    if console_print, fprintf('time end = %g \n',time_end); end
+    if io.console_print, fprintf('time end = %g \n',time_end); end
 
     % solve time-dependent diffusion for flux
     [u,X,t,y] = solve_IQS_PC_diffusion_an_prec(u,X,dt,time_end);
     
     % plot/movie
-    if plot_transient_figure
+    if io.plot_transient_figure
         figure(2)
         plot(npar.x_dofs,u(1:npar.n));drawnow;
-        if make_movie, mov(it) = getframe(gca); end
+        if io.make_movie, mov(it) = getframe(gca); end
     end
     % compute end time power for plotting
     dat.Ptot_iqs_pc(it+1) = compute_power(dat.nusigf,time_end,u(1:npar.n));
@@ -310,7 +304,7 @@ for it=1:ntimes
 end
 
 % make movie
-if plot_transient_figure && make_movie
+if io.plot_transient_figure && io.make_movie
     close(gcf)
     % save as AVI file
     movie2avi(mov, 'PbID10_v2_iqsPC.avi', 'compression','None', 'fps',1);
@@ -336,16 +330,16 @@ theta = 0.5;
 for it=1:ntimes
     
     time_end=it*dt; 
-    if console_print, fprintf('time end = %g \n',time_end); end
+    if io.console_print, fprintf('time end = %g \n',time_end); end
     
     % solve time-dependent diffusion for flux
     [u_shape,X] = solve_IQS_diffusion_td_prec(u_shape,X,dt,time_end,theta);
     
     % plot/movie
-    if plot_transient_figure
+    if io.plot_transient_figure
         figure(2)
         plot(npar.x_dofs,u_shape(1:npar.n));drawnow;
-        if make_movie, mov(it) = getframe(gca); end
+        if io.make_movie, mov(it) = getframe(gca); end
     end
     % compute end time power for plotting
     dat.Ptot_iqs3(it+1) = compute_power(dat.nusigf,time_end,X(1)*u_shape(1:npar.n));
@@ -356,7 +350,7 @@ for it=1:ntimes
 end
 
 % make movie
-if plot_transient_figure && make_movie
+if io.plot_transient_figure && io.make_movie
     close(gcf)
     % save as AVI file
     movie2avi(mov, 'PbID10_v2_iqs.avi', 'compression','None', 'fps',1);
@@ -381,16 +375,16 @@ Pnorm_prkeIQS(1)=X(1);
 for it=1:ntimes
     
     time_end=it*dt;
-    if console_print, fprintf('time end = %g \n',time_end); end
+    if io.console_print, fprintf('time end = %g \n',time_end); end
     
     % solve time-dependent diffusion for flux
-    [u_shape,X] = solve_IQS_diffusion(u_shape,X,dt,time_end,n_micro,freq_react);
+    [u_shape,X] = solve_IQS_diffusion(u_shape,X,dt,time_end);
     
     % plot/movie
-    if plot_transient_figure
+    if io.plot_transient_figure
         figure(2)
         plot(npar.x_dofs,u_shape(1:npar.n));drawnow;
-        if make_movie, mov(it) = getframe(gca); end
+        if io.make_movie, mov(it) = getframe(gca); end
     end
     % compute end time power for plotting
     dat.Ptot_iqs(it+1) = compute_power(dat.nusigf,time_end,X(1)*u_shape(1:npar.n));
@@ -401,7 +395,7 @@ for it=1:ntimes
 end
 
 % make movie
-if plot_transient_figure && make_movie
+if io.plot_transient_figure && io.make_movie
     close(gcf)
     % save as AVI file
     movie2avi(mov, 'PbID10_v2_iqs.avi', 'compression','None', 'fps',1);
@@ -422,7 +416,7 @@ Pnorm_prke(1)=X(1);
 % loop over time steps
 for it=1:ntimes
     time_end=it*dt;
-    if console_print, fprintf('time end = %g \n',time_end); end
+    if io.console_print, fprintf('time end = %g \n',time_end); end
     % solve prke
     X =  solve_prke(X,dt,time_end,shape0);
     % store power level for plotting
@@ -445,7 +439,7 @@ IV = assemble_mass(dat.inv_vel ,0.);
 % loop over time steps
 for it=1:ntimes
     time_end=it*dt;
-    if console_print, fprintf('time end = %g \n',time_end); end
+    if io.console_print, fprintf('time end = %g \n',time_end); end
     % compute shape from saved flux
     shape_curr = phi_save(:,it) / (phi_adjoint'*IV*phi_save(:,it)) * npar.K0;
     % solve prke
@@ -470,7 +464,7 @@ IV = assemble_mass(dat.inv_vel ,0.);
 % loop over time steps
 for it=1:ntimes
     time_end=it*dt;
-    if console_print, fprintf('time end = %g \n',time_end); end
+    if io.console_print, fprintf('time end = %g \n',time_end); end
     % compute shape for steady state
     [shape_curr,~]=steady_state_eigenproblem(time_end);
     % solve prke
@@ -482,7 +476,7 @@ end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if plot_power_figure
+if io.plot_power_figure
     figure(3); hold all;
     t_=linspace(0,dt*ntimes,ntimes+1);
     ti=linspace(0,dt*ntimes,ntimes/iqs_factor+1);
