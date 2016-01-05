@@ -4,6 +4,9 @@ function problem_init(problem_ID,nbr_refinements_per_region)
 % make the problem data a global variable
 global dat npar
 
+% save pb ID for later use
+dat.PbID = problem_ID;
+
 % rod mov times
 dat.rod_mov.t_beg_1=0.1;
 dat.rod_mov.t_end_1=0.6;

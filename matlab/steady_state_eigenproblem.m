@@ -47,7 +47,7 @@ if io.plot_transient_figure
     plot(npar.x_dofs,u);
 end
 if io.console_print
-    fprintf('Initial SS eigenvalue = %10.8g \n',keff);
+    fprintf('Initial SS eigenvalue = %10.8g \n--------------------------\n\n',keff);
 end
 
 return
