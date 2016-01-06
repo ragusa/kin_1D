@@ -1,4 +1,4 @@
-function  [amplitude_norm,Ptot] = time_marching_IQS( dt, ntimes, u0, FUNHANDLE)
+function  [amplitude_norm,Ptot,time_prke_iqs,power_prke_iqs] = time_marching_IQS( dt, ntimes, u0, FUNHANDLE)
 
 global dat npar io
 

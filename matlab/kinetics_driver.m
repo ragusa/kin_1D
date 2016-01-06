@@ -102,64 +102,46 @@ end
 %%%   the TD neutron diffusion eq and precursors eq
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if should_I_run_this(list_runs,'brute_force')
-    
     FUNHANDLE = @solve_TD_diffusion;
     [brute_force.ampl, brute_force.Ptot]=time_marching_BF( dt, ntimes, u0, FUNHANDLE);
-    
 end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% brute force discretization of
 %%%   the TD neutron diffusion eq and ANALYTICAL
 %%%   solution for the precursors eq
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if should_I_run_this(list_runs,'brute_force_an_prec')
-    
     FUNHANDLE = @solve_TD_diffusion_an_prec;
     [brute_force_an_prec.ampl, brute_force_an_prec.Ptot]=time_marching_BF( dt, ntimes, u0, FUNHANDLE);
-    
 end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% IQS IQS IQS with ANALYTICAL precursors
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if should_I_run_this(list_runs,'iqs_an_prec')
-    
     FUNHANDLE = @solve_IQS_diffusion_an_prec;
-    [iqs_an_prec.ampl, iqs_an_prec.Ptot]=time_marching_IQS( dt, ntimes, u0, FUNHANDLE);
-    
+    [iqs_an_prec.ampl, iqs_an_prec.Ptot, iqs_an_prec.time_prke_iqs, iqs_an_prec.power_prke_iqs]=time_marching_IQS( dt, ntimes, u0, FUNHANDLE);
 end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% IQS version inspired from the PC-IQS method, with ANALYTICAL precursors
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if should_I_run_this(list_runs,'iqsPC_an_prec')
-    
     FUNHANDLE = @solve_IQS_PC_diffusion_an_prec;
-    [iqsPC_an_prec.ampl, iqsPC_an_prec.Ptot]=time_marching_IQS( dt, ntimes, u0, FUNHANDLE);
-    
+    [iqsPC_an_prec.ampl, iqsPC_an_prec.Ptot, iqsPC_an_prec.time_prke_iqs, iqsPC_an_prec.power_prke_iqs]=time_marching_IQS( dt, ntimes, u0, FUNHANDLE);
 end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% IQS IQS IQS with Theta Discretized precursors
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if should_I_run_this(list_runs,'iqs_theta_prec')
-    
     FUNHANDLE = @solve_IQS_diffusion_td_prec;
-    [iqs_theta_prec.ampl, iqs_theta_prec.Ptot]=time_marching_IQS( dt, ntimes, u0, FUNHANDLE);
-    
+    [iqs_theta_prec.ampl, iqs_theta_prec.Ptot, iqs_theta_prec.time_prke_iqs, iqs_theta_prec.power_prke_iqs]=time_marching_IQS( dt, ntimes, u0, FUNHANDLE);
 end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% IQS IQS IQS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if should_I_run_this(list_runs,'iqs')
-    
     FUNHANDLE = @solve_IQS_diffusion;
-    [iqs.ampl, iqs.Ptot]=time_marching_IQS( dt, ntimes, u0, FUNHANDLE);
-    
+    [iqs.ampl, iqs.Ptot, iqs.time_prke_iqs, iqs.power_prke_iqs]=time_marching_IQS( dt, ntimes, u0, FUNHANDLE);
 end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% standard PRKE with initial shape
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -168,7 +150,7 @@ if should_I_run_this(list_runs,'prke_initial_shape')
     shape0=phi0;
     [~,beff_MGT]=compute_prke_parameters(0.,shape0);
     X=[1;beff_MGT/dat.lambda];
-    Pnorm_prke(1)=X(1);
+    Pnorm_prke=X(1)*ones(ntimes+1);
     
     % loop over time steps
     for it=1:ntimes
@@ -190,7 +172,7 @@ if should_I_run_this(list_runs,'prke_exact_shape')
     shape0=phi0;
     [~,beff_MGT]=compute_prke_parameters(0.,shape0);
     X=[1;beff_MGT/dat.lambda];
-    Pnorm_prkeEX(1)=X(1);
+    Pnorm_prkeEX=X(1)*ones(ntimes+1);
     IV = assemble_mass(dat.inv_vel ,0.);
     
     % loop over time steps
@@ -215,7 +197,7 @@ if should_I_run_this(list_runs,'prke_qs_shape')
     shape0=phi0;
     [~,beff_MGT]=compute_prke_parameters(0.,shape0);
     X=[1;beff_MGT/dat.lambda];
-    Pnorm_prkeQS(1)=X(1);
+    Pnorm_prkeQS=X(1)*ones(ntimes+1);
     IV = assemble_mass(dat.inv_vel ,0.);
     
     % loop over time steps
@@ -249,7 +231,7 @@ if io.plot_power_figure
         end
     end
     if should_I_run_this(list_runs,'brute_force')
-        plot(t_,amplitude_norm,'+-');
+        plot(t_,brute_force.amplitude_norm,'+-');
         if ~has_leg
             leg=char('space-time');
             has_leg=true;
@@ -258,7 +240,7 @@ if io.plot_power_figure
         end
     end
     if should_I_run_this(list_runs,'brute_force_an_prec')
-        plot(t_,amplitude_norm_an_prec,'+-');
+        plot(t_,brute_force_an_prec.amplitude_norm,'+-');
         if ~has_leg
             leg=char('space-time-ANALY');
             has_leg=true;
@@ -267,7 +249,7 @@ if io.plot_power_figure
         end
     end
     if should_I_run_this(list_runs,'iqs_an_prec')
-        plot(ti,amplitude_norm_iqs2,'mx-');
+        plot(ti,iqs_an_prec.amplitude_norm,'mx-');
         plot(time_prke_iqs,power_prke_iqs,'m.-');
         if ~has_leg
             leg=char('IQS-an');
@@ -279,7 +261,7 @@ if io.plot_power_figure
         end
     end
     if should_I_run_this(list_runs,'iqsPC_an_prec')
-        plot(ti,amplitude_norm_iqs_pc,'o-');
+        plot(ti,iqsPC_an_prec.amplitude_norm,'o-');
         plot(time_prke_iqs_pc,power_prke_iqs_pc,'c.-');
         if ~has_leg
             leg=char('IQS-PC-an');
@@ -291,7 +273,7 @@ if io.plot_power_figure
         end
     end
     if should_I_run_this(list_runs,'iqs_theta_prec')
-        plot(ti,amplitude_norm_iqs3,'kx-');
+        plot(ti,iqs_theta_prec.amplitude_norm,'kx-');
         if ~has_leg
             leg=char('IQS-theta-prec');
             has_leg=true;
@@ -300,7 +282,7 @@ if io.plot_power_figure
         end
     end
     if should_I_run_this(list_runs,'iqs')
-        plot(ti,amplitude_norm_iqs,'gx-');
+        plot(ti,iqs.amplitude_norm,'gx-');
         if ~has_leg
             leg=char('IQS');
             has_leg=true;
