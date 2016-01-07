@@ -1,4 +1,4 @@
-function  [amplitude_norm,Ptot,time_prke_iqs,power_prke_iqs] = time_marching_IQS( dt, ntimes, u0, FUNHANDLE)
+function  [varargout] = time_marching_IQS( dt, ntimes, u0, FUNHANDLE)
 
 global dat npar io
 
@@ -57,6 +57,29 @@ if io.plot_transient_figure && io.make_movie
     close(gcf)
     % save as AVI file
     movie2avi(mov, movie_name, 'compression','None', 'fps',1);
+end
+
+% plot power level
+if io.plot_power_figure
+    plot_power_level( func2str(FUNHANDLE),...
+        linspace(0,dt*ntimes,ntimes+1), amplitude_norm,...
+        time_prke_iqs, power_prke_iqs );
+end
+
+% output
+nOutputs = nargout;
+varargout = cell(1,nOutputs);
+switch nOutputs
+    case(2)
+        varargout{1} = amplitude_norm(end);
+        varargout{2} = power_prke_iqs(end);
+    case(4)
+        varargout{1} = amplitude_norm;
+        varargout{2} = Ptot;
+        varargout{3} = time_prke_iqs;
+        varargout{4} = power_prke_iqs;
+    otherwise
+        error('Wrong number of output arguments in %s',mfilename);
 end
 
 end

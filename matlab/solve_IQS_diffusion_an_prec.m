@@ -1,6 +1,6 @@
 function [u_shape, X,t,y] = solve_IQS_diffusion_an_prec(u_shape,X,dt_macro,time_end)
 
-global dat npar
+global io dat npar
 
 % shortcuts
 lambda = dat.lambda;
@@ -14,7 +14,6 @@ npar.theta_old=[];
 
 % save values at beginning of macro time step: they are needed in the IQS iteration
 X_beg=X;
-u_shape_beg=u_shape;
 % for clarity, I also single out the shape function at the beginning/end of the macro time step
 shape_beg=u_shape(1:npar.n);
 shape_end=shape_beg;
@@ -98,7 +97,9 @@ for iter = 1: max_iter_iqs
     
     % check for tolerance
     err = abs( (npar.phi_adj)'*IV*shape_end/npar.K0  - 1);
-    fprintf('  IQS iter %d, err %g \n',iter,err);
+    if io.console_print
+        fprintf('  IQS iter %d, err %g \n',iter,err);
+    end
     if err<tol_iqs
         break
     else
@@ -108,6 +109,6 @@ for iter = 1: max_iter_iqs
 end
 
 if err>=tol_iqs
-    warning('IQS did not converge');
+    warning('IQS did not converge in %s',mfilename);
 end
 

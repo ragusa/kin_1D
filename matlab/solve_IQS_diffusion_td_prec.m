@@ -1,6 +1,6 @@
 function [u_shape, X, err] = solve_IQS_diffusion_td_prec(u_shape,X,dt_macro,time_end,theta)
 
-global dat npar
+global io dat npar
 
 % shortcuts
 lambda = dat.lambda;
@@ -76,7 +76,9 @@ for iter = 1: max_iter_iqs
     
     % check for tolerance
     err = abs( (npar.phi_adj)'*IV*shape_end/npar.K0  - 1);
-    fprintf('  IQS iter %d, err %g \n',iter,err);
+    if io.console_print
+        fprintf('  IQS iter %d, err %g \n',iter,err);
+    end
     if err<tol_iqs
         break
     else
@@ -86,6 +88,6 @@ for iter = 1: max_iter_iqs
 end
 
 if err>=tol_iqs
-    warning('IQS did not converge');
+    warning('IQS did not converge in %s',mfilename);
 end
 

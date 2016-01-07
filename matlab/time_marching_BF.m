@@ -1,4 +1,4 @@
-function  [amplitude_norm,Ptot] = time_marching_BF( dt, ntimes, u, FUNHANDLE)
+function  [varargout] = time_marching_BF( dt, ntimes, u, FUNHANDLE)
 
 global dat npar io
 
@@ -40,7 +40,9 @@ for it=1:ntimes
     amplitude_norm(it+1) = (npar.phi_adj'*npar.IV*u(1:npar.n))/npar.K0;
     
     % save flux for usage in PRKE exact for testing purposes
-%     res.phi_save(:,it)=u(1:npar.n); %/Pnorm(it+1);
+    if io.save_flux
+        io.phi_save(:,it)=u(1:npar.n); %/Pnorm(it+1);
+    end
     
 end
 % make movie
@@ -48,6 +50,25 @@ if io.plot_transient_figure && io.make_movie
     close(gcf)
     % save as AVI file
     movie2avi(mov, movie_name, 'compression','None', 'fps',1);
+end
+
+% plot power level
+if io.plot_power_figure
+    plot_power_level( func2str(FUNHANDLE), ...
+        linspace(0,dt*ntimes,ntimes+1), amplitude_norm);
+end
+
+% output
+nOutputs = nargout;
+varargout = cell(1,nOutputs);
+switch nOutputs
+    case 1
+        varargout{1} = amplitude_norm(end);
+    case 2
+        varargout{1} = amplitude_norm;
+        varargout{2} = Ptot;
+    otherwise
+        error('Wrong number of output arguments in %s',mfilename);
 end
 
 end
