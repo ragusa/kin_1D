@@ -8,10 +8,8 @@ global dat npar
 dat.PbID = problem_ID;
 
 % rod mov times
-dat.rod_mov.t_beg_1=0.1;
-dat.rod_mov.t_end_1=0.6;
-dat.rod_mov.t_beg_2=1.;
-dat.rod_mov.t_end_2=2.7;
+dat.rod_mov.t_beg_1=0.1; dat.rod_mov.t_end_1=0.6;
+dat.rod_mov.t_beg_2=1.0; dat.rod_mov.t_end_2=2.7;
 
 % kinetic parameters
 dat.beta_tot=600e-5;
@@ -41,7 +39,7 @@ switch problem_ID
         imat = ones(n_regions,1);
         
     case 2
-        % one material, constant in space
+        % one material, constant in space, ramp in time 
         
         b=dat.beta_tot;
         iv=dat.invvel;
@@ -61,7 +59,7 @@ switch problem_ID
         imat = ones(n_regions,1);
         
     case 3
-        % one material, constant in space
+        % one material, constant in space, ramp2 in time 
         
         b=dat.beta_tot;
         iv=dat.invvel;
@@ -82,7 +80,7 @@ switch problem_ID
         imat = ones(n_regions,1);
         
     case 10
-        % have material identifiers
+        % have material identifiers: 20 regions. 4 materials. 3 rod movements
         n_regions = 20; % assumption: each region has the same width
         region_width=400/n_regions;
         dat.width = region_width * n_regions;
@@ -101,7 +99,7 @@ switch problem_ID
         dat.nusigf_d{1}= create_material_prop('constant_in_time',1.1*b    ,[],'constant_in_space',0);
         dat.inv_vel{1} = create_material_prop('constant_in_time',iv       ,[],'constant_in_space',0);
         dat.ext_src{1} = create_material_prop('constant_in_time',0        ,[],'constant_in_space',0);
-        % copy material properties
+        % copy material properties that remain unchanged
         for id=2:4
             dat.cdiff{id}    = dat.cdiff{1}   ;
             dat.nusigf{id}   = dat.nusigf{1}  ;
@@ -116,6 +114,36 @@ switch problem_ID
         times = [dat.rod_mov.t_beg_1 dat.rod_mov.t_end_1 ...
             dat.rod_mov.t_beg_2 dat.rod_mov.t_end_2 ];
         dat.siga{3} = create_material_prop('ramp2_in_time',[1.1 1.09 1.1],times,'constant_in_space',0);
+        
+    case 11
+        % have material identifiers: 20 regions. 2 materials. 1 rod movement
+        n_regions = 20; % assumption: each region has the same width
+        region_width=400/n_regions;
+        dat.width = region_width * n_regions;
+        
+        imat = ones(n_regions,1);
+        imat(5) = 2;
+        
+        b=dat.beta_tot;
+        iv=dat.invvel;
+        dat.cdiff{1}   = create_material_prop('constant_in_time',1        ,[],'constant_in_space',0);
+        dat.siga{1}    = create_material_prop('constant_in_time',1.1      ,[],'constant_in_space',0);
+        dat.nusigf{1}  = create_material_prop('constant_in_time',1.1      ,[],'constant_in_space',0);
+        dat.nusigf_p{1}= create_material_prop('constant_in_time',1.1*(1-b),[],'constant_in_space',0);
+        dat.nusigf_d{1}= create_material_prop('constant_in_time',1.1*b    ,[],'constant_in_space',0);
+        dat.inv_vel{1} = create_material_prop('constant_in_time',iv       ,[],'constant_in_space',0);
+        dat.ext_src{1} = create_material_prop('constant_in_time',0        ,[],'constant_in_space',0);
+        % copy material properties that remain unchanged
+        for id=2:max(imat) 
+            dat.cdiff{id}    = dat.cdiff{1}   ;
+            dat.nusigf{id}   = dat.nusigf{1}  ;
+            dat.nusigf_p{id} = dat.nusigf_p{1};
+            dat.nusigf_d{id} = dat.nusigf_d{1};
+            dat.inv_vel{id}  = dat.inv_vel{1} ;
+            dat.ext_src{id}  = dat.ext_src{1}    ;
+        end
+        times = [dat.rod_mov.t_beg_1 dat.rod_mov.t_beg_2];
+        dat.siga{2} = create_material_prop('ramp_in_time',[1.1 1.08],times,'constant_in_space',0);
         
     otherwise
         error('unknown problem ID ',problem_ID);
