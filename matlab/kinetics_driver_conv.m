@@ -19,7 +19,7 @@ io.figID = 99;
 npar.set_bc_last=true;
 
 % select problem
-pbID=10; refinements=2;
+pbID=11; refinements=1;
 problem_init(pbID,refinements);
 
 % compute fundamental eigenmode
@@ -37,6 +37,7 @@ u0=u;
 % time steping data
 t_end = 1.28;
 t_end = 1.3;
+t_end = 1.25;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% MATLAB time discretization of
@@ -45,7 +46,7 @@ t_end = 1.3;
 amplitude_norm_ref = reference_solution( t_end, u0);
 
 nn=3;
-ntimes = 13 * 2.^(linspace(0,nn,nn+1));
+ntimes = 25 * 2.^(linspace(0,nn,nn+1));
 dt = t_end./ntimes;
 
 i=0;

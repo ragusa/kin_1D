@@ -112,3 +112,6 @@ if err>=tol_iqs
     warning('IQS did not converge in %s',mfilename);
 end
 
+
+% renormalize anyway
+u_shape = u_shape / ( ((npar.phi_adj)'*npar.IV*shape_end) / npar.K0 );

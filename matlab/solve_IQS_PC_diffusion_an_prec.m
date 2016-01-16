@@ -16,8 +16,8 @@ npar.theta_old=[];
 X_beg=X;
 u_beg=u;
 % for clarity, I also single out the shape function at the beginning/end of the macro time step
-IV   = assemble_mass(     dat.inv_vel ,time_end);
-z = (npar.phi_adj)'*IV*u(1:npar.n)/npar.K0;
+% IV   = assemble_mass(     dat.inv_vel ,time_end);
+z = (npar.phi_adj)'*npar.IV*u(1:npar.n)/npar.K0;
 shape_beg=u(1:npar.n)/z;
 
 for iter = 1: max_iter_iqs
@@ -29,7 +29,7 @@ for iter = 1: max_iter_iqs
     flux_end = u_end(1:npar.n);
     
     % get a shape
-    z = (npar.phi_adj)'*IV*flux_end/npar.K0;
+    z = (npar.phi_adj)'*npar.IV*flux_end/npar.K0;
     shape_end = u_end(1:npar.n) / z;
     
     % solve for amplitude function
@@ -41,8 +41,8 @@ for iter = 1: max_iter_iqs
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % assemble IQS
     
-    % shortcut
-    p=X(1);
+%     % shortcut
+%     p=X(1);
     % interpolating polynomial
     if strcmpi(npar.prke_solve,'matlab')
         if npar.int_order==3
@@ -78,7 +78,7 @@ for iter = 1: max_iter_iqs
     u_end = [ X(1)*shape_end ; C_new];
     
     % check for tolerance
-    err = abs( (npar.phi_adj)'*IV*shape_end/npar.K0  - 1);
+    err = abs( ((npar.phi_adj)'*npar.IV*shape_end)/npar.K0  - 1);
     if io.console_print
         fprintf('  IQS iter %d, err %g \n',iter,err);
     end
@@ -93,4 +93,3 @@ end
 if err>=tol_iqs
     warning('IQS did not converge in %s',mfilename);
 end
-

@@ -7,7 +7,7 @@ tol_iqs      = npar.tol_iqs;
 
 npar.theta_old=[];
 
-IV = assemble_mass(dat.inv_vel,time_end);
+% IV = assemble_mass(dat.inv_vel,time_end);
 
 % save values at beginning of macro time step: they are needed in the IQS iteration 
 X_beg=X;
@@ -41,14 +41,14 @@ for iter = 1: max_iter_iqs
     shape_end=u_shape(1:npar.n);
     
     % check for tolerance 
-    err = abs( (npar.phi_adj)'*IV*shape_end/npar.K0  - 1);
+    err = abs( ((npar.phi_adj)'*npar.IV*shape_end)/npar.K0  - 1);
     if io.console_print
         fprintf('  IQS iter %d, err %g \n',iter,err);
     end
     if err<tol_iqs
         break
     else
-%         u_shape = u_shape / ((npar.phi_adj)'*IV*shape_end/npar.K0);
+%         u_shape = u_shape / ((npar.phi_adj)'*npar.IV*shape_end/npar.K0);
 %         shape_end=u_shape(1:npar.n);
     end
 end
@@ -57,3 +57,5 @@ if err>=tol_iqs
     warning('IQS did not converge in %s',mfilename);
 end
 
+% renormalize anyway
+u_shape = u_shape / ( ((npar.phi_adj)'*npar.IV*shape_end) / npar.K0 );

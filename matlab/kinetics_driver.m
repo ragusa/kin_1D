@@ -6,7 +6,7 @@ close all;
 % turn off warning due to interp1
 warning('OFF','MATLAB:interp1:ppGriddedInterpolant')
 
-global dat npar io
+global npar io
 
 % verbose/output parameters
 io.console_print         = true;
@@ -19,7 +19,7 @@ io.figID = 99;
 npar.set_bc_last=true;
 
 % select problem
-pbID=10; refinements=1;
+pbID=11; refinements=2;
 problem_init(pbID,refinements);
 
 % compute fundamental eigenmode
@@ -35,8 +35,8 @@ u=[phi0;C0];
 u0=u;
 
 % time steping data
-t_end = 1.28;
-ntimes=100;
+t_end = 1.25;
+ntimes=50;
 dt = t_end/ntimes;
 % testing with another weighting function
 % npar.phi_adj = ones(length(npar.phi_adj),1);
@@ -45,12 +45,12 @@ dt = t_end/ntimes;
 
 i=0;
 i=i+1; list_runs{i}= 'brute_force_matlab';
-i=i+1; list_runs{i}= 'brute_force';
+% i=i+1; list_runs{i}= 'brute_force';
 % i=i+1; list_runs{i}= 'brute_force_an_prec';
-% i=i+1; list_runs{i}= 'iqs_an_prec';
+i=i+1; list_runs{i}= 'iqs_an_prec';
 i=i+1; list_runs{i}= 'iqsPC_an_prec';
 % i=i+1; list_runs{i}= 'iqs_theta_prec';
-% i=i+1; list_runs{i}= 'iqs';
+i=i+1; list_runs{i}= 'iqs';
 % i=i+1; list_runs{i}= 'prke_initial_shape';
 % i=i+1; list_runs{i}= 'prke_exact_shape';
 % i=i+1; list_runs{i}= 'prke_qs_shape';
@@ -60,43 +60,7 @@ i=i+1; list_runs{i}= 'iqsPC_an_prec';
 %%%   the TD neutron diffusion eq and precursors eq
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if should_I_run_this(list_runs,'brute_force_matlab')
-    
-    u=u0;
-    
-    % options = odeset('RelTol',rtol,'AbsTol',atol,'InitialStep',1e-10,'OutputFcn',@odephas2,'OutputSel',[1:npar.ndofs]);
-    % options = odeset('RelTol',rtol,'AbsTol',atol,'InitialStep',1e-10,'OutputFcn',@odeplot,'OutputSel',[1:npar.ndofs]);
-    % options = odeset('RelTol',rtol,'AbsTol',atol);
-    options = odeset('RelTol',1e-10,'AbsTol',1e-10,'InitialStep',1e-8,'Stats','on','MaxStep',1e-1);
-    % options = odeset('RelTol',1e-4,'AbsTol',1e-4);
-    [t_ref,u_arr]=ode15s(@residual_TD_diffusion,[0 (ntimes*dt)],u0,options);
-    u_arr=u_arr';
-    
-    %%% post-process solution %%%
-    if io.plot_transient_figure
-        figure;
-    end
-    brute_force_matlab.Ptot = dat.Ptot*ones(length(t_ref),1);
-    amplitude_norm_ref=zeros(length(t_ref),1);
-    for it=1:length(t_ref)
-        % plot/movie
-        if io.plot_transient_figure
-            plot(npar.x_dofs,u_arr(1:npar.n,it));drawnow;
-            if io.make_movie && it>1, mov(it) = getframe(gca); end
-        end
-        % compute end time power for plotting
-        brute_force_matlab.Ptot(it) = compute_power(dat.nusigf,t_ref(it),u_arr(1:npar.n,it));
-        % ratio of <u*,IVu> to its initial value
-        amplitude_norm_ref(it) = (npar.phi_adj'*npar.IV*u_arr(1:npar.n,it))/npar.K0;
-    end
-    % make movie
-    if io.plot_transient_figure && io.make_movie
-        close(gcf)
-        % save as AVI file
-        movie2avi(mov, 'PbID10_v2_REF.avi', 'compression','None', 'fps',1);
-    end
-    % plot power level
-    plot_power_level( 'brute_force_matlab', t_ref, amplitude_norm_ref);
- 
+    [ref.ampl ref.Ptot] = reference_solution( t_end, u0);    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% brute force discretization of

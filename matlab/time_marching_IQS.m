@@ -45,7 +45,12 @@ for it=1:ntimes
     Ptot(it+1) = compute_power(dat.nusigf,time_end,X(1)*u_shape(1:npar.n));
     
     % ratio of <u*,IVu> to its initial value
-    amplitude_norm(it+1) = X(1)* (npar.phi_adj'*npar.IV*u_shape(1:npar.n))/npar.K0;
+    if strcmp(func2str(FUNHANDLE),'solve_IQS_PC_diffusion_an_prec')
+        % u_shape is actually the flux in that case, so no need to *X(1)
+        amplitude_norm(it+1) =       (npar.phi_adj'*npar.IV*u_shape(1:npar.n))/npar.K0;
+    else
+        amplitude_norm(it+1) = X(1)* (npar.phi_adj'*npar.IV*u_shape(1:npar.n))/npar.K0;
+    end
     
     % save fine-scale data
     time_prke_iqs=[time_prke_iqs ; t];
