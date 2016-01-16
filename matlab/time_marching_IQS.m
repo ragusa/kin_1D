@@ -33,7 +33,7 @@ for it=1:ntimes
     if io.console_print, fprintf('time end = %g \n',time_end); end
 
     % solve time-dependent diffusion for flux
-    [u_shape,X,t,y] = solve_IQS_diffusion_an_prec(u_shape,X,dt,time_end);
+    [u_shape,X,t,y] = FUNHANDLE(u_shape,X,dt,time_end);
     
     % plot/movie
     if io.plot_transient_figure
