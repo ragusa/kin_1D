@@ -242,6 +242,31 @@ end
 % movie options
 dat.max_y_val_movie = 2.;
 
+% time integration
+time_integration=3;
+switch time_integration
+    case 1
+        nstages=1;
+        a=zeros(nstages,nstages);
+        b=zeros(nstages,1); c=b;
+        a(1,1)=1;
+        c=sum(a,2);
+        b(1)=1;
+        
+    case 3
+        nstages=3;
+        g=0.43586652150845899941601945119356;
+        a=[g 0 0; ...
+            ((1-g)/2) g 0;...
+            (-(6*g^2-16*g+1)/4) ((6*g^2-20*g+5)/4) g];
+        c=sum(a,2);
+        b=a(nstages,:);
+    otherwise
+        error('time integration %d not yet implemented',time_integration);
+end
+npar.rk.s=nstages;
+npar.rk.a=a; npar.rk.b=b; npar.rk.c=c;
+
 return
 end
 

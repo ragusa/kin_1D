@@ -13,6 +13,9 @@ switch method_name
     case 'solve_TD_diffusion_an_prec'
         curr_leg = 'space-time-ANALY';
     
+    case 'solve_TD_diffusion_elim_prec'
+        curr_leg = 'space-time-elim';
+    
     case 'solve_IQS_diffusion_an_prec'
         curr_leg = 'IQS-an';
     

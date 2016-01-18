@@ -19,7 +19,7 @@ io.figID = 99;
 npar.set_bc_last=true;
 
 % select problem
-pbID=11; refinements=2;
+pbID=11; refinements=1;
 problem_init(pbID,refinements);
 
 % compute fundamental eigenmode
@@ -45,12 +45,13 @@ dt = t_end/ntimes;
 
 i=0;
 i=i+1; list_runs{i}= 'brute_force_matlab';
-% i=i+1; list_runs{i}= 'brute_force';
+i=i+1; list_runs{i}= 'brute_force';
 % i=i+1; list_runs{i}= 'brute_force_an_prec';
-i=i+1; list_runs{i}= 'iqs_an_prec';
-i=i+1; list_runs{i}= 'iqsPC_an_prec';
+i=i+1; list_runs{i}= 'brute_force_elim_prec';
+% i=i+1; list_runs{i}= 'iqs_an_prec';
+% i=i+1; list_runs{i}= 'iqsPC_an_prec';
 % i=i+1; list_runs{i}= 'iqs_theta_prec';
-i=i+1; list_runs{i}= 'iqs';
+% i=i+1; list_runs{i}= 'iqs';
 % i=i+1; list_runs{i}= 'prke_initial_shape';
 % i=i+1; list_runs{i}= 'prke_exact_shape';
 % i=i+1; list_runs{i}= 'prke_qs_shape';
@@ -69,6 +70,15 @@ end
 if should_I_run_this(list_runs,'brute_force')
     FUNHANDLE = @solve_TD_diffusion;
     [brute_force.ampl, brute_force.Ptot]=time_marching_BF( dt, ntimes, u0, FUNHANDLE);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% brute force discretization of
+%%%   the TD neutron diffusion eq and precursors eq (but with elimination
+%%%   of the precursors eq)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if should_I_run_this(list_runs,'brute_force_elim_prec')
+    FUNHANDLE = @solve_TD_diffusion_elim_prec;
+    [brute_force_elim_prec.ampl, brute_force_elim_prec.Ptot]=time_marching_BF( dt, ntimes, u0, FUNHANDLE);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% brute force discretization of

@@ -52,9 +52,10 @@ dt = t_end./ntimes;
 i=0;
 % % i=i+1; list_runs{i}= 'brute_force_matlab';
 i=i+1; list_runs{i}= 'brute_force';
+i=i+1; list_runs{i}= 'brute_force_elim_prec';
 i=i+1; list_runs{i}= 'brute_force_an_prec';
-i=i+1; list_runs{i}= 'iqs_an_prec';
-i=i+1; list_runs{i}= 'iqsPC_an_prec';
+% i=i+1; list_runs{i}= 'iqs_an_prec';
+% i=i+1; list_runs{i}= 'iqsPC_an_prec';
 % i=i+1; list_runs{i}= 'iqs_theta_prec';
 % i=i+1; list_runs{i}= 'iqs';
 % i=i+1; list_runs{i}= 'prke_initial_shape';
@@ -89,12 +90,21 @@ for iconv=1:length(ntimes)
         brute_force_an_prec.ampl(iconv) = time_marching_BF( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%% brute force discretization of
+    %%%   the TD neutron diffusion eq and precursors eq (but with elimination
+    %%%   of the precursors eq)
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if should_I_run_this(list_runs,'brute_force_elim_prec')
+        FUNHANDLE = @solve_TD_diffusion_elim_prec;
+        [brute_force_elim_prec.ampl(iconv)]=time_marching_BF( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
+    end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% IQS IQS IQS with ANALYTICAL precursors
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'iqs_an_prec')
         FUNHANDLE = @solve_IQS_diffusion_an_prec;
         [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
-        iqs_an_prec.ampl(iconv)=a; 
+        iqs_an_prec.ampl(iconv)=a;
         iqs_an_prec.power_prke_iqs(iconv)=p;
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -112,7 +122,7 @@ for iconv=1:length(ntimes)
     if should_I_run_this(list_runs,'iqs_theta_prec')
         FUNHANDLE = @solve_IQS_diffusion_td_prec;
         [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
-        iqs_theta_prec.ampl(iconv)=a; 
+        iqs_theta_prec.ampl(iconv)=a;
         iqs_theta_prec.power_prke_iqs(iconv)=p;
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -121,7 +131,7 @@ for iconv=1:length(ntimes)
     if should_I_run_this(list_runs,'iqs')
         FUNHANDLE = @solve_IQS_diffusion;
         [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
-        iqs.ampl(iconv)=a; 
+        iqs.ampl(iconv)=a;
         iqs.power_prke_iqs(iconv)=p;
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -158,19 +168,31 @@ figure(100); hold all;
 if should_I_run_this(list_runs,'brute_force')
     error_ = abs( brute_force.ampl - amplitude_norm_ref );
     curr_leg = 'space-time';
-    plot(log10(dt),log10(error_),'+-');  
+    plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
     if isempty(a)
         leg=char(curr_leg);
     else
         leg=char(char(a),curr_leg);
-    end   
+    end
     legend(leg,'Location','Best');
 end
 if should_I_run_this(list_runs,'brute_force_an_prec')
     error_ = abs( brute_force_an_prec.ampl - amplitude_norm_ref );
     curr_leg = 'space-time-ANALY';
-    plot(log10(dt),log10(error_),'+-');  
+    plot(log10(dt),log10(error_),'+-');
+    a=get(legend(gca),'String');
+    if isempty(a)
+        leg=char(curr_leg);
+    else
+        leg=char(char(a),curr_leg);
+    end
+    legend(leg,'Location','Best');
+end
+if should_I_run_this(list_runs,'brute_force_elim_prec')
+    error_ = abs( brute_force_elim_prec.ampl - amplitude_norm_ref );
+    curr_leg = 'space-time-elim';
+    plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
     if isempty(a)
         leg=char(curr_leg);
@@ -183,14 +205,14 @@ if should_I_run_this(list_runs,'iqs_an_prec')
     error_  = abs( iqs_an_prec.ampl           - amplitude_norm_ref );
     error_f = abs( iqs_an_prec.power_prke_iqs - amplitude_norm_ref );
     curr_leg = 'IQS-an';
-    plot(log10(dt),log10(error_),'+-');  
+    plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
     if isempty(a)
         leg=char(curr_leg);
     else
         leg=char(char(a),curr_leg);
     end
-    plot(log10(dt),log10(error_f));  
+    plot(log10(dt),log10(error_f));
     a=get(legend(gca),'String');
     leg = char(leg, char(strcat(curr_leg, ' fine')) );
     legend(leg,'Location','Best');
@@ -199,14 +221,14 @@ if should_I_run_this(list_runs,'iqsPC_an_prec')
     error_  = abs( iqsPC_an_prec.ampl           - amplitude_norm_ref );
     error_f = abs( iqsPC_an_prec.power_prke_iqs - amplitude_norm_ref );
     curr_leg = 'IQS-PC-an';
-    plot(log10(dt),log10(error_),'+-');  
+    plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
     if isempty(a)
         leg=char(curr_leg);
     else
         leg=char(char(a),curr_leg);
     end
-    plot(log10(dt),log10(error_f));  
+    plot(log10(dt),log10(error_f));
     a=get(legend(gca),'String');
     leg = char(leg, char(strcat(curr_leg, ' fine')) );
     legend(leg,'Location','Best');
@@ -215,14 +237,14 @@ if should_I_run_this(list_runs,'iqs_theta_prec')
     error_  = abs( iqs_theta_prec.ampl           - amplitude_norm_ref );
     error_f = abs( iqs_theta_prec.power_prke_iqs - amplitude_norm_ref );
     curr_leg = 'IQS-theta-prec';
-    plot(log10(dt),log10(error_),'+-');  
+    plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
     if isempty(a)
         leg=char(curr_leg);
     else
         leg=char(char(a),curr_leg);
     end
-    plot(log10(dt),log10(error_f));  
+    plot(log10(dt),log10(error_f));
     a=get(legend(gca),'String');
     leg = char(leg, char(strcat(curr_leg, ' fine')) );
     legend(leg,'Location','Best');
@@ -231,14 +253,14 @@ if should_I_run_this(list_runs,'iqs')
     error_  = abs( iqs.ampl           - amplitude_norm_ref );
     error_f = abs( iqs.power_prke_iqs - amplitude_norm_ref );
     curr_leg = 'IQS';
-    plot(log10(dt),log10(error_),'+-');  
+    plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
     if isempty(a)
         leg=char(curr_leg);
     else
         leg=char(char(a),curr_leg);
     end
-    plot(log10(dt),log10(error_f));  
+    plot(log10(dt),log10(error_f));
     a=get(legend(gca),'String');
     leg = char(leg, char(strcat(curr_leg, ' fine')) );
     legend(leg,'Location','Best');

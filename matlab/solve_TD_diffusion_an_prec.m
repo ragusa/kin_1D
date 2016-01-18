@@ -8,70 +8,152 @@ C_old   = u(npar.n+1:end);
 
 % shortcut
 lambda = dat.lambda;
+% %
+% % % (Phi^new - Phi^old)/dt = {[Fisp - Leak - Abso] Phi }^new + lambda C^new
+% % %
+% % % C^new = C^old exp(-lambda dt)   + exp(-lambda*t^end) ...
+% % %   * int_{t^beg}^{t^end} exp(lambda.t) Fisd(t) Phi(t) dt
+% % % Note that:
+% % % exp(-lambda*t^end) * int_{t^beg}^{t^end} exp(lambda.t) Fisd(t) Phi(t) dt
+% % % = int_{t^beg}^{t^end} exp(-lambda.(t^end-t) Fisd(t) Phi(t) dt
+% % % = {Fisd.Phi}^old a1 + {Fisd^old.Phi^new + Fisd^new.Phi^old} a2 + {Fisd.Phi}^new a3
+% % % with
+% % % a1 = int_{t^beg}^{t^end}exp(-lambda.(t^end-t) [(t2-t)/dt]^2      dt
+% % % a2 = int_{t^beg}^{t^end}exp(-lambda.(t^end-t) (t-t1)(t2-t)/dt^2  dt
+% % % a3 = int_{t^beg}^{t^end}exp(-lambda.(t^end-t) [(t-t1)/dt]^2      dt
+% %
+% % TR  = sparse(npar.n,npar.n,npar.nnz);
+% %
+% % D    = assemble_stiffness(dat.cdiff   ,time_end);
+% % A    = assemble_mass(     dat.siga    ,time_end);
+% % NFIp = assemble_mass(     dat.nusigf_p,time_end) / npar.keff;
+% % IV   = assemble_mass(     dat.inv_vel ,time_end);
+% %
+% % NFId_old = assemble_mass(dat.nusigf_d,time_end-dt) / npar.keff;
+% % NFId_new = assemble_mass(dat.nusigf_d,time_end)    / npar.keff;
+% %
+% % % flux-flux matrix
+% % TR=NFIp-(D+A);
+% %
+% % % integrals for the analytical expressions for the precursors
+% % t2=time_end;
+% % t1=t2-dt;
+% %
+% % A1= @(t)( ((t2-t)/dt).^2      .*exp(-lambda*(t2-t)) );
+% % A2= @(t)( (t-t1).*(t2-t)/dt^2 .*exp(-lambda*(t2-t)) );
+% % A3= @(t)( ((t-t1)/dt).^2      .*exp(-lambda*(t2-t)) );
+% %
+% % a1= integral(@(t)A1(t),t1,t2);
+% % a2= integral(@(t)A2(t),t1,t2);
+% % a3= integral(@(t)A3(t),t1,t2);
+% %
+% %
+% % % build transient matrix
+% % TR = TR + lambda * ( a2*NFId_old + a3*NFId_new ) ;
+% %
+% % % build rhs from backward Euler time discretization
+% % rhs = IV*Phi_old + dt * lambda *( C_old*exp(-lambda*dt) + ( a1*NFId_old + a2*NFId_new )*Phi_old );
+% %
+% % % build system matrix
+% % A = IV-dt*TR;
+% %
+% % % apply BC
+% % if npar.set_bc_last
+% %     [A,rhs]=apply_BC(A,rhs,npar.add_ones_on_diagonal);
+% % else
+% %     rhs=apply_BC_vec_only(rhs);
+% % end
+% %
+% % % solve
+% % Phi_new = A\rhs;
+% %
+% % % update precursors
+% % C_new =  C_old*exp(-lambda*dt) + ( a1*NFId_old + a2*NFId_new )*Phi_old + ( a2*NFId_old + a3*NFId_new )*Phi_new ;
+% %
+% % % re-package as single solution vector
+% % u = [Phi_new;C_new];
+% %
+% % end
 
-% (Phi^new - Phi^old)/dt = {[Fisp - Leak - Abso] Phi }^new + lambda C^new
-%
-% C^new = C^old exp(-lambda dt)   + exp(-lambda*t^end) ...
-%   * int_{t^beg}^{t^end} exp(lambda.t) Fisd(t) Phi(t) dt
-% Note that:
-% exp(-lambda*t^end) * int_{t^beg}^{t^end} exp(lambda.t) Fisd(t) Phi(t) dt
-% = int_{t^beg}^{t^end} exp(-lambda.(t^end-t) Fisd(t) Phi(t) dt
-% = {Fisd.Phi}^old a1 + {Fisd^old.Phi^new + Fisd^new.Phi^old} a2 + {Fisd.Phi}^new a3 
-% with
-% a1 = int_{t^beg}^{t^end}exp(-lambda.(t^end-t) [(t2-t)/dt]^2      dt
-% a2 = int_{t^beg}^{t^end}exp(-lambda.(t^end-t) (t-t1)(t2-t)/dt^2  dt
-% a3 = int_{t^beg}^{t^end}exp(-lambda.(t^end-t) [(t-t1)/dt]^2      dt
-
-TR  = sparse(npar.n,npar.n,npar.nnz);
-
-D    = assemble_stiffness(dat.cdiff   ,time_end);
-A    = assemble_mass(     dat.siga    ,time_end);
-NFIp = assemble_mass(     dat.nusigf_p,time_end) / npar.keff;
-IV   = assemble_mass(     dat.inv_vel ,time_end);
-
-NFId_old = assemble_mass(dat.nusigf_d,time_end-dt) / npar.keff;
-NFId_new = assemble_mass(dat.nusigf_d,time_end)    / npar.keff;
-
-% flux-flux matrix
-TR=NFIp-(D+A);
-
-% integrals for the analytical expressions for the precursors
-t2=time_end;
-t1=t2-dt;
-
-A1= @(t)( ((t2-t)/dt).^2      .*exp(-lambda*(t2-t)) );
-A2= @(t)( (t-t1).*(t2-t)/dt^2 .*exp(-lambda*(t2-t)) );
-A3= @(t)( ((t-t1)/dt).^2      .*exp(-lambda*(t2-t)) );
-
-a1= integral(@(t)A1(t),t1,t2);
-a2= integral(@(t)A2(t),t1,t2);
-a3= integral(@(t)A3(t),t1,t2);
 
 
-% build transient matrix
-TR = TR + lambda * ( a2*NFId_old + a3*NFId_new ) ;
 
-% build rhs from backward Euler time discretization
-rhs = IV*Phi_old + dt * lambda *( C_old*exp(-lambda*dt) + ( a1*NFId_old + a2*NFId_new )*Phi_old );
+% SDIRK solve
+% Yi = yn + h sum_j aij f(tj,Yj)
+% gives (f=Qy+z)
+%  [I-aii.h.Q(ti)]Yi = yn + h.aii zi + h sum(j=1..i-1) ( aij {Q(tj)Yj + zj} )
+rk=npar.rk;
 
-% build system matrix
-A = IV-dt*TR;
+% beginning of the time interval
+time_beg = time_end - dt;
+% storage for temp SDIRK quantities
+K=zeros(length(Phi_old),rk.s-1);
 
-% apply BC
-if npar.set_bc_last
-    [A,rhs]=apply_BC(A,rhs,npar.add_ones_on_diagonal);
-else
-    rhs=apply_BC_vec_only(rhs);
+NFId_old = assemble_mass(dat.nusigf_d,time_beg) / npar.keff;
+
+for i=1:rk.s
+    % compute stage time
+    ti = time_beg + rk.c(i)*dt;
+    
+    % build system matrix
+    D    = assemble_stiffness(dat.cdiff   ,ti);
+    A    = assemble_mass(     dat.siga    ,ti);
+    NFIp = assemble_mass(     dat.nusigf_p,ti) / npar.keff;
+    IV   = assemble_mass(     dat.inv_vel ,ti);
+    NFId_new = assemble_mass( dat.nusigf_d,ti) / npar.keff;
+    
+    % flux-flux matrix
+    TR=NFIp-(D+A);
+    
+    % integrals for the analytical expressions for the precursors
+    t2=ti;
+    t1=time_beg;
+    dti=rk.c(i)*dt;
+    
+    A1= @(t)( ((t2-t)/dti).^2      .*exp(-lambda*(t2-t)) );
+    A2= @(t)( (t-t1).*(t2-t)/dti^2 .*exp(-lambda*(t2-t)) );
+    A3= @(t)( ((t-t1)/dti).^2      .*exp(-lambda*(t2-t)) );
+    
+    a1= integral(@(t)A1(t),t1,t2);
+    a2= integral(@(t)A2(t),t1,t2);
+    a3= integral(@(t)A3(t),t1,t2);
+    
+    % build transient matrix
+    TR = TR + lambda * ( a2*NFId_old + a3*NFId_new ) ;
+    
+    % build system matrix
+    A = IV-rk.a(i,i)*dt*TR;
+    
+    % build rhs
+    zi =  lambda *( C_old*exp(-lambda*dti) + ( a1*NFId_old + a2*NFId_new )*Phi_old );
+    rhs = IV*Phi_old + rk.a(i,i)*dt *zi;
+    for j=1:rk.s-1
+        rhs = rhs + rk.a(i,j)*dt*K(:,j);
+    end
+    % apply BC
+    if npar.set_bc_last
+        [A,rhs]=apply_BC(A,rhs,npar.add_ones_on_diagonal);
+    else
+        rhs=apply_BC_vec_only(rhs);
+    end
+    % solve: M(unew-uold)/dt=TR.unew
+    Phi_new = A\rhs;
+    % store for temp SDIRK quantities
+    if i<rk.s
+        K(:,i)=TR*Phi_new + zi;
+    end
 end
 
-% solve
-Phi_new = A\rhs;
-
 % update precursors
-C_new =  C_old*exp(-lambda*dt) + ( a1*NFId_old + a2*NFId_new )*Phi_old + ( a2*NFId_old + a3*NFId_new )*Phi_new ;
-
+if npar.rk.s==1;
+    C_new =  C_old*exp(-lambda*dt) + ( a1*NFId_old + a2*NFId_new )*Phi_old + ( a2*NFId_old + a3*NFId_new )*Phi_new ;
+else
+    % need to do hermite stuff here
+    C_new =  C_old*exp(-lambda*dt) + ( a1*NFId_old + a2*NFId_new )*Phi_old + ( a2*NFId_old + a3*NFId_new )*Phi_new ;
+end
 % re-package as single solution vector
 u = [Phi_new;C_new];
+
 
 end
 
