@@ -233,6 +233,7 @@ npar.int_order = 3;
 % npar.prke_solve = 'no' ;
 npar.max_iter_iqs = 6;
 npar.tol_iqs      = 1e-11;
+npar.iqs_prke_interpolation_method=2;
 
 if ~strcmpi(npar.prke_solve,'matlab')
     npar.n_micro=10;
