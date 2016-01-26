@@ -1,4 +1,4 @@
-function [ u ] = solve_TD_diffusion_elim_prec(u,dt,time_end)
+function [ varargout ] = solve_TD_diffusion_elim_prec(u,dt,time_end)
 
 global dat npar
 
@@ -21,7 +21,8 @@ time_beg = time_end - dt;
 % storage for temp SDIRK quantities (-lambda Ci + Bi Phii)
 f=zeros(length(Phi_old),rk.s-1);
 fC=f;
-NFId_old = assemble_mass(dat.nusigf_d,time_beg) / npar.keff;
+% NFId_old = assemble_mass(dat.nusigf_d,time_beg) / npar.keff;
+auxPhi=zeros(length(Phi_old),rk.s);
 
 for i=1:rk.s
     % compute stage time
@@ -41,7 +42,7 @@ for i=1:rk.s
 	% Ci = [ C_old + h aii FISdi.Phii + sum_{j<i} h aij(-lambda.Cj + FISdj.Phij)]/(1+lambda h aii) 
     % let fci = -lambda.Ci + FISdi.Phii
 	Ci = C_old; 
-    for j=1:rk.s-1
+    for j=1:i-1
         Ci = Ci + rk.a(i,j)*dt*fC(:,j);
     end
 	deno = (1+lambda*rk.a(i,i)*dt);
@@ -56,7 +57,7 @@ for i=1:rk.s
     % build rhs
 	zi = lambda*Ci;
     rhs = IV*Phi_old + rk.a(i,i)*dt *zi;
-    for j=1:rk.s-1
+    for j=1:i-1
         rhs = rhs + rk.a(i,j)*dt*f(:,j);
     end
     % apply BC
@@ -69,6 +70,8 @@ for i=1:rk.s
     Phi_new = A\rhs;
     % finish Ci
     Ci = Ci +  rk.a(i,i)*dt / deno * NFId_new*Phi_new;
+    % save intermediate fluxes
+    auxPhi(:,i)=Phi_new;
     % store for temp SDIRK quantities
     if i<rk.s
         f(:,i)=TR*Phi_new + zi;
@@ -80,6 +83,18 @@ end
 % re-package as single solution vector
 u = [Phi_new ; Ci];
 
+% output
+nOutputs = nargout;
+varargout = cell(1,nOutputs);
+switch nOutputs
+    case(1)
+        varargout{1} = u;
+    case(2)
+        varargout{1} = u;
+        varargout{2} = auxPhi;
+    otherwise
+        error('Wrong number of output arguments in %s',mfilename);
+end
 
 end
 
