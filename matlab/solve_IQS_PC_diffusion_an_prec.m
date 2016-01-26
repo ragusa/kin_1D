@@ -4,7 +4,6 @@ global io dat npar
 
 % shortcuts
 lambda = dat.lambda;
-dt = dt_macro;
 C_old = u(npar.n+1:end);
 
 max_iter_iqs = npar.max_iter_iqs;
@@ -23,8 +22,8 @@ shape_beg=u(1:npar.n)/z;
 for iter = 1: max_iter_iqs
     
     % solve time-dependent diffusion for flux
-    u_end = solve_TD_diffusion_an_prec(u_beg,dt_macro,time_end);
-    
+    u_end = solve_TD_diffusion_elim_prec(u_beg,dt_macro,time_end)
+
     % get a predicted value of the end flux
     flux_end = u_end(1:npar.n);
     
@@ -41,8 +40,6 @@ for iter = 1: max_iter_iqs
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % assemble IQS
     
-%     % shortcut
-%     p=X(1);
     % interpolating polynomial
     if strcmpi(npar.prke_solve,'matlab')
         if npar.int_order==3
@@ -51,14 +48,21 @@ for iter = 1: max_iter_iqs
             pp = interp1(t,y,'pchip','pp');
         elseif npar.int_order==1
             pp = interp1(t,y,'linear','pp');
-        end        
+        end
     else
         pp = interp1(t,y,'linear','pp');
     end
+%     % extract details from piece-wise polynomial by breaking it apart
+%     [breaks,coefs,l,k,d] = unmkpp(pp);
+%     % make the polynomial that describes the derivative
+%     pp_der = mkpp(breaks,repmat(k-1:-1:1,d*l,1).*coefs(:,1:k-1),d);
+    
+    
     f = @(t) ppval(pp,t);   
     
     % integrals for the analytical expressions for the precursors
     t2=time_end;
+    dt=dt_macro;
     t1=t2-dt;
     
     A1= @(t)( ((t2-t)/dt).^2      .*exp(-lambda*(t2-t)) .*f(t) );
