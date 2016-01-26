@@ -1,7 +1,7 @@
 function kinetics_driver
 
 clc;
-clear all;
+% clear all;
 close all;
 % turn off warning due to interp1
 warning('OFF','MATLAB:interp1:ppGriddedInterpolant')
@@ -45,13 +45,17 @@ dt = t_end/ntimes;
 
 i=0;
 i=i+1; list_runs{i}= 'brute_force_matlab';
-i=i+1; list_runs{i}= 'brute_force';
+% i=i+1; list_runs{i}= 'brute_force';
 % i=i+1; list_runs{i}= 'brute_force_an_prec';
 i=i+1; list_runs{i}= 'brute_force_elim_prec';
 % i=i+1; list_runs{i}= 'iqs_an_prec';
+% i=i+1; list_runs{i}= 'iqs_an_prec1';
+% i=i+1; list_runs{i}= 'iqs_elim_prec';
 % i=i+1; list_runs{i}= 'iqsPC_an_prec';
+i=i+1; list_runs{i}= 'iqsPC_elim_prec';
 % i=i+1; list_runs{i}= 'iqs_theta_prec';
 % i=i+1; list_runs{i}= 'iqs';
+% npar.iqs_prke_interpolation_method=3
 % i=i+1; list_runs{i}= 'prke_initial_shape';
 % i=i+1; list_runs{i}= 'prke_exact_shape';
 % i=i+1; list_runs{i}= 'prke_qs_shape';
@@ -96,12 +100,31 @@ if should_I_run_this(list_runs,'iqs_an_prec')
     FUNHANDLE = @solve_IQS_diffusion_an_prec;
     [iqs_an_prec.ampl, iqs_an_prec.Ptot, iqs_an_prec.time_prke_iqs, iqs_an_prec.power_prke_iqs]=time_marching_IQS( dt, ntimes, u0, FUNHANDLE);
 end
+% if should_I_run_this(list_runs,'iqs_an_prec1')
+%     npar.iqs_prke_interpolation_method=1;
+%     FUNHANDLE = @solve_IQS_diffusion_an_prec;
+%     [iqs_an_prec.ampl, iqs_an_prec.Ptot, iqs_an_prec.time_prke_iqs, iqs_an_prec.power_prke_iqs]=time_marching_IQS( dt, ntimes, u0, FUNHANDLE);
+% end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% IQS IQS IQS with elimination of the precursors
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if should_I_run_this(list_runs,'iqs_elim_prec')
+    FUNHANDLE = @solve_IQS_diffusion_elim_prec;
+    [iqs_elim_prec.ampl, iqs_elim_prec.Ptot, iqs_elim_prec.time_prke_iqs, iqs_elim_prec.power_prke_iqs]=time_marching_IQS( dt, ntimes, u0, FUNHANDLE);
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% IQS version inspired from the PC-IQS method, with ANALYTICAL precursors
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if should_I_run_this(list_runs,'iqsPC_an_prec')
     FUNHANDLE = @solve_IQS_PC_diffusion_an_prec;
     [iqsPC_an_prec.ampl, iqsPC_an_prec.Ptot, iqsPC_an_prec.time_prke_iqs, iqsPC_an_prec.power_prke_iqs]=time_marching_IQS( dt, ntimes, u0, FUNHANDLE);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% IQS version inspired from the PC-IQS method, with elimiation of precursors
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if should_I_run_this(list_runs,'iqsPC_elim_prec')
+    FUNHANDLE = @solve_IQS_PC_diffusion_elim_prec;
+    [iqsPC_elim_prec.ampl, iqsPC_elim_prec.Ptot, iqsPC_elim_prec.time_prke_iqs, iqsPC_elim_prec.power_prke_iqs]=time_marching_IQS( dt, ntimes, u0, FUNHANDLE);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% IQS IQS IQS with Theta Discretized precursors

@@ -1,7 +1,7 @@
 function kinetics_driver_conv
 
 clc;
-clear all;
+% clear all;
 close all;
 % turn off warning due to interp1
 warning('OFF','MATLAB:interp1:ppGriddedInterpolant')
@@ -9,7 +9,7 @@ warning('OFF','MATLAB:interp1:ppGriddedInterpolant')
 global npar io
 
 % verbose/output parameters
-io.console_print         = false;
+io.console_print         = true;
 io.plot_transient_figure = true;
 io.plot_power_figure     = true;
 io.make_movie            = false;
@@ -37,7 +37,7 @@ u0=u;
 % time steping data
 t_end = 1.28;
 t_end = 1.3;
-t_end = 1.25;
+t_end = 0.1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% MATLAB time discretization of
@@ -45,19 +45,24 @@ t_end = 1.25;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 amplitude_norm_ref = reference_solution( t_end, u0);
 
-nn=3;
-ntimes = 25 * 2.^(linspace(0,nn,nn+1));
+nn=1;
+ntimes = 25 * 2.^(linspace(0,nn-1,nn))*100;
 dt = t_end./ntimes;
 
 i=0;
-% % i=i+1; list_runs{i}= 'brute_force_matlab';
-i=i+1; list_runs{i}= 'brute_force';
+% not to be used for conv. studies % i=i+1; list_runs{i}= 'brute_force_matlab';
+% i=i+1; list_runs{i}= 'brute_force';
 i=i+1; list_runs{i}= 'brute_force_elim_prec';
-i=i+1; list_runs{i}= 'brute_force_an_prec';
+% i=i+1; list_runs{i}= 'brute_force_an_prec';
 % i=i+1; list_runs{i}= 'iqs_an_prec';
+% i=i+1; list_runs{i}= 'iqs_elim_prec';
 % i=i+1; list_runs{i}= 'iqsPC_an_prec';
+i=i+1; list_runs{i}= 'iqsPC_elim_prec';
+npar.iqs_prke_interpolation_method=2
 % i=i+1; list_runs{i}= 'iqs_theta_prec';
-% i=i+1; list_runs{i}= 'iqs';
+% % i=i+1; list_runs{i}= 'iqs';
+% % npar.iqs_prke_interpolation_method=3
+
 % i=i+1; list_runs{i}= 'prke_initial_shape';
 % i=i+1; list_runs{i}= 'prke_exact_shape';
 % i=i+1; list_runs{i}= 'prke_qs_shape';
@@ -108,6 +113,15 @@ for iconv=1:length(ntimes)
         iqs_an_prec.power_prke_iqs(iconv)=p;
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%% IQS IQS IQS with elimination of the  precursors
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if should_I_run_this(list_runs,'iqs_elim_prec')
+        FUNHANDLE = @solve_IQS_diffusion_elim_prec;
+        [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
+        iqs_elim_prec.ampl(iconv)=a;
+        iqs_elim_prec.power_prke_iqs(iconv)=p;
+    end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% IQS version inspired from the PC-IQS method, with ANALYTICAL precursors
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'iqsPC_an_prec')
@@ -115,6 +129,15 @@ for iconv=1:length(ntimes)
         [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
         iqsPC_an_prec.ampl(iconv)=a;
         iqsPC_an_prec.power_prke_iqs(iconv)=p;
+    end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%% IQS version inspired from the PC-IQS method, with elimination of precursors
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if should_I_run_this(list_runs,'iqsPC_elim_prec')
+        FUNHANDLE = @solve_IQS_PC_diffusion_elim_prec;
+        [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
+        iqsPC_elim_prec.ampl(iconv)=a;
+        iqsPC_elim_prec.power_prke_iqs(iconv)=p;
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% IQS IQS IQS with Theta Discretized precursors
@@ -217,10 +240,42 @@ if should_I_run_this(list_runs,'iqs_an_prec')
     leg = char(leg, char(strcat(curr_leg, ' fine')) );
     legend(leg,'Location','Best');
 end
+if should_I_run_this(list_runs,'iqs_elim_prec')
+    error_  = abs( iqs_elim_prec.ampl           - amplitude_norm_ref );
+    error_f = abs( iqs_elim_prec.power_prke_iqs - amplitude_norm_ref );
+    curr_leg = 'IQS-elim';
+    plot(log10(dt),log10(error_),'+-');
+    a=get(legend(gca),'String');
+    if isempty(a)
+        leg=char(curr_leg);
+    else
+        leg=char(char(a),curr_leg);
+    end
+    plot(log10(dt),log10(error_f));
+    a=get(legend(gca),'String');
+    leg = char(leg, char(strcat(curr_leg, ' fine')) );
+    legend(leg,'Location','Best');
+end
 if should_I_run_this(list_runs,'iqsPC_an_prec')
     error_  = abs( iqsPC_an_prec.ampl           - amplitude_norm_ref );
     error_f = abs( iqsPC_an_prec.power_prke_iqs - amplitude_norm_ref );
     curr_leg = 'IQS-PC-an';
+    plot(log10(dt),log10(error_),'+-');
+    a=get(legend(gca),'String');
+    if isempty(a)
+        leg=char(curr_leg);
+    else
+        leg=char(char(a),curr_leg);
+    end
+    plot(log10(dt),log10(error_f));
+    a=get(legend(gca),'String');
+    leg = char(leg, char(strcat(curr_leg, ' fine')) );
+    legend(leg,'Location','Best');
+end
+if should_I_run_this(list_runs,'iqsPC_elim_prec')
+    error_  = abs( iqsPC_elim_prec.ampl           - amplitude_norm_ref );
+    error_f = abs( iqsPC_elim_prec.power_prke_iqs - amplitude_norm_ref );
+    curr_leg = 'IQS-PC-elim';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
     if isempty(a)
