@@ -90,7 +90,8 @@ for iter = 1: max_iter_iqs
     % solve for new shape_end: M(unew-uold)/dt=TR.unew
     shape_end = A\rhs;
     
-    % update precursors
+    % update precursors (using flux since flux is in the precursors eqs; 
+    %   note that the amplitude p is contains in the a1, a2, a3 functions)
     C_new =  C_old*exp(-lambda*dt) + ( a1*NFId_old + a2*NFId_new )*shape_beg + ( a2*NFId_old + a3*NFId_new )*shape_end ;
     % re-package as single solution vector
     u_shape = [ shape_end ; C_new];
