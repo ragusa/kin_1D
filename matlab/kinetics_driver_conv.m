@@ -9,9 +9,9 @@ warning('OFF','MATLAB:interp1:ppGriddedInterpolant')
 global npar io
 
 % verbose/output parameters
-io.console_print         = true;
-io.plot_transient_figure = true;
-io.plot_power_figure     = true;
+io.console_print         = false;
+io.plot_transient_figure = false;
+io.plot_power_figure     = false;
 io.make_movie            = false;
 io.save_flux             = false;
 io.figID = 99;
@@ -36,8 +36,8 @@ u0=u;
 
 % time steping data
 t_end = 1.28;
-t_end = 1.3;
-t_end = 0.1;
+% t_end = 1.3;
+% t_end = 0.1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% MATLAB time discretization of
@@ -45,22 +45,22 @@ t_end = 0.1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 amplitude_norm_ref = reference_solution( t_end, u0);
 
-nn=1;
-ntimes = 25 * 2.^(linspace(0,nn-1,nn))*100;
+nn=7;
+ntimes = 2.^(linspace(0,nn-1,nn))*20;
 dt = t_end./ntimes;
 
 i=0;
 % not to be used for conv. studies % i=i+1; list_runs{i}= 'brute_force_matlab';
 % i=i+1; list_runs{i}= 'brute_force';
-i=i+1; list_runs{i}= 'brute_force_elim_prec';
-% i=i+1; list_runs{i}= 'brute_force_an_prec';
+% i=i+1; list_runs{i}= 'brute_force_elim_prec';
+i=i+1; list_runs{i}= 'brute_force_an_prec';
 % i=i+1; list_runs{i}= 'iqs_an_prec';
 % i=i+1; list_runs{i}= 'iqs_elim_prec';
-% i=i+1; list_runs{i}= 'iqsPC_an_prec';
-i=i+1; list_runs{i}= 'iqsPC_elim_prec';
-npar.iqs_prke_interpolation_method=2
+% % i=i+1; list_runs{i}= 'iqsPC_an_prec';
+% i=i+1; list_runs{i}= 'iqsPC_elim_prec';
+npar.iqs_prke_interpolation_method=3;
 % i=i+1; list_runs{i}= 'iqs_theta_prec';
-% % i=i+1; list_runs{i}= 'iqs';
+% i=i+1; list_runs{i}= 'iqs';
 % % npar.iqs_prke_interpolation_method=3
 
 % i=i+1; list_runs{i}= 'prke_initial_shape';
@@ -82,6 +82,7 @@ for iconv=1:length(ntimes)
     %%%   the TD neutron diffusion eq and precursors eq
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'brute_force')
+        display('brute_force')
         FUNHANDLE = @solve_TD_diffusion;
         brute_force.ampl(iconv) = time_marching_BF( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
     end
@@ -91,6 +92,7 @@ for iconv=1:length(ntimes)
     %%%   solution for the precursors eq
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'brute_force_an_prec')
+        display('brute_force_an_prec')
         FUNHANDLE = @solve_TD_diffusion_an_prec;
         brute_force_an_prec.ampl(iconv) = time_marching_BF( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
     end
@@ -100,6 +102,7 @@ for iconv=1:length(ntimes)
     %%%   of the precursors eq)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'brute_force_elim_prec')
+        display('brute_force_elim_prec')
         FUNHANDLE = @solve_TD_diffusion_elim_prec;
         [brute_force_elim_prec.ampl(iconv)]=time_marching_BF( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
     end
@@ -193,10 +196,11 @@ if should_I_run_this(list_runs,'brute_force')
     curr_leg = 'space-time';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
+    p = polyfit(log10(dt),log10(error_),1);
     if isempty(a)
-        leg=char(curr_leg);
+        leg=char(strcat(curr_leg,' slope = ',num2str(p(1))));
     else
-        leg=char(char(a),curr_leg);
+        leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
     end
     legend(leg,'Location','Best');
 end
@@ -205,10 +209,11 @@ if should_I_run_this(list_runs,'brute_force_an_prec')
     curr_leg = 'space-time-ANALY';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
+    p = polyfit(log10(dt),log10(error_),1);
     if isempty(a)
-        leg=char(curr_leg);
+        leg=char(strcat(curr_leg,' slope = ',num2str(p(1))));
     else
-        leg=char(char(a),curr_leg);
+        leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
     end
     legend(leg,'Location','Best');
 end
@@ -217,10 +222,11 @@ if should_I_run_this(list_runs,'brute_force_elim_prec')
     curr_leg = 'space-time-elim';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
+    p = polyfit(log10(dt),log10(error_),1);
     if isempty(a)
-        leg=char(curr_leg);
+        leg=char(strcat(curr_leg,' slope = ',num2str(p(1))));
     else
-        leg=char(char(a),curr_leg);
+        leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
     end
     legend(leg,'Location','Best');
 end
@@ -230,10 +236,11 @@ if should_I_run_this(list_runs,'iqs_an_prec')
     curr_leg = 'IQS-an';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
+    p = polyfit(log10(dt),log10(error_),1);
     if isempty(a)
-        leg=char(curr_leg);
+        leg=char(strcat(curr_leg,' slope = ',num2str(p(1))));
     else
-        leg=char(char(a),curr_leg);
+        leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
     end
     plot(log10(dt),log10(error_f));
     a=get(legend(gca),'String');
@@ -246,10 +253,11 @@ if should_I_run_this(list_runs,'iqs_elim_prec')
     curr_leg = 'IQS-elim';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
+    p = polyfit(log10(dt),log10(error_),1);
     if isempty(a)
-        leg=char(curr_leg);
+        leg=char(strcat(curr_leg,' slope = ',num2str(p(1))));
     else
-        leg=char(char(a),curr_leg);
+        leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
     end
     plot(log10(dt),log10(error_f));
     a=get(legend(gca),'String');
@@ -262,10 +270,11 @@ if should_I_run_this(list_runs,'iqsPC_an_prec')
     curr_leg = 'IQS-PC-an';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
+    p = polyfit(log10(dt),log10(error_),1);
     if isempty(a)
-        leg=char(curr_leg);
+        leg=char(strcat(curr_leg,' slope = ',num2str(p(1))));
     else
-        leg=char(char(a),curr_leg);
+        leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
     end
     plot(log10(dt),log10(error_f));
     a=get(legend(gca),'String');
@@ -278,10 +287,11 @@ if should_I_run_this(list_runs,'iqsPC_elim_prec')
     curr_leg = 'IQS-PC-elim';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
+    p = polyfit(log10(dt),log10(error_),1);
     if isempty(a)
-        leg=char(curr_leg);
+        leg=char(strcat(curr_leg,' slope = ',num2str(p(1))));
     else
-        leg=char(char(a),curr_leg);
+        leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
     end
     plot(log10(dt),log10(error_f));
     a=get(legend(gca),'String');
@@ -294,10 +304,11 @@ if should_I_run_this(list_runs,'iqs_theta_prec')
     curr_leg = 'IQS-theta-prec';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
+    p = polyfit(log10(dt),log10(error_),1);
     if isempty(a)
-        leg=char(curr_leg);
+        leg=char(strcat(curr_leg,' slope = ',num2str(p(1))));
     else
-        leg=char(char(a),curr_leg);
+        leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
     end
     plot(log10(dt),log10(error_f));
     a=get(legend(gca),'String');
@@ -310,10 +321,11 @@ if should_I_run_this(list_runs,'iqs')
     curr_leg = 'IQS';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
+    p = polyfit(log10(dt),log10(error_),1);
     if isempty(a)
-        leg=char(curr_leg);
+        leg=char(strcat(curr_leg,' slope = ',num2str(p(1))));
     else
-        leg=char(char(a),curr_leg);
+        leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
     end
     plot(log10(dt),log10(error_f));
     a=get(legend(gca),'String');
