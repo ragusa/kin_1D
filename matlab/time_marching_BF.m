@@ -18,6 +18,11 @@ end
 amplitude_norm=ones(ntimes+1,1);
 Ptot = dat.Ptot*ones(ntimes+1,1);
 
+if npar.iqs_prke_interpolation_method>=3
+    dat.ode.f_beg=zeros(npar.n,1);
+    dat.ode.f_end=zeros(npar.n,1);
+end
+
 %%% loop on time steps %%%
 for it=1:ntimes
     
@@ -26,6 +31,11 @@ for it=1:ntimes
     
     % solve time-dependent diffusion for flux
     u = FUNHANDLE(u,dt,time_end);
+    
+    % update data for hermite interpolation
+    if npar.iqs_prke_interpolation_method>=3
+        dat.ode.f_beg=dat.ode.f_end;
+    end
     
     % plot/movie
     if io.plot_transient_figure

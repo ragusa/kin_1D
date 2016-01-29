@@ -86,13 +86,20 @@ rk=npar.rk;
 
 % beginning of the time interval
 time_beg = time_end - dt;
+ti = time_beg;
 % storage for temp SDIRK quantities
-K=zeros(length(Phi_old),rk.s-1);
+K=zeros(length(Phi_old),rk.s);
 
-NFId_old = assemble_mass(dat.nusigf_d,time_beg) / npar.keff;
+Phi = cell(rk.s+1,1);
+Phi{1} = Phi_old;
+NFId = cell(rk.s+1,1);
+NFId{1} = assemble_mass(dat.nusigf_d,time_beg) / npar.keff;
 
 for i=1:rk.s
+    Phi{i+1} = zeros(size(Phi{i}));
+    
     % compute stage time
+    ti_old = ti;
     ti = time_beg + rk.c(i)*dt;
     
     % build system matrix
@@ -100,32 +107,35 @@ for i=1:rk.s
     A    = assemble_mass(     dat.siga    ,ti);
     NFIp = assemble_mass(     dat.nusigf_p,ti) / npar.keff;
     IV   = assemble_mass(     dat.inv_vel ,ti);
-    NFId_new = assemble_mass( dat.nusigf_d,ti) / npar.keff;
+    NFId{i+1} = assemble_mass( dat.nusigf_d,ti) / npar.keff;
     
     % flux-flux matrix
     TR=NFIp-(D+A);
     
     % integrals for the analytical expressions for the precursors
     t2=ti;
-    t1=time_beg;
-    dti=rk.c(i)*dt;
+    t1=ti_old;
+    dti=t2-t1;
     
     A1= @(t)( ((t2-t)/dti).^2      .*exp(-lambda*(t2-t)) );
     A2= @(t)( (t-t1).*(t2-t)/dti^2 .*exp(-lambda*(t2-t)) );
     A3= @(t)( ((t-t1)/dti).^2      .*exp(-lambda*(t2-t)) );
     
-    a1= integral(@(t)A1(t),t1,t2);
-    a2= integral(@(t)A2(t),t1,t2);
-    a3= integral(@(t)A3(t),t1,t2);
+    a1(i)= integral(@(t)A1(t),t1,t2);
+    a2(i)= integral(@(t)A2(t),t1,t2);
+    a3(i)= integral(@(t)A3(t),t1,t2);
     
     % build transient matrix
-    TR = TR + lambda * ( a2*NFId_old + a3*NFId_new ) ;
+    TR = TR + lambda * ( a2(i)*NFId{i} + a3(i)*NFId{i+1} ) ;
     
     % build system matrix
     A = IV-rk.a(i,i)*dt*TR;
     
     % build rhs
-    zi =  lambda *( C_old*exp(-lambda*dti) + ( a1*NFId_old + a2*NFId_new )*Phi_old );
+    zi =  lambda *( C_old*exp(-lambda*dt*rk.c(i)) );
+    for k=1:i
+        zi = zi + lambda *( ( a1(k)*NFId{k} + a2(k)*NFId{k+1} )*Phi{k} + ( a2(k)*NFId{k} + a3(k)*NFId{k+1} )*Phi{k+1} );
+    end
     rhs = IV*Phi_old + rk.a(i,i)*dt *zi;
     for j=1:rk.s-1
         rhs = rhs + rk.a(i,j)*dt*K(:,j);
@@ -137,19 +147,35 @@ for i=1:rk.s
         rhs=apply_BC_vec_only(rhs);
     end
     % solve: M(unew-uold)/dt=TR.unew
-    Phi_new = A\rhs;
+    Phi{i+1} = A\rhs;
     % store for temp SDIRK quantities
-    if i<rk.s
-        K(:,i)=TR*Phi_new + zi;
-    end
+    K(:,i)=TR*Phi{i+1} + zi;
 end
+Phi_new = Phi{end};
 
 % update precursors
 if npar.rk.s==1;
     C_new =  C_old*exp(-lambda*dt) + ( a1*NFId_old + a2*NFId_new )*Phi_old + ( a2*NFId_old + a3*NFId_new )*Phi_new ;
 else
-    % need to do hermite stuff here
-    C_new =  C_old*exp(-lambda*dt) + ( a1*NFId_old + a2*NFId_new )*Phi_old + ( a2*NFId_old + a3*NFId_new )*Phi_new ;
+    if npar.iqs_prke_interpolation_method>=3
+        t1 = time_beg; t2 = time_end;
+        NFId_old = NFId{1}; NFId_new = NFId{end};
+        dat.ode.f_end=K(1:npar.n,rk.s);
+        mat=[ t1^3 t1^2 t1 1; t2^3 t2^2 t2 1;  3*t1^2 2*t1 1 0; 3*t2^2 2*t2 1 0];
+        rhs = [ Phi_old' ;Phi_new' ; dat.ode.f_beg'; dat.ode.f_end'];
+        % contains the w coefficients such that :
+        %  Phi(t) = w(1) t^3 + w(2) t^2 + w(3) t + w(4)
+        w = mat\rhs; w=w'; nw=size(w,2);
+        b = zeros(nw,2);
+        for k=1:nw
+            b(k,1) = integral(@(t) (t2-t)/dt .*t.^(nw-k) .*exp(-lambda*(t2-t)),t1,t2);
+            b(k,2) = integral(@(t) (t-t1)/dt .*t.^(nw-k) .*exp(-lambda*(t2-t)),t1,t2);
+        end
+        tmp = w*b;
+        C_new =  C_old*exp(-lambda*dt) + NFId_old*tmp(:,1) + NFId_new*tmp(:,2);
+    else
+        C_new =  C_old*exp(-lambda*dt) + ( a1(end)*NFId_old + a2(end)*NFId_new )*Phi_old + ( a2(end)*NFId_old + a3(end)*NFId_new )*Phi_new ;        
+    end
 end
 % re-package as single solution vector
 u = [Phi_new;C_new];
