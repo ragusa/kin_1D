@@ -2,12 +2,13 @@ clc; clear; close all; hold all
 
 t_end = 1.0;
 min_N = 6;
-max_N = 11;
+max_N = 9;
 N = 2.^(min_N:max_N);
 error_bf = zeros(1,length(N));
 error_an = zeros(1,length(N));
 error_an_lag = zeros(1,length(N));
 error_an_herm = zeros(1,length(N));
+lag_order=3;
 
 gamma = 0.43586652150846;
 a = 1/2*(1-gamma);
@@ -41,10 +42,10 @@ for i=1:length(N)
         X_bf(:,n+1) = SDIRK(X_bf(:,n),t(n),A_fun,a_rk,c_rk,dt);
         X_an(:,n+1) = SDIRK_an_lag(X_an(:,n),t(n),A_fun,a_rk,c_rk,dt);
         X_an_herm(:,n+1) = SDIRK_an_herm(X_an_herm(:,n),t(n),A_fun,a_rk,c_rk,dt);
-        if n<2
+        if n<lag_order
             X_an_lag(:,n+1) = X_an(:,n+1);
         else
-            X_an_lag(:,n+1) = SDIRK_an_lag(X_an_lag(:,n-1:n),t(n-1:n),A_fun,a_rk,c_rk,dt);
+            X_an_lag(:,n+1) = SDIRK_an_lag(X_an_lag(:,n-(lag_order-1):n),t(n-(lag_order-1):n),A_fun,a_rk,c_rk,dt);
         end
         p=p+1;
         clc

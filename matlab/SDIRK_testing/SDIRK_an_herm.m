@@ -14,15 +14,15 @@ for i=1:stages
     t2 = tt(i);
     dti = c_rk(i)*dt;
     
-    I1 = @(t) t.^2-2*t1*t+t1^2;
-    I2 = @(t) dun*t+un-dun*t1;
+    I1 = @(t) (t-t1).^2; %t.^2-2*t1*t+t1^2;
+    I2 = @(t) dun*(t-t1)+un;
     i1 = integral(@(t)I1(t).*exp(Ai(2,2)*(t2-t)),t1,t2);
     i2 = integral(@(t)I2(t).*exp(Ai(2,2)*(t2-t)),t1,t2);
-    num = (-dun*t2-un+dun*t1);
-    deno = (t2^2-2*t1*t2+t1^2);    
+    num = -I2(t2); % (-dun*t2-un+dun*t1);
+    deno = I1(t2); % (t2^2-2*t1*t2+t1^2);    
     
-    Ki = Ai(1,1) + i1/deno;    
-    zi = Ai(1,2)*yn(2,end)*exp(Ai(2,2)*(tt(i)-tn(end))) + Ai(1,2)*Ai(2,1)*(num/deno*i1+i2);
+    Ki = Ai(1,1) + Ai(2,1)*Ai(1,2)*i1/deno;    
+    zi = Ai(1,2)*( yn(2,end)*exp(Ai(2,2)*(tt(i)-tn)) + Ai(2,1)*(num/deno*i1+i2) );
     
     M = 1-a_rk(i,i)*dt*Ki;
     rhs = yn(1,end) + a_rk(i,i)*dt*zi;
@@ -32,6 +32,6 @@ for i=1:stages
     Y(1,i) = M\rhs;
     k(i) = Ki*Y(1,i) + zi;
 end
-Y(2,end) = yn(2)*exp(Ai(2,2)*(tt(end)-tn)) + Ai(2,1)*(Y(1,end)*i1/deno+num/deno*i1+i2);
+Y(2,end) = yn(2)*exp(Ai(2,2)*(tt(end)-tn)) + Ai(2,1)*(Y(1,end)*i1/deno + num/deno*i1 + i2);
 
 out=Y(:,end);
