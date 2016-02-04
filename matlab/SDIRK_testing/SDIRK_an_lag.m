@@ -1,4 +1,4 @@
-function [out] = SDIRK_an(yn,tn,A,a_rk,c_rk,dt)
+function [out] = SDIRK_an_lag(yn,tn,A,a_rk,c_rk,dt)
 
 [var,order] = size(yn);
 if length(tn) ~= order

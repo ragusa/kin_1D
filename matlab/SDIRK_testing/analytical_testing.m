@@ -5,9 +5,9 @@ min_N = 6;
 max_N = 11;
 N = 2.^(min_N:max_N);
 error_bf = zeros(1,length(N));
-error_an_1 = zeros(1,length(N));
-error_an_2 = zeros(1,length(N));
-error_an_3 = zeros(1,length(N));
+error_an = zeros(1,length(N));
+error_an_lag = zeros(1,length(N));
+error_an_herm = zeros(1,length(N));
 
 gamma = 0.43586652150846;
 a = 1/2*(1-gamma);
@@ -33,26 +33,22 @@ for i=1:length(N)
     dt = t_end/N(i);
     t = 0:dt:t_end;
     X_bf = zeros(2,length(t)); X_bf(:,1) = X0;
-    X_an_1 = zeros(2,length(t)); X_an_1(:,1) = X0;
-    X_an_2 = zeros(2,length(t)); X_an_2(:,1) = X0;
-    X_an_3 = zeros(2,length(t)); X_an_3(:,1) = X0;
+    X_an = zeros(2,length(t)); X_an(:,1) = X0;
+    X_an_lag = zeros(2,length(t)); X_an_lag(:,1) = X0;
+    X_an_herm = zeros(2,length(t)); X_an_herm(:,1) = X0;
     
     for n=1:N(i)
         X_bf(:,n+1) = SDIRK(X_bf(:,n),t(n),A_fun,a_rk,c_rk,dt);
-        X_an_1(:,n+1) = SDIRK_an(X_an_1(:,n),t(n),A_fun,a_rk,c_rk,dt);
+        X_an(:,n+1) = SDIRK_an_lag(X_an(:,n),t(n),A_fun,a_rk,c_rk,dt);
+        X_an_herm(:,n+1) = SDIRK_an_herm(X_an_herm(:,n),t(n),A_fun,a_rk,c_rk,dt);
         if n<2
-            X_an_2(:,n+1) = X_an_1(:,n+1);
-            X_an_3(:,n+1) = X_an_2(:,n+1);
-        elseif n<3
-            X_an_2(:,n+1) = SDIRK_an(X_an_2(:,n-1:n),t(n-1:n),A_fun,a_rk,c_rk,dt);
-            X_an_3(:,n+1) = X_an_2(:,n+1);
+            X_an_lag(:,n+1) = X_an(:,n+1);
         else
-            X_an_2(:,n+1) = SDIRK_an(X_an_2(:,n-1:n),t(n-1:n),A_fun,a_rk,c_rk,dt);
-            X_an_3(:,n+1) = SDIRK_an(X_an_3(:,n-2:n),t(n-2:n),A_fun,a_rk,c_rk,dt);
+            X_an_lag(:,n+1) = SDIRK_an_lag(X_an_lag(:,n-1:n),t(n-1:n),A_fun,a_rk,c_rk,dt);
         end
         p=p+1;
-        percent_complete = p/sum(N)*100;
-        display(percent_complete)
+        clc
+        fprintf('Progress: %3.f %% \n',p/sum(N)*100)
     end
     
 %     figure(1)
@@ -62,17 +58,17 @@ for i=1:length(N)
 %     legend(leg,'Location','Best');
     
     error_bf(i) = abs(X_bf(1,end)-X_ref(end,1))/X_ref(end,1);
-    error_an_1(i) = abs(X_an_1(1,end)-X_ref(end,1))/X_ref(end,1);    
-    error_an_2(i) = abs(X_an_2(1,end)-X_ref(end,1))/X_ref(end,1);
-    error_an_3(i) = abs(X_an_3(1,end)-X_ref(end,1))/X_ref(end,1);
+    error_an(i) = abs(X_an(1,end)-X_ref(end,1))/X_ref(end,1);    
+    error_an_lag(i) = abs(X_an_lag(1,end)-X_ref(end,1))/X_ref(end,1);
+    error_an_herm(i) = abs(X_an_herm(1,end)-X_ref(end,1))/X_ref(end,1);
 end
 
 p_bf = polyfit(log10(t_end./N),log10(error_bf),1);
-p_an_1 = polyfit(log10(t_end./N),log10(error_an_1),1);
-p_an_2 = polyfit(log10(t_end./N),log10(error_an_2),1);
-p_an_3 = polyfit(log10(t_end./N),log10(error_an_3),1);
+p_an = polyfit(log10(t_end./N),log10(error_an),1);
+p_an_lag = polyfit(log10(t_end./N),log10(error_an_lag),1);
+p_an_herm = polyfit(log10(t_end./N),log10(error_an_herm),1);
 
 figure(2)
-loglog(t_end./N,error_bf,'o-',t_end./N,error_an_1,'o-',t_end./N,error_an_2,'o-',t_end./N,error_an_3,'o-')
-legend(strcat('Brute Force, Slope = ',num2str(p_bf(1))),strcat('Analytical 1st Order, Slope = ',num2str(p_an_1(1))),strcat('Analytical 2nd Order, Slope = ',num2str(p_an_2(1))),strcat('Analytical 3rd Order, Slope = ',num2str(p_an_3(1))));
+loglog(t_end./N,error_bf,'o-',t_end./N,error_an,'o-',t_end./N,error_an_lag,'o-',t_end./N,error_an_herm,'o-')
+legend(strcat('Brute Force, Slope = ',num2str(p_bf(1))),strcat('Lagrange 1st Order, Slope = ',num2str(p_an(1))),strcat('Lagrange 2nd Order, Slope = ',num2str(p_an_lag(1))),strcat('Hermite 2nd Order, Slope = ',num2str(p_an_herm(1))));
 hold off
