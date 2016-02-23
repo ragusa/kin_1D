@@ -14,6 +14,7 @@ io.plot_transient_figure = false;
 io.plot_power_figure     = false;
 io.make_movie            = false;
 io.save_flux             = false;
+io.print_progress        = true;
 io.figID = 99;
 % one of the two choices for applying BC
 npar.set_bc_last=true;
@@ -45,8 +46,8 @@ t_end = 1.28;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 amplitude_norm_ref = reference_solution( t_end, u0);
 
-nn=7;
-ntimes = 2.^(linspace(0,nn-1,nn))*20;
+nn=5;
+ntimes = 2.^(0:nn-1)*20;
 dt = t_end./ntimes;
 
 i=0;
@@ -58,7 +59,10 @@ i=i+1; list_runs{i}= 'brute_force_an_prec';
 % i=i+1; list_runs{i}= 'iqs_elim_prec';
 % % i=i+1; list_runs{i}= 'iqsPC_an_prec';
 % i=i+1; list_runs{i}= 'iqsPC_elim_prec';
-npar.iqs_prke_interpolation_method=3;
+npar.iqs_prke_interpolation_method=2;
+str = 'linear';
+npar.interpolation_order=1;
+npar.hermite_prec_update=true;
 % i=i+1; list_runs{i}= 'iqs_theta_prec';
 % i=i+1; list_runs{i}= 'iqs';
 % % npar.iqs_prke_interpolation_method=3
@@ -66,6 +70,9 @@ npar.iqs_prke_interpolation_method=3;
 % i=i+1; list_runs{i}= 'prke_initial_shape';
 % i=i+1; list_runs{i}= 'prke_exact_shape';
 % i=i+1; list_runs{i}= 'prke_qs_shape';
+
+npar.ntot = sum(ntimes)*i;
+npar.nnn = 0;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -83,6 +90,7 @@ for iconv=1:length(ntimes)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'brute_force')
         display('brute_force')
+        npar.an_interp_type='lagrange';
         FUNHANDLE = @solve_TD_diffusion;
         brute_force.ampl(iconv) = time_marching_BF( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
     end
@@ -93,6 +101,7 @@ for iconv=1:length(ntimes)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'brute_force_an_prec')
         display('brute_force_an_prec')
+        npar.an_interp_type='lagrange';
         FUNHANDLE = @solve_TD_diffusion_an_prec;
         brute_force_an_prec.ampl(iconv) = time_marching_BF( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
     end
@@ -110,6 +119,8 @@ for iconv=1:length(ntimes)
     %%% IQS IQS IQS with ANALYTICAL precursors
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'iqs_an_prec')
+        display('iqs_an_prec')
+        npar.an_interp_type='hermite';
         FUNHANDLE = @solve_IQS_diffusion_an_prec;
         [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
         iqs_an_prec.ampl(iconv)=a;
@@ -119,6 +130,7 @@ for iconv=1:length(ntimes)
     %%% IQS IQS IQS with elimination of the  precursors
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'iqs_elim_prec')
+        display('iqs_elim_prec')
         FUNHANDLE = @solve_IQS_diffusion_elim_prec;
         [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
         iqs_elim_prec.ampl(iconv)=a;
@@ -128,6 +140,7 @@ for iconv=1:length(ntimes)
     %%% IQS version inspired from the PC-IQS method, with ANALYTICAL precursors
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'iqsPC_an_prec')
+        display('iqsPC_an_prec')
         FUNHANDLE = @solve_IQS_PC_diffusion_an_prec;
         [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
         iqsPC_an_prec.ampl(iconv)=a;
@@ -137,6 +150,8 @@ for iconv=1:length(ntimes)
     %%% IQS version inspired from the PC-IQS method, with elimination of precursors
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'iqsPC_elim_prec')
+        display('iqsPC_elim_prec')
+        npar.prec_solve_type = 'linear';
         FUNHANDLE = @solve_IQS_PC_diffusion_elim_prec;
         [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
         iqsPC_elim_prec.ampl(iconv)=a;
@@ -146,6 +161,7 @@ for iconv=1:length(ntimes)
     %%% IQS IQS IQS with Theta Discretized precursors
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'iqs_theta_prec')
+        display('iqs_theta_prec')
         FUNHANDLE = @solve_IQS_diffusion_td_prec;
         [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
         iqs_theta_prec.ampl(iconv)=a;
@@ -155,6 +171,7 @@ for iconv=1:length(ntimes)
     %%% IQS IQS IQS
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'iqs')
+        display('iqs')
         FUNHANDLE = @solve_IQS_diffusion;
         [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
         iqs.ampl(iconv)=a;
@@ -164,6 +181,7 @@ for iconv=1:length(ntimes)
     %%% standard PRKE with initial shape
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'prke_initial_shape')
+        display('prke_initial_shape')
         FUNNAME = solve_PRKE;
         prke_initial_shape.ampl(iconv) = time_marching_PRKE( dt(iconv), ntimes(iconv), u0, FUNNAME);
     end
@@ -172,6 +190,7 @@ for iconv=1:length(ntimes)
     %%% prke using exact shape
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'prke_exact_shape')
+        display('prke_exact_shape')
         FUNNAME = solve_PRKE_exact;
         prke_exact_shape.ampl(iconv) = time_marching_PRKE( dt(iconv), ntimes(iconv), u0, FUNNAME);
     end
@@ -180,6 +199,7 @@ for iconv=1:length(ntimes)
     %%% prke using QS approximation
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'prke_qs_shape')
+        display('prke_qs_shape')
         FUNNAME = solve_PRKE_QS;
         prke_qs_shape.ampl(iconv) = time_marching_PRKE( dt(iconv), ntimes(iconv), u0, FUNNAME);
     end

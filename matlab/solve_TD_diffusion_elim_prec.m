@@ -19,7 +19,7 @@ rk=npar.rk;
 % beginning of the time interval
 time_beg = time_end - dt;
 % storage for temp SDIRK quantities (-lambda Ci + Bi Phii)
-f=zeros(length(Phi_old),rk.s-1);
+f=zeros(length(Phi_old),rk.s);
 fC=f;
 % NFId_old = assemble_mass(dat.nusigf_d,time_beg) / npar.keff;
 auxPhi=zeros(length(Phi_old),rk.s);
@@ -73,11 +73,12 @@ for i=1:rk.s
     % save intermediate fluxes
     auxPhi(:,i)=Phi_new;
     % store for temp SDIRK quantities
-    if i<rk.s
-        f(:,i)=TR*Phi_new + zi;
-        fC(:,i)=-lambda*Ci + NFId_new*Phi_new;
-    end
+    f(:,i)=TR*Phi_new + zi;
+    fC(:,i)=-lambda*Ci + NFId_new*Phi_new;
 end
+
+% save for hermite interp
+    dat.ode.f_end=f(:,rk.s);
 
 
 % re-package as single solution vector

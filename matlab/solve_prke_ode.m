@@ -22,6 +22,7 @@ if npar.solve_prke_compute_rho_each_time
     dat.ode.shape_end = shape_end;
     % call ode solver with prke function that re-compute rho/beta at each time (expensive)
     [t,y]=ode15s(@funprke,[time_beg time_end],X,options);
+    w = 0;
 else
     switch npar.iqs_prke_interpolation_method
         case 1% compute prke parameters at beg/end time and linearly interpolate
@@ -38,16 +39,31 @@ else
             end
             % call ode solver with prke function that linearly interpolates
             [t,y]=ode15s(@funprke_linlin_interp,[time_beg time_end],X,options);
-        case 3 % linear variation for XS, hermite for shape
+        case 3 % linear variation for XS, cubic hermite for shape
             % hermite interpolant
             t1=time_beg;
             t2=time_end;
             mat=[ t1^3 t1^2 t1 1; t2^3 t2^2 t2 1;  3*t1^2 2*t1 1 0; 3*t2^2 2*t2 1 0];
             rhs = [ shape_beg' ;shape_end' ; dat.ode.f_beg'; dat.ode.f_end'];
             % contains the w coefficients such that :
-            %  shape(t) = w(4) t^3 + w(3) t^2 + w(2) t + w(1)
+            %  shape(t) = w(1) t^3 + w(2) t^2 + w(3) t + w(4)
             w = mat\rhs; w=w'; 
             for k=1:size(w,2)
+                [dat.ode.rho_MGT_beg(k),dat.ode.beff_MGT_beg(k)]=compute_prke_parameters(time_beg,w(:,k));
+                [dat.ode.rho_MGT_end(k),dat.ode.beff_MGT_end(k)]=compute_prke_parameters(time_end,w(:,k));
+            end
+            % call ode solver with prke function that linearly interpolates
+            [t,y]=ode15s(@funprke_linhermite_interp,[time_beg time_end],X,options);
+        case 4 % linear variation for XS, quadratic hermite for shape
+            % hermite interpolant
+            t1=time_beg;
+            t2=time_end;
+            mat=[ t1^2 t1 1; t2^2 t2 1; 2*t1 1 0];
+            rhs = [ shape_beg' ;shape_end' ; dat.ode.f_beg'];
+            % contains the w coefficients such that :
+            %  shape(t) = w(1) t^2 + w(2) t + w(3)
+            w = mat\rhs; w=w'; dat.ode.nw = size(w,2);
+            for k=1:dat.ode.nw
                 [dat.ode.rho_MGT_beg(k),dat.ode.beff_MGT_beg(k)]=compute_prke_parameters(time_beg,w(:,k));
                 [dat.ode.rho_MGT_end(k),dat.ode.beff_MGT_end(k)]=compute_prke_parameters(time_end,w(:,k));
             end

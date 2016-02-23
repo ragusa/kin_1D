@@ -81,7 +81,8 @@ for iter = 1: max_iter_iqs
     shape_end=u_shape(1:npar.n);
     % save for hermite interp
     if npar.iqs_prke_interpolation_method>=3
-        dat.ode.f_end=K(1:npar.n,rk.s);
+        IV = assemble_mass(dat.inv_vel,time_end);
+        dat.ode.f_end=IV\K(1:npar.n,rk.s);
     end
     
     % check for tolerance
@@ -98,7 +99,7 @@ for iter = 1: max_iter_iqs
 end
 
 if err>=tol_iqs
-    warning('IQS did not converge in %s',mfilename);
+%     warning('IQS did not converge in %s',mfilename);
 end
 
 % renormalize anyway

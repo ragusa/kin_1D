@@ -1,10 +1,11 @@
-function [ u ] = solve_TD_diffusion_an_prec(u,dt,time_end)
+function [ u ] = solve_TD_diffusion_an_prec(u,dt,tn)
 
 global dat npar
 
 % split initial solution vector into flux and precursors:
-Phi_old = u(1:npar.n);
-C_old   = u(npar.n+1:end);
+Phi_old = u(1:npar.n,:);
+C_old   = u(npar.n+1:end,end);
+tn = tn-dt;
 
 % shortcut
 lambda = dat.lambda;
@@ -85,21 +86,36 @@ lambda = dat.lambda;
 rk=npar.rk;
 
 % beginning of the time interval
-time_beg = time_end - dt;
-ti = time_beg;
-% storage for temp SDIRK quantities
-K=zeros(length(Phi_old),rk.s);
+time_beg = tn(end);
 
-Phi = cell(rk.s+1,1);
-Phi{1} = Phi_old;
-NFId = cell(rk.s+1,1);
-NFId{1} = assemble_mass(dat.nusigf_d,time_beg) / npar.keff;
+if strcmp(npar.an_interp_type,'lagrange')
+    order = length(tn);
+    a = zeros(order+1,2);
+elseif strcmp(npar.an_interp_type,'hermite')
+    i2 = zeros(npar.n,2); i3=i2;
+    D    = assemble_stiffness(dat.cdiff   ,time_beg);
+    A    = assemble_mass(     dat.siga    ,time_beg);
+    NFIp = assemble_mass(     dat.nusigf_p,time_beg) / npar.keff;
+    IV   = assemble_mass(     dat.inv_vel ,time_beg);
+    TR  = (NFIp-(D+A));
+    rhs = lambda.*C_old;
+    if npar.set_bc_last
+        [TR]=apply_BC_mat_only(TR,npar.add_zero_on_diagonal);
+    else
+        rhs=apply_BC_vec_only(rhs);
+    end
+    
+    dPhi_old = IV\(TR*Phi_old(:,end) + rhs);
+end
+
+% storage for temp SDIRK quantities
+K=zeros(length(Phi_old(:,1)),rk.s);
+
+NFId_old = assemble_mass(dat.nusigf_d,time_beg) / npar.keff;
 
 for i=1:rk.s
-    Phi{i+1} = zeros(size(Phi{i}));
     
     % compute stage time
-    ti_old = ti;
     ti = time_beg + rk.c(i)*dt;
     
     % build system matrix
@@ -107,36 +123,54 @@ for i=1:rk.s
     A    = assemble_mass(     dat.siga    ,ti);
     NFIp = assemble_mass(     dat.nusigf_p,ti) / npar.keff;
     IV   = assemble_mass(     dat.inv_vel ,ti);
-    NFId{i+1} = assemble_mass( dat.nusigf_d,ti) / npar.keff;
-    
-    % flux-flux matrix
-    TR=NFIp-(D+A);
+    NFId_new = assemble_mass( dat.nusigf_d,ti) / npar.keff;
     
     % integrals for the analytical expressions for the precursors
     t2=ti;
-    t1=ti_old;
-    dti=t2-t1;
+    t1=time_beg;
+    t_all = [tn t2];
+    dti=rk.c(i)*dt;
     
-    A1= @(t)( ((t2-t)/dti).^2      .*exp(-lambda*(t2-t)) );
-    A2= @(t)( (t-t1).*(t2-t)/dti^2 .*exp(-lambda*(t2-t)) );
-    A3= @(t)( ((t-t1)/dti).^2      .*exp(-lambda*(t2-t)) );
+    % flux-flux matrix
+    TR=NFIp-(D+A);        
+    % build rhs
+    zi =  lambda *( C_old*exp(-lambda*dti) );
     
-    a1(i)= integral(@(t)A1(t),t1,t2);
-    a2(i)= integral(@(t)A2(t),t1,t2);
-    a3(i)= integral(@(t)A3(t),t1,t2);
+    if strcmp(npar.an_interp_type,'lagrange')
+        for j=1:(order+1)
+            Aj = @(t) LagrangeInterp_section(t,t_all,j).*exp(-lambda*(t2-t));
+            a(j,1) = integral(@(t)Aj(t).*(t2-t)/dti,t1,t2);
+            a(j,2) = integral(@(t)Aj(t).*(t-t1)/dti,t1,t2);
+        end
     
-    % build transient matrix
-    TR = TR + lambda * ( a2(i)*NFId{i} + a3(i)*NFId{i+1} ) ;
+        TR = TR + lambda * ( a(end,1)*NFId_old + a(end,2)*NFId_new ) ;
+    
+        for n=1:order
+            zi = zi + lambda *( a(n,1)*NFId_old*Phi_old(:,n) + a(n,2)*NFId_new*Phi_old(:,n) );
+        end
+        
+    elseif strcmp(npar.an_interp_type,'hermite')
+        I1 = @(t) (t-t1).^2; %t.^2-2*t1*t+t1^2;
+        I2 = @(t) (t-t1);
+        I3 = @(t) 1;
+        i1(1)   = integral(@(t)I1(t).*(t2-t)/dti.*exp(-lambda*(t2-t)),t1,t2);
+        i2(:,1) = integral(@(t)I2(t).*(t2-t)/dti.*exp(-lambda*(t2-t)),t1,t2)*dPhi_old;
+        i3(:,1) = integral(@(t)I3(t).*(t2-t)/dti.*exp(-lambda*(t2-t)),t1,t2)*Phi_old(:,end);
+        i1(2)   = integral(@(t)I1(t).*(t-t1)/dti.*exp(-lambda*(t2-t)),t1,t2);
+        i2(:,2) = integral(@(t)I2(t).*(t-t1)/dti.*exp(-lambda*(t2-t)),t1,t2)*dPhi_old;
+        i3(:,2) = integral(@(t)I3(t).*(t-t1)/dti.*exp(-lambda*(t2-t)),t1,t2)*Phi_old(:,end);
+        num = -I2(t2)*dPhi_old - I3(t2)*Phi_old; % (-dun*t2-un+dun*t1);
+        deno = I1(t2); % (t2^2-2*t1*t2+t1^2);
+        
+        TR = TR + lambda * ( i1(1)*NFId_old + i1(2)*NFId_new )/deno;
+        zi = zi + lambda * ( NFId_old*(i1(1)*num/deno+i2(:,1)+i3(:,1)) + NFId_new*(i1(2)*num/deno+i2(:,2)+i3(:,2)) );
+        
+    end
     
     % build system matrix
     A = IV-rk.a(i,i)*dt*TR;
     
-    % build rhs
-    zi =  lambda *( C_old*exp(-lambda*dt*rk.c(i)) );
-    for k=1:i
-        zi = zi + lambda *( ( a1(k)*NFId{k} + a2(k)*NFId{k+1} )*Phi{k} + ( a2(k)*NFId{k} + a3(k)*NFId{k+1} )*Phi{k+1} );
-    end
-    rhs = IV*Phi_old + rk.a(i,i)*dt *zi;
+    rhs = IV*Phi_old(:,end) + rk.a(i,i)*dt *zi;
     for j=1:rk.s-1
         rhs = rhs + rk.a(i,j)*dt*K(:,j);
     end
@@ -147,35 +181,36 @@ for i=1:rk.s
         rhs=apply_BC_vec_only(rhs);
     end
     % solve: M(unew-uold)/dt=TR.unew
-    Phi{i+1} = A\rhs;
+    Phi_new = A\rhs;
     % store for temp SDIRK quantities
-    K(:,i)=TR*Phi{i+1} + zi;
+    K(:,i)=TR*Phi_new + zi;
 end
-Phi_new = Phi{end};
+
+dat.ode.f_end=K(1:npar.n,rk.s);
 
 % update precursors
-if npar.rk.s==1;
-    C_new =  C_old*exp(-lambda*dt) + ( a1*NFId_old + a2*NFId_new )*Phi_old + ( a2*NFId_old + a3*NFId_new )*Phi_new ;
-else
-    if npar.iqs_prke_interpolation_method>=3
-        t1 = time_beg; t2 = time_end;
-        NFId_old = NFId{1}; NFId_new = NFId{end};
-        dat.ode.f_end=K(1:npar.n,rk.s);
-        mat=[ t1^3 t1^2 t1 1; t2^3 t2^2 t2 1;  3*t1^2 2*t1 1 0; 3*t2^2 2*t2 1 0];
-        rhs = [ Phi_old' ;Phi_new' ; dat.ode.f_beg'; dat.ode.f_end'];
-        % contains the w coefficients such that :
-        %  Phi(t) = w(1) t^3 + w(2) t^2 + w(3) t + w(4)
-        w = mat\rhs; w=w'; nw=size(w,2);
-        b = zeros(nw,2);
-        for k=1:nw
-            b(k,1) = integral(@(t) (t2-t)/dt .*t.^(nw-k) .*exp(-lambda*(t2-t)),t1,t2);
-            b(k,2) = integral(@(t) (t-t1)/dt .*t.^(nw-k) .*exp(-lambda*(t2-t)),t1,t2);
-        end
-        tmp = w*b;
-        C_new =  C_old*exp(-lambda*dt) + NFId_old*tmp(:,1) + NFId_new*tmp(:,2);
-    else
-        C_new =  C_old*exp(-lambda*dt) + ( a1(end)*NFId_old + a2(end)*NFId_new )*Phi_old + ( a2(end)*NFId_old + a3(end)*NFId_new )*Phi_new ;        
+if npar.hermite_prec_update
+    mat=[ t1^3 t1^2 t1 1; t2^3 t2^2 t2 1;  3*t1^2 2*t1 1 0; 3*t2^2 2*t2 1 0];
+    rhs = [ Phi_old(:,end)' ;Phi_new' ; (IV\dat.ode.f_beg)'; (IV\dat.ode.f_end)'];
+    % contains the w coefficients such that :
+    %  Phi(t) = w(1) t^3 + w(2) t^2 + w(3) t + w(4)
+    w = mat\rhs; w=w'; nw=size(w,2);
+    b = zeros(nw,2);
+    for k=1:nw
+        b(k,1) = integral(@(t) (t2-t)/dt .*t.^(nw-k) .*exp(-lambda*(t2-t)),t1,t2);
+        b(k,2) = integral(@(t) (t-t1)/dt .*t.^(nw-k) .*exp(-lambda*(t2-t)),t1,t2);
     end
+    tmp = w*b;
+    C_new =  C_old*exp(-lambda*dt) + NFId_old*tmp(:,1) + NFId_new*tmp(:,2);
+elseif strcmp(npar.an_interp_type,'lagrange')
+    C_new =  C_old*exp(-lambda*dt) + ( a(end,1)*NFId_old + a(end,2)*NFId_new )*Phi_new ;
+    for n=1:order
+        C_new = C_new + ( a(n,1)*NFId_old + a(n,2)*NFId_new )*Phi_old(:,n);
+    end
+elseif strcmp(npar.an_interp_type,'hermite')
+    C_new = C_old*exp(-lambda*dt) + ( (i1(1)*NFId_old + i1(2)*NFId_new )/deno )*Phi_new  + ( NFId_old*(i1(1)*num/deno+i2(:,1)+i3(:,1)) + NFId_new*(i1(2)*num/deno+i2(:,2)+i3(:,2)) );
+else
+    error('Interpolation type must be lagrange or hermite')
 end
 % re-package as single solution vector
 u = [Phi_new;C_new];

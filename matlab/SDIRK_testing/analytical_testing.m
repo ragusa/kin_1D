@@ -8,7 +8,7 @@ error_bf = zeros(1,length(N));
 error_an = zeros(1,length(N));
 error_an_lag = zeros(1,length(N));
 error_an_herm = zeros(1,length(N));
-lag_order=3;
+lag_order=2;
 
 gamma = 0.43586652150846;
 a = 1/2*(1-gamma);
@@ -43,10 +43,11 @@ for i=1:length(N)
         X_an(:,n+1) = SDIRK_an_lag(X_an(:,n),t(n),A_fun,a_rk,c_rk,dt);
         X_an_herm(:,n+1) = SDIRK_an_herm(X_an_herm(:,n),t(n),A_fun,a_rk,c_rk,dt);
         if n<lag_order
-            X_an_lag(:,n+1) = X_an(:,n+1);
+            od = n;
         else
-            X_an_lag(:,n+1) = SDIRK_an_lag(X_an_lag(:,n-(lag_order-1):n),t(n-(lag_order-1):n),A_fun,a_rk,c_rk,dt);
+            od = lag_order;
         end
+        X_an_lag(:,n+1) = SDIRK_an_lag(X_an_lag(:,n-(od-1):n),t(n-(od-1):n),A_fun,a_rk,c_rk,dt);
         p=p+1;
         clc
         fprintf('Progress: %3.f %% \n',p/sum(N)*100)
@@ -71,5 +72,5 @@ p_an_herm = polyfit(log10(t_end./N),log10(error_an_herm),1);
 
 figure(2)
 loglog(t_end./N,error_bf,'o-',t_end./N,error_an,'o-',t_end./N,error_an_lag,'o-',t_end./N,error_an_herm,'o-')
-legend(strcat('Brute Force, Slope = ',num2str(p_bf(1))),strcat('Lagrange 1st Order, Slope = ',num2str(p_an(1))),strcat('Lagrange 2nd Order, Slope = ',num2str(p_an_lag(1))),strcat('Hermite 2nd Order, Slope = ',num2str(p_an_herm(1))));
+legend(strcat('Brute Force, Slope = ',num2str(p_bf(1))),strcat('Lagrange 1st Order, Slope = ',num2str(p_an(1))),strcat('Lagrange Order ',num2str(lag_order),' Slope = ',num2str(p_an_lag(1))),strcat('Hermite 2nd Order, Slope = ',num2str(p_an_herm(1))));
 hold off

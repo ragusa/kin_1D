@@ -25,7 +25,7 @@ rk=npar.rk;
 % beginning of the time interval
 time_beg = time_end - dt;
 % storage for temp SDIRK quantities (-lambda Ci + Bi Phii)
-f=zeros(length(shape_beg),rk.s-1);
+f=zeros(length(shape_beg),rk.s);
 fC=f;
 NFId_old = assemble_mass(dat.nusigf_d,time_beg) / npar.keff;
 
@@ -34,7 +34,7 @@ for iter = 1: max_iter_iqs
     
     % solve for amplitude function over the entire macro-step
     if strcmpi(npar.prke_solve,'matlab')
-        [X,dpdt,t,y] =  solve_prke_ode(X_beg,dt_macro,time_end,shape_beg,shape_end);
+        [X,w,t,y] =  solve_prke_ode(X_beg,dt_macro,time_end,shape_beg,shape_end);
     else
         [X,dpdt,t,y] =  solve_prke_iqs(X_beg,dt_macro,time_end,shape_beg,shape_end,n_micro,freq_react);
     end
@@ -73,7 +73,7 @@ for iter = 1: max_iter_iqs
         NFIp = assemble_mass(     dat.nusigf_p,ti) / npar.keff;
         IV   = assemble_mass(     dat.inv_vel ,ti);
         Aiqs = assemble_mass(     dat.inv_vel ,ti) * dpdti/pi;
-        NFId_new = assemble_mass(dat.nusigf_d,ti)    / npar.keff ;
+        NFId_new = assemble_mass( dat.nusigf_d,ti) / npar.keff;
         
         % flux-flux matrix
         TR=NFIp-(D+A+Aiqs);
@@ -90,7 +90,7 @@ for iter = 1: max_iter_iqs
         Ci = Ci/deno; % this is Ci without: h.aii.FISdi.Phii/deno
         
         % build transient matrix (divide lambda by p)
-        TR = TR + (lambda/pi * ( rk.a(i,i)*dt / deno )) * NFId_new;
+        TR = TR + (lambda * ( rk.a(i,i)*dt / deno )) * NFId_new;
         % build system matrix
         A = IV-rk.a(i,i)*dt*TR;
         
@@ -111,11 +111,14 @@ for iter = 1: max_iter_iqs
         % finish Ci
         Ci = Ci +  rk.a(i,i)*dt / deno * NFId_new*shape_end*pi;
         % store for temp SDIRK quantities
-        if i<rk.s
-            f(:,i)=TR*shape_end + zi;
-            fC(:,i)=-lambda*Ci + NFId_new*shape_end*pi;
-        end
+        f(:,i)=TR*shape_end + zi;
+        fC(:,i)=-lambda*Ci + NFId_new*shape_end*pi;
     end % time integration loop end
+    
+    % save for hermite interp
+    if npar.iqs_prke_interpolation_method>=3
+        dat.ode.f_end=IV\f(:,rk.s);
+    end
     
     % re-package as single solution vector
     u_shape = [ shape_end ; Ci];
@@ -128,13 +131,13 @@ for iter = 1: max_iter_iqs
     if err<tol_iqs
         break
     else
-        %         u_shape = u_shape / ((npar.phi_adj)'*IV*shape_end/npar.K0);
-        %         shape_end=u_shape(1:npar.n);
+%                 u_shape = u_shape / ((npar.phi_adj)'*IV*shape_end/npar.K0);
+%                 shape_end=u_shape(1:npar.n);
     end
 end
 
 if err>=tol_iqs
-    warning('IQS did not converge in %s',mfilename);
+%     warning('IQS did not converge in %s',mfilename);
 end
 
 

@@ -14,18 +14,26 @@ if io.make_movie
     movie_name = sprintf('PbID%d_method%s_nx%d_dt%g.avi',dat.PbID,func2str(FUNHANDLE),npar.nel,dt);
 end
 
-% initial power level
+%initial stuff
+if strcmp(func2str(FUNHANDLE),'solve_IQS_diffusion_an_prec') && strcmp(npar.an_interp_type,'lagrange')
+    order=npar.interpolation_order;
+else
+    order=1;
+end
+u_shape=zeros(length(u0),order+1);
+X = zeros(2,order+1);
+tn = 0:dt:ntimes*dt;
 amplitude_norm=ones(ntimes+1,1);
 Ptot = dat.Ptot*ones(ntimes+1,1);
 
 % initial solution vector
-u_shape=u0;
+ u_shape(:,end)=u0;
 [~,beff_MGT]=compute_prke_parameters(0.,u0(1:npar.n));
-X=[1;beff_MGT/dat.lambda];
-if npar.iqs_prke_interpolation_method>=3
+X(:,end)=[1;beff_MGT/dat.lambda];
+
     dat.ode.f_beg=zeros(npar.n,1);
     dat.ode.f_end=zeros(npar.n,1);
-end
+
 
 time_prke_iqs=[];
 power_prke_iqs=[];
@@ -36,40 +44,57 @@ for it=1:ntimes
     time_end=it*dt;
     if io.console_print, fprintf('time end = %g \n',time_end); end
     
+    u_shape(:,1:end-1) = u_shape(:,2:end); 
+    X(:,1:end-1) = X(:,2:end);
     % solve time-dependent diffusion for flux
-    [u_shape,X,t,y] = FUNHANDLE(u_shape,X,dt,time_end);
+    if it<order;
+        od = it;
+    else
+        od = order;
+    end
+    
+    % solve time-dependent diffusion for flux
+    [u_shape(:,end),X(:,end),t,y] = FUNHANDLE(u_shape(:,end-od:end-1),X(:,end-od:end-1),dt,tn(it-od+2:it+1));
     
     % update data for hermite interpolation
-    if npar.iqs_prke_interpolation_method>=3
         dat.ode.f_beg=dat.ode.f_end;
-    end
+
     % plot/movie
     if io.plot_transient_figure
         figure(1);
-        plot(npar.x_dofs,u_shape(1:npar.n));drawnow;
+        plot(npar.x_dofs,u_shape(1:npar.n,end));drawnow;
         if io.make_movie, mov(it) = getframe(gca); end
     end
     % compute end time power for plotting
     if (strcmp(func2str(FUNHANDLE),'solve_IQS_PC_diffusion_an_prec') || ...
         strcmp(func2str(FUNHANDLE),'solve_IQS_PC_diffusion_elim_prec'))
         % u_shape is actually the flux in that case, so no need to *X(1)
-        Ptot(it+1) = compute_power(dat.nusigf,time_end,     u_shape(1:npar.n));
+        Ptot(it+1) = compute_power(dat.nusigf,time_end,         u_shape(1:npar.n,end));
     else
-        Ptot(it+1) = compute_power(dat.nusigf,time_end,X(1)*u_shape(1:npar.n));
+        Ptot(it+1) = compute_power(dat.nusigf,time_end,X(1,end)*u_shape(1:npar.n,end));
     end
     
     % ratio of <u*,IVu> to its initial value
     if (strcmp(func2str(FUNHANDLE),'solve_IQS_PC_diffusion_an_prec') || ...
         strcmp(func2str(FUNHANDLE),'solve_IQS_PC_diffusion_elim_prec'))
         % u_shape is actually the flux in that case, so no need to *X(1)
-        amplitude_norm(it+1) =       (npar.phi_adj'*npar.IV*u_shape(1:npar.n))/npar.K0;
+        amplitude_norm(it+1) =           (npar.phi_adj'*npar.IV*u_shape(1:npar.n,end))/npar.K0;
     else
-        amplitude_norm(it+1) = X(1)* (npar.phi_adj'*npar.IV*u_shape(1:npar.n))/npar.K0;
+        amplitude_norm(it+1) = X(1,end)* (npar.phi_adj'*npar.IV*u_shape(1:npar.n,end))/npar.K0;
     end
     
     % save fine-scale data
     time_prke_iqs=[time_prke_iqs ; t];
     power_prke_iqs=[power_prke_iqs; y];
+    
+    if io.print_progress
+        npar.nnn = npar.nnn + 1;
+        prog = npar.nnn/npar.ntot;
+        progstr = sprintf('Progress: %.3g %% \n', prog*100);
+        labels = {''};
+        figure(101)
+        pie([prog],labels);title(progstr); drawnow;
+    end
     
 end
 % make movie
