@@ -344,6 +344,7 @@ Improved Quasi-Static Method in Rattlesnake}
 	\end{figure}
 \vspace{-0.5cm}
 \titlepage
+\vspace{-0.5cm}
 \small{email: {\ragusa} }
 
 \end{frame}
@@ -534,7 +535,7 @@ The shape equations are similar to the original transport equations:
 %-------------------------------------------------------------------
 \begin{frame}{Shape equations: Implementation within the MOOSE framework}
 
-\begin{block}{Shape equations $\to$ \tcr{FEM solver + implicit time integration}}
+\begin{block}{Shape equations $\to$ \tcm{FEM solver + implicit time integration}}
 \begin{equation*}
 \boxed{
 \frac{1}{v}\frac{\tcb{\psi}^{n+1}-\tcb{\psi}^n }{\Delta t} = \left(H^{n+1} + P_p^{n+1} - L^{n+1} -\tcr{\frac{1}{v}\frac{1}{p^{n+1}}\left.\frac{dp}{dt}\right|_{n+1}} \right) \tcb{\psi}^{n+1}  + \tcr{\frac{1}{p^{n+1}}} S_{d}^{n+1} 
@@ -545,10 +546,11 @@ The shape equations are similar to the original transport equations:
 \begin{block}{Modification to the original transport equation}
 \ben
 \item An additional removal term based on $\tcr{\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}} \tcb{\psi^g}$\\
-\tcm{$\to$ add a new kernel}
+\tcm{$\to$ add a new kernel in Rattlesnake} (easy)
 \item Delayed neutron source term scaled by $\tcr{\frac{1}{p}}$\\
-\tcm{$\to$ scale the delayed neutron source kernel}
-\item nonlinear coupling between shape variable $\tcb{\psi^{n+1}}$ and amplitude variable $\tcr{p^{n+1}}$
+\tcm{$\to$ scale the delayed neutron source kernel} (easy)
+\item nonlinear coupling between shape variable $\tcb{\psi^{n+1}}$ and amplitude variable $\tcr{p^{n+1}}$\\
+\tcm{$\to$ employ MOOSE's nonlinear solvers} (easy)
 \een
 \end{block}
 
@@ -560,7 +562,7 @@ The shape equations are similar to the original transport equations:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %-------------------------------------------------------------------
-\begin{frame}{Amplitude equations (PRKE)}
+\begin{frame}{Amplitude equations, Point Reactor Kinetics Equations (PRKE)}
 
 \begin{block}{Principle}
 To obtain the \tcr{amplitude} equation, we multiply the shape equations with a weighting 
@@ -610,6 +612,7 @@ In order to impose uniqueness of the factorization, one requires:
 \[
 \bar{\lambda}_i=\frac{(\Psi^{*},\chi_{d,i}\lambda_i \tcb{C_i})}{(\Psi^{*},\chi_{d,i}\tcb{C_i})}
 \]
+\tcm{These functionals seem daunting to implement but this was relatively straightforward with a couple of options available in MOOSE: (1) element integral postprocessors and (2) {\tt save\_in} kernel attributes)}
 \end{block}
 
 \end{frame}
@@ -620,19 +623,19 @@ In order to impose uniqueness of the factorization, one requires:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %-------------------------------------------------------------------
-\begin{frame}{Coupling}
+\begin{frame}{Coupling between \textcolor{cyan}{shape} and \tcr{amplitude} equations}
 
-\begin{block}{Factorization leads to a \tcr{nonlinear} system}
+\begin{block}{Factorization leads to a \tcm{nonlinear} system}
 The amplitude and shape equations form a system of \tcr{nonlinear} coupled equations: 
 \ben
 \item the coefficients appearing in the \tcr{PRKE}s depend upon the \tcb{shape} solution,
 \item the \tcb{shape} equation has a kernel dependent on \tcr{amplitude} and its derivative,  
-\item the delayed neutron source term is scaled by the amplitude.
+%\item the delayed neutron source term is scaled by the amplitude.
 \een
 \end{block}
 
 \begin{block}{Time scales and IQS method solution process}
-Because solving for the shape can be expensive, especially in two or three dimensions, it is attractive to make the assumption that the shape is weakly time-dependent so the shape can be computed after a multitude of PRKE calculations which is the root of IQS: 
+Because solving for the shape can be expensive, especially in two or three dimensions, it is attractive to make the assumption that the shape is weakly time-dependent so the shape can be computed after a multitude of PRKE calculations:
 %
 
 \begin{figure}[h]
@@ -641,6 +644,7 @@ Because solving for the shape can be expensive, especially in two or three dimen
 \label{fig:IQS}
 \end{figure}
 
+\tcm{In MOOSE, we employ the available Picard iteration functionality to resolve the nonlinearities}
 \end{block}
 \end{frame}
 %-------------------------------------------------------------------
@@ -723,7 +727,7 @@ C^{n+1} =  C^n e^{-\lambda (t_{n+1} - t_n) }  + \int_{t_n}^{t_{n+1}} \nu_d\Sigma
 \end{block}
 
 \begin{block}{}
-Assuming a \tcm{linear in time variation} over the macro time step $[t_n, t_{n+1}]$ for the \tcb{shape} and the \tcb{fission cross section}, we get:
+Assuming a \tcb{linear in time variation} over the macro time step $[t_n, t_{n+1}]$ for the \tcb{shape} and the \tcb{fission cross section}, we get:
 \[
 C^{n+1} = C^n e^{-\lambda \Delta t} 
 + \left[\tcm{a_3}(\nu_d\Sigma_f)^{n+1}+\tcm{a_2}(\nu_d\Sigma_f)^n\right]\tcb{\varphi^{n+1}}
@@ -776,9 +780,9 @@ The amplitude $\tcr{p}$ is contained in the $a_i$'s integration coefficients.\\
 
 \begin{block}{Action Systems}
 \bi
-\item Continuous FEM Diffusion (\tcr{completed})
-\item Discontinuous FEM Diffusion
-\item Discontinuous FEM Sn Transport (first-order form)
+\item Continuous FEM Diffusion (\tcm{almost complete})
+\item Discontinuous FEM Diffusion 
+\item Discontinuous FEM Sn Transport (first-order form) 
 \item Discontinuous FEM Sn Transport (SAAF form)
 \ei
 Four action systems \tcr{$\ne$} four times the work!
@@ -879,7 +883,7 @@ standard &  789.5    \\ \hline
 
 \begin{itemize}
 \item
-IQS is about 4 times faster for the same macro time step size.
+IQS is about 4 times faster than the standard approach for the same macro time step size.
 \item
 Additional gains are expected when time-step control will be implemented (as larger time steps may be taken for the shape equations)
 \end{itemize}
@@ -890,16 +894,16 @@ Additional gains are expected when time-step control will be implemented (as lar
 %-------------------------------------------------------------------
 
 \begin{frame}{TWIGL:  Shape and flux movies (thermal group)}
-%  \begin{columns}
-%    \column{.5\textwidth}
-%       \includemedia[addresource=ndiff_twigl_ramp_03.mpg, activate=pageopen, deactivate=pageclose, width=6.5cm, height=5cm, flashvars={source=ndiff_twigl_ramp_03.mpg & autoPlay=true & loop=true }]{}{VPlayer.swf}
-%    \column{.5\textwidth}
-%      \includemedia[addresource=iqs_twigl_ramp_03.mpg, activate=pageopen, deactivate=pageclose, width=6.5cm, height=5cm, flashvars={source=iqs_twigl_ramp_03.mpg & autoPlay=true & loop=true }]{}{VPlayer.swf}
-%  \end{columns}
-\begin{center}
-\movie[width=5cm,height=4cm,showcontrols=true,externalviewer]{IQS}{iqs_twigl_ramp_03.mpg}
-\movie[width=5cm,height=4cm,showcontrols=true,externalviewer]{Flux}{ndiff_twigl_ramp_03.mpg}
-\end{center}
+  \begin{columns}
+    \column{.5\textwidth}
+       \includemedia[addresource=ndiff_twigl_ramp_03.mpg, activate=pageopen, deactivate=pageclose, width=6cm, height=5cm, flashvars={source=ndiff_twigl_ramp_03.mpg & autoPlay=true & loop=true }]{}{VPlayer.swf}
+    \column{.5\textwidth}
+      \includemedia[addresource=iqs_twigl_ramp_03.mpg, activate=pageopen, deactivate=pageclose, width=6cm, height=5cm, flashvars={source=iqs_twigl_ramp_03.mpg & autoPlay=true & loop=true }]{}{VPlayer.swf}
+  \end{columns}
+%\begin{center}
+%\movie[width=5cm,height=4cm,showcontrols=true,externalviewer]{IQS}{iqs_twigl_ramp_03.mpg}
+%\movie[width=5cm,height=4cm,showcontrols=true,externalviewer]{Flux}{ndiff_twigl_ramp_03.mpg}
+%\end{center}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -930,7 +934,7 @@ Additional gains are expected when time-step control will be implemented (as lar
 
 \begin{block}{Completed}
 \bi
-\item Theoretical understanding of IQS convergence and selection of proper convergence criteria
+%\item Theoretical understanding of IQS convergence and selection of proper convergence criteria
 %\item 1D prototype Matlab code for MOOSE comparison/verification
 %\item IQS userobject and executioner (using Picard iterations)
 \item Implementation of analytical precursor integration
