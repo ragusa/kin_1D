@@ -16,10 +16,11 @@ C = NFId*phi/dat.lambda;
 % adjoint flux
 npar.phi_adj=phi;
 
-% normalization constant
-IV = assemble_mass(dat.inv_vel,curr_time);
+% store constant IV matrix
+npar.IV = assemble_mass(dat.inv_vel,curr_time);
 % npar.IV0=IV;
-K0 = npar.phi_adj' * IV * phi;
+% normalization constant
+K0 = npar.phi_adj' * npar.IV * phi;
 npar.K0 = K0;
 
 % total power
