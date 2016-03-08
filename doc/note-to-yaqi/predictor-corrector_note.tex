@@ -1,0 +1,219 @@
+\documentclass[11pt]{tamurmemo} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{graphics}
+\usepackage{float}
+\usepackage{subfigure}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amstext}
+\usepackage{amsbsy}
+\usepackage{xspace}
+\usepackage{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% operators
+\renewcommand{\div}{\vec{\nabla}\! \cdot \!}
+\newcommand{\grad}{\vec{\nabla}}
+% latex shortcuts
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\bal}{\begin{align}}
+\newcommand{\eali}{\end{align}}
+\newcommand{\bi}{\begin{itemize}}
+\newcommand{\ei}{\end{itemize}}
+\newcommand{\ben}{\begin{enumerate}}
+\newcommand{\een}{\end{enumerate}}
+% DGFEM commands
+\newcommand{\jmp}[1]{[\![#1]\!]}                     % jump
+\newcommand{\mvl}[1]{\{\!\!\{#1\}\!\!\}}             % mean value
+\newcommand{\kef}{\ensuremath{k_{\textit{eff}}}}
+%\newcommand{\keff}{{\text{k}$_\textit{eff}$}\xspace}
+\newcommand{\keff}{\kef\xspace}
+% shortcut for domain notation
+%\newcommand{\D}{\mathcal{D}}
+% vector shortcuts
+\newcommand{\vo}{\vec{\Omega}}
+\newcommand{\vr}{\vec{r}}
+\newcommand{\vn}{\vec{n}}
+\newcommand{\vnk}{\vec{\mathbf{n}}}
+\newcommand{\vj}{\vec{J}}
+% extra space
+\newcommand{\qq}{\quad\quad}
+% common reference commands
+\newcommand{\eqt}[1]{Eq.~(\ref{#1})}                     % equation
+\newcommand{\fig}[1]{Fig.~\ref{#1}}                      % figure
+\newcommand{\tbl}[1]{Table~\ref{#1}}                     % table
+
+\newcommand{\ud}{\,\mathrm{d}}
+\newcommand{\mt}[1]{\marginpar{\tiny #1}}
+\newcommand{\D}{\ensuremath{\mathcal{D}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%   BEGIN DOCUMENT
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%---------------------------------------------------------------------------%%
+%% OPTIONS FOR NOTE
+%%---------------------------------------------------------------------------%%
+
+\toms{Distribution}
+\subject{Predictor Corrector IQS}
+
+%-------NO CHANGES
+\collegename{Dwight Look College of Engineering}
+\deptname{Department of Nuclear Engineering}
+\fromms{Zachary\ M.\ Prince, Jean C. Ragusa}
+\originator{zmp,jcr}
+\typist{zmp,jcr}
+\date{\today}
+%-------NO CHANGES
+
+%-------OPTIONS
+%\reference{NPB Star Reimbursable Project}
+%\thru{}
+%\enc{list}      
+%\attachments{list}
+\cy{File}
+%\encas
+%\attachmentas
+%\attachmentsas 
+%-------OPTIONS
+
+%%---------------------------------------------------------------------------%%
+%% DISTRIBUTION LIST
+%%---------------------------------------------------------------------------%%
+
+\distribution {
+Yaqi Wang, INL, {\em yaqi.wang@inl.gov}
+%,\\
+%Jean Ragusa, TAMU, {\em jean.ragusa@tamu.edu}
+}
+
+%%---------------------------------------------------------------------------%%
+%% BEGIN NOTE
+%%---------------------------------------------------------------------------%%
+
+\opening
+
+%%---------------------------------------------------------------------------%%
+\section{Standard IQS Review}
+%%---------------------------------------------------------------------------%%
+
+Multigroup diffusion equation with delayed neutron precrusors:
+\begin{align}
+\frac{1}{v^g} \frac{\partial \phi^g }{\partial t} =& \frac{\chi_p^g}{\keff} \sum_{g'=1}^G (1-\beta) \nu^{g'} \Sigma_f^{g'} \phi^{g'} -  \left( -\div D^g \grad  + \Sigma_r^g \right) \phi^g  \nonumber \\
+&  + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \phi^{g'}  + \sum_{i=1}^I\chi_{d,i}^g\lambda_i C_i \ , \quad 1 \le g \le G 
+\label{eq:diffusion}
+\end{align}
+\be
+\frac{dC_i}{dt} = \frac{\beta_i}{k_{eff}}\sum_{g=1}^G\nu^{g} \Sigma_f^g \phi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
+\label{eq:prec}
+\ee
+
+IQS method involves factorizing flux ($\phi^g(\vec{r},t)$) into space-time dependent shape ($\varphi^g(\vec{r},t)$) and time-dependent amplitude ($p(t)$).  This results coupled sytem of shape diffusion and point reactor kinetics for amplitude:
+\begin{align}
+\frac{1}{v^g} \frac{\partial \varphi^g }{\partial t} =& \frac{\chi_p^g}{\keff} \sum_{g'=1}^G (1-\beta) \nu^{g'} \Sigma_f^{g'} \varphi^{g'} -  \left( -\div D^g \grad  + \Sigma_r^g + \frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\right) \varphi^g  \nonumber \\
+&  + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'}  + \frac{1}{p}\sum_{i=1}^I\chi_{d,i}^g\lambda_i C_i \ , \quad 1 \le g \le G 
+\label{eq:shape}
+\end{align}
+\be
+\frac{dp}{dt}=\left[\frac{\rho-\bar{\beta}}{\Lambda}\right]p+\sum_{i=1}^I\bar{\lambda}_i\xi_i
+\ee
+\be
+\frac{d\xi_i}{dt}=\frac{\bar{\beta}_i}{\Lambda}-\bar{\lambda}_i\xi_i \quad 1 \le i \le I 
+\ee
+
+Where the functional coefficients are calculated using the space-/time-dependent shape function as follows:
+\be
+\frac{\rho-\bar{\beta}}{\Lambda}=\frac{ \sum_{g=1}^G\left(\phi^{*g},\frac{\chi_p^g}{k_{eff}}(1-\beta)\sum_{g'=1}^G \nu^{g'} \Sigma_f^{g'}\varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'} -\left( -\div D^g \grad  + \Sigma_r^g \right)\varphi^g\right)}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}
+\label{eq:rmb}
+\ee
+\be
+\frac{\bar{\beta}}{\Lambda}=\sum_{i=1}^I\frac{\bar{\beta}_i}{\Lambda}=\sum_{i=1}^I\frac{1}{k_{eff}}\frac{\sum_{g=1}^G(\phi^{*g}, \chi_{d,i}^g\beta_i\sum_{g'=1}^G\nu^{g'} \Sigma_f^{g' }\varphi^{g'})}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}
+\label{eq:b}
+\ee
+\be
+\bar{\lambda}_i=\frac{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g\lambda_i C_i)}{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^gC_i)}
+\label{eq:l}
+\ee
+
+The shape diffusion is solved at the beginning time step with a already known amplitude, then the PRKE is evaulted at small (micro) time steps until the next large (macro) time step.  The final amplitude from the PRKE is used to solve the shape diffusion equation.  Since the PRKE parameters would be more accurate with this new shape, they are recomputed and the PRKE and shape evaluations are iterated.  The system is iterated until the IQS error is converged to 0:
+\be
+\text{Error}_{\text{IQS}}=\left|\frac{\left(\phi^*_g,\frac{1}{v_g}\varphi_g^n\right)}{\left(\phi_g^*,\frac{1}{v_g}\varphi_g^0\right)}-1\right| \rightarrow 0
+\ee
+
+
+%%---------------------------------------------------------------------------%%
+\section{Predictor-Corrector IQS}
+%%---------------------------------------------------------------------------%%
+
+The Predictor-Corrector version of IQS factorizes the flux and derives the PRKE the same way as the standard version, but the evaluation of the coupled system is different.  This version first solves the flux diffusion (represented by Equations \ref{eq:diffusion} and \ref{eq:prec}) to get a predicted flux.  The predicted flux at this step is then converted to shape by rescaling as follows:
+\be
+\varphi^g_{n+1} = \underbrace{\phi^g_{n+1}}_{\text{predicted}} \frac{K_0}{K_{n+1}}
+\ee
+Where:
+\be
+K_{n+1} =\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\phi^g_{n+1}\right)
+\ee
+\be
+K_{0} =\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g_{n+1}\right)=\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\phi^g_{0}\right)
+\ee
+
+The PRKE parameters are then computed with this shape using Equations \ref{eq:rmb} - \ref{eq:l} and interpolated over the macro step, then the PRKE is evaluated.  With the newly computed amplitude, the shape is rescaled and the corrected flux is evaluated:
+\be
+\underbrace{\phi^g_{n+1}}_{\text{corrected}} = p_{n+1} \times \varphi^g_{n+1}
+\ee
+
+The precursors need to then be updated, using any of a variety of methods previously discussed in the "Precursor Integration" memo.  Theta method evaluation looks like:
+\be
+C^{n+1} = \frac{1-(1-\theta)\Delta t\lambda}{1+\theta\Delta t\lambda}C^n + \frac{(1-\theta)\Delta t \beta}{1+\theta\Delta t\lambda}S_f^n  +  \frac{\theta\Delta t \beta}{1+\theta\Delta t\lambda}S_f^{n+1} 
+\ee
+Where:
+\be
+S_f^n=\sum_{g'=1}^G  \left(\nu^{g'} \Sigma_f^{g'}\right)_n \underbrace{\phi^g_{n}}_{\text{corrected}}
+\ee
+
+
+There is no iteration necessary for this method and in turn is much simpler and faster than the standard IQS.  
+
+%%---------------------------------------------------------------------------%%
+\section{Rattlesnake Implementation}
+%%---------------------------------------------------------------------------%%
+
+In order to preserve the already implemented standard version of IQS, another executioner called IQStmp was created that can be specified in the input deck.  This executioner references the original IQS executioner to execute the PRKE.  Because the diffusion solve is flux instead of shape, when IQStmp is specied, the IQS removal kernel ($\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}$) is bypassed, while all the postprocessors are still executed.  However, it is difficult to rescale the flux to shape before the PRKE parameter postprocessor are executed.  So the parameters are computed using the full flux, but amplitude is space independent and comes out of the integrals.  As seen in parameter definitions, when shape is replaced with flux, the amplitude comes out of the integral and cancels out.  So instead of rescaling shape, the predicted flux is rescaled as follows:
+\be
+\underbrace{\phi^g_{n+1}}_{\text{corrected}} = \underbrace{\phi^g_{n+1}}_{\text{predicted}} \frac{K_0}{K_{n+1}}  p_{n+1} 
+\ee
+
+How it is implemented in Rattlesnake is as follows:
+\begin{verbatim}
+IQStmp::endStep(Real /*input_time*/)
+{
+  IQS::endStep();
+  Real z = (*_Lambda)/_Lambda_orig;
+  _nl.update();
+  _nl.solution().close();
+  _nl.solution().scale(_X.get_values()[0]/z);
+  _nl.solution().close();
+  _nl.update();
+}
+\end{verbatim}
+
+However, how to update the precursors auxilary variable is still not understood.  The predicted easiest way is to simply re-evaluate the auxkernel, instead of doing something complicated in the executioner.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\closing
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
