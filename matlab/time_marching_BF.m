@@ -2,6 +2,8 @@ function  [varargout] = time_marching_BF( dt, ntimes, u0, FUNHANDLE)
 
 global dat npar io
 
+nOutputs = nargout;
+
 % prepare for movie
 if io.make_movie
     %# figure
@@ -21,6 +23,7 @@ else
     order=1;
 end
 u=zeros(length(u0),order+1); u(:,end)=u0;
+if nOutputs==3; u_tot = zeros(length(u0),ntimes+1); u_tot(:,1) = u0; end
 t = 0:dt:ntimes*dt;
 amplitude_norm=ones(ntimes+1,1);
 Ptot = dat.Ptot*ones(ntimes+1,1);
@@ -44,6 +47,7 @@ for it=1:ntimes
         od = order;
     end
     u(:,end) = FUNHANDLE(u(:,end-od:end-1),dt,t(it-od+2:it+1));
+    if nOutputs==3; u_tot(:,it+1) = u(:,end); end
     
     % update data for hermite interpolation
     dat.ode.f_beg=dat.ode.f_end;
@@ -88,7 +92,6 @@ if io.plot_power_figure
 end
 
 % output
-nOutputs = nargout;
 varargout = cell(1,nOutputs);
 switch nOutputs
     case 1
@@ -96,6 +99,10 @@ switch nOutputs
     case 2
         varargout{1} = amplitude_norm;
         varargout{2} = Ptot;
+    case 3
+        varargout{1} = amplitude_norm(end);
+        varargout{2} = Ptot;
+        varargout{3} = u_tot;        
     otherwise
         error('Wrong number of output arguments in %s',mfilename);
 end
