@@ -50,6 +50,37 @@ nn=5;
 ntimes = 2.^(0:nn-1)*20;
 dt = t_end./ntimes;
 
+% Interpolation type of shape for IQS prke parameters
+% (see solve_prke)
+%   'none' = parameters are evaluated every micro step
+%   1      = linear interpolation of parameters evauated at macro steps
+%   2      = linear interpolation of shape
+%   3      = cubic interpolation of shape
+%   4      = quadratic interpolation of shape
+npar.iqs_prke_interpolation_method=2;
+
+% Type of precursor interpolation for analytical elimination
+% (see solve_TD_diffusion_an_prec)
+% Redefine near where the function is called below
+npar.an_interp_type='lagrange'; % This is just a place holder, actual definition is below
+
+% Number of steps in history for lagrange interpolation of precursors for
+% analytical elimination precursors (see solve_TD_diffusion_an_prec)
+npar.interpolation_order=1;
+
+% If this is true, precursors are recalculated using a cubic hermite
+% interpolation of shape (see solve_TD_diffusion_an_prec line 192)
+npar.hermite_prec_update=true;
+
+% Used of IQS_PC, determines how precursors are solved after diffusion
+% evaluation (see solve_IQS_PC_diffusion_elim_prec line 80)
+% 'none'   = runge-kutta revaluation
+% 'linear' = linear interpolatin of shape
+% 'H2'     = quadratic hermite interpolation of shape
+% 'H3'     = cubic hermite interpolation of shape
+npar.prec_solve_type = 'linear';
+
+
 i=0;
 % not to be used for conv. studies % i=i+1; list_runs{i}= 'brute_force_matlab';
 % i=i+1; list_runs{i}= 'brute_force';
@@ -59,10 +90,6 @@ i=i+1; list_runs{i}= 'brute_force_an_prec';
 % i=i+1; list_runs{i}= 'iqs_elim_prec';
 % % i=i+1; list_runs{i}= 'iqsPC_an_prec';
 % i=i+1; list_runs{i}= 'iqsPC_elim_prec';
-npar.iqs_prke_interpolation_method=2;
-str = 'linear';
-npar.interpolation_order=1;
-npar.hermite_prec_update=true;
 % i=i+1; list_runs{i}= 'iqs_theta_prec';
 % i=i+1; list_runs{i}= 'iqs';
 % % npar.iqs_prke_interpolation_method=3
@@ -151,7 +178,6 @@ for iconv=1:length(ntimes)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'iqsPC_elim_prec')
         display('iqsPC_elim_prec')
-        npar.prec_solve_type = 'linear';
         FUNHANDLE = @solve_IQS_PC_diffusion_elim_prec;
         [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
         iqsPC_elim_prec.ampl(iconv)=a;
