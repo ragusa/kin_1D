@@ -47,7 +47,7 @@ else
             rhs = [ shape_beg' ;shape_end' ; dat.ode.f_beg'; dat.ode.f_end'];
             % contains the w coefficients such that :
             %  shape(t) = w(1) t^3 + w(2) t^2 + w(3) t + w(4)
-            w = mat\rhs; w=w'; 
+            w = mat\rhs; w=w'; dat.ode.nw = size(w,2);
             for k=1:size(w,2)
                 [dat.ode.rho_MGT_beg(k),dat.ode.beff_MGT_beg(k)]=compute_prke_parameters(time_beg,w(:,k));
                 [dat.ode.rho_MGT_end(k),dat.ode.beff_MGT_end(k)]=compute_prke_parameters(time_end,w(:,k));
