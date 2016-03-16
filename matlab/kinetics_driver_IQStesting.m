@@ -42,6 +42,18 @@ t_end = 1.3;
 ntimes=52;
 dt = t_end/ntimes;
 t = 0:dt:t_end;
+
+% Interpolation type of shape for IQS prke parameters
+% (see solve_prke)
+%   'none' = parameters are evaluated every micro step
+%   1      = linear interpolation of parameters evauated at macro steps
+%   2      = linear interpolation of shape
+%   3      = cubic interpolation of shape
+%   4      = quadratic interpolation of shape
+npar.iqs_prke_interpolation_method='none';
+
+npar.solve_prke_compute_rho_each_time = true;
+
         
 % Solving for flux using BF, only capable for rk precursor elimination method
 FUNHANDLE = @solve_TD_diffusion_elim_prec;

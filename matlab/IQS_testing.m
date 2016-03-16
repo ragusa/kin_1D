@@ -2,7 +2,7 @@ function [p] = IQS_testing(dt,u)
 
 global dat npar
 
-ntimes = length(u(1,:))-1
+ntimes = length(u(1,:))-1;
 time_end=0;
 p = zeros(ntimes+1,1); 
 

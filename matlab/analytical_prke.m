@@ -19,12 +19,12 @@ for it=1:ntimes+1
     if it<it_start
 %     Null transient part
         p(it) = 1;
-    elseif it<it_end
+    elseif it<=it_end
 %     Ramp part
         p(it) = exp(m/2*(t(it)-time_start)^2);
     else
 %     Constant part
-        p(it) = p(it_end-1)*exp(rho_end*(t(it)-time_finish));
+        p(it) = p(it_end)*exp(rho_end*(t(it)-time_finish));
     end
 end
 check = t(it_end)
