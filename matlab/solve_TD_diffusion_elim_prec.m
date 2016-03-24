@@ -73,7 +73,7 @@ for i=1:rk.s
     % save intermediate fluxes
     auxPhi(:,i)=Phi_new;
     % store for temp SDIRK quantities
-    f(:,i)=TR*Phi_new + zi;
+    f(:,i)=TR*Phi_new + zi; % caveat: here, TR is: [ NFIp-(D+A) + lambda*aii*dt/deno* NFId_i] so we use zi and not the full Ci
     fC(:,i)=-lambda*Ci + NFId_new*Phi_new;
 end
 

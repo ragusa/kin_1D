@@ -47,7 +47,7 @@ t_end = 1.28;
 amplitude_norm_ref = reference_solution( t_end, u0);
 
 nn=5;
-ntimes = 2.^(0:nn-1)*20;
+ntimes = 2.^(0:nn-1)*4;
 dt = t_end./ntimes;
 
 % Interpolation type of shape for IQS prke parameters
@@ -83,8 +83,8 @@ npar.prec_solve_type = 'linear';
 
 i=0;
 % not to be used for conv. studies % i=i+1; list_runs{i}= 'brute_force_matlab';
-% i=i+1; list_runs{i}= 'brute_force';
-% i=i+1; list_runs{i}= 'brute_force_elim_prec';
+i=i+1; list_runs{i}= 'brute_force';
+i=i+1; list_runs{i}= 'brute_force_elim_prec';
 i=i+1; list_runs{i}= 'brute_force_an_prec';
 % i=i+1; list_runs{i}= 'iqs_an_prec';
 % i=i+1; list_runs{i}= 'iqs_elim_prec';
