@@ -78,8 +78,9 @@ for i=1:rk.s
 end
 
 % save for hermite interp
-    dat.ode.f_end=f(:,rk.s);
-
+if npar.iqs_prke_interpolation_method>=3
+    dat.ode.f_end=IV\f(:,rk.s);
+end
 
 % re-package as single solution vector
 u = [Phi_new ; Ci];

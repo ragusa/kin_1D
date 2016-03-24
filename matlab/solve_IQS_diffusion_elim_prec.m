@@ -108,6 +108,7 @@ for iter = 1: max_iter_iqs
         end
         % solve for new shape_end
         shape_end = A\rhs;
+        shape_end = shape_beg;
         % finish Ci
         Ci = Ci +  rk.a(i,i)*dt / deno * NFId_new*shape_end*pi;
         % store for temp SDIRK quantities
@@ -142,4 +143,5 @@ end
 
 
 % renormalize anyway
-u_shape = u_shape / ( ((npar.phi_adj)'*npar.IV*shape_end) / npar.K0 );
+u_shape(1:npar.n) = u_shape(1:npar.n) / ( ((npar.phi_adj)'*npar.IV*shape_end) / npar.K0 );
+% u_shape = u_shape / ( ((npar.phi_adj)'*npar.IV*shape_end) / npar.K0 );

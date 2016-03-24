@@ -63,7 +63,7 @@ FUNHANDLE = @solve_TD_diffusion_elim_prec;
 % the amplitude.
 [p_IQS] = IQS_testing(dt,u_bf);
 
-[p_an] = analytical_prke(u_bf,dt,ntimes);
+[p_an,p_an_matlab] = analytical_prke(u_bf,dt,ntimes);
 
 % Compare values side by side
 show = [t', p_IQS, p_an]
@@ -75,5 +75,6 @@ xlabel('time'); ylabel('p');
 
 % Error between methods
 error = [t', abs(p_IQS-p_an)./p_an]
+error2 = [abs(p_IQS(end)-p_an_matlab(end))/p_an_matlab(end)]
     
 end

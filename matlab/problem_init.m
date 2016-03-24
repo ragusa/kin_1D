@@ -231,7 +231,7 @@ npar.solve_prke_compute_rho_each_time = false;
 npar.prke_solve = 'matlab' ;
 npar.int_order = 3;
 % npar.prke_solve = 'no' ;
-npar.max_iter_iqs = 6;
+npar.max_iter_iqs = 2;
 npar.tol_iqs      = 1e-11;
 npar.iqs_prke_interpolation_method=2;
 
