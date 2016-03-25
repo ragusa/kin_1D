@@ -65,6 +65,11 @@ switch nOutputs
     case 2
         varargout{1} = amplitude_norm;
         varargout{2} = Ptot;
+    case 4
+        varargout{1} = t_ref;
+        varargout{2} = amplitude_norm;
+        varargout{3} = Ptot;
+        varargout{4} = u_arr;
     otherwise
         error('Wrong number of output arguments in %s',mfilename);
 end
