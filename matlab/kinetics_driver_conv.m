@@ -36,18 +36,53 @@ u=[phi0;C0];
 u0=u;
 
 % time steping data
-t_end = 1.28;
-% t_end = 1.3;
+t_end = 0.5;
+% t_end = 1.28;
 % t_end = 0.1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% MATLAB time discretization of
 %%%   the TD neutron diffusion eq and precursors eq
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-amplitude_norm_ref = reference_solution( t_end, u0);
+% % [amplitude_norm_ref] = reference_solution( t_end, u0);
 
-nn=5;
-ntimes = 2.^(0:nn-1)*10;
+[t_ref,amplitude_norm_ref,~,exact] = reference_solution( t_end, u0);
+shape_beg=exact((1:npar.n),1);
+shape_end=exact((1:npar.n),1);
+[~,beff_MGT]=compute_prke_parameters(0.,shape_beg);
+global dat npar
+X=[1;beff_MGT/dat.lambda];
+npar.solve_prke_compute_rho_each_time=true;
+[X,~,t,pow] =  solve_prke_ode(X,t_end,t_end,shape_beg,shape_end);
+   
+
+
+
+
+time_start  = dat.rod_mov.t_beg_1;
+time_finish = dat.rod_mov.t_end_1;
+[rho_start,~]=compute_prke_parameters(0   ,shape_beg);
+[rho_end  ,~]=compute_prke_parameters(1e20,shape_beg);
+m = (rho_end-rho_start)/(time_finish-time_start);
+
+h = @(t,t1,t2) 0*(t<=t1)+m*(t-t1).*(t<=t2).*(t>t1)+m*(t2-t1)*(t>t2) -beff_MGT;
+
+% tolerances for odesolvers
+rtol = 3e-14; atol = 3e-14;
+options = odeset('RelTol',rtol,'AbsTol',atol,'InitialStep',1e-10);
+[t_matlab,p_matlab]=ode15s(@(t,y) [h(t,time_start,time_finish), dat.lambda; ...
+                                   beff_MGT                   , -dat.lambda]*y,...
+                           [0 t_end],...
+                           [1;beff_MGT/dat.lambda],...
+                           options);
+
+% over-write the reference value
+amplitude_norm_ref=p_matlab(:,1);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+nn=3;
+ntimes = 2.^(1:nn)*10;
 dt = t_end./ntimes;
 
 % Interpolation type of shape for IQS prke parameters
@@ -238,7 +273,7 @@ end
 
 figure(100); hold all;
 if should_I_run_this(list_runs,'brute_force')
-    error_ = abs( brute_force.ampl - amplitude_norm_ref );
+    error_ = abs( brute_force.ampl - amplitude_norm_ref(end) );
     curr_leg = 'space-time';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
@@ -251,7 +286,7 @@ if should_I_run_this(list_runs,'brute_force')
     legend(leg,'Location','Best');
 end
 if should_I_run_this(list_runs,'brute_force_an_prec')
-    error_ = abs( brute_force_an_prec.ampl - amplitude_norm_ref );
+    error_ = abs( brute_force_an_prec.ampl - amplitude_norm_ref(end) );
     curr_leg = 'space-time-ANALY';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
@@ -264,7 +299,7 @@ if should_I_run_this(list_runs,'brute_force_an_prec')
     legend(leg,'Location','Best');
 end
 if should_I_run_this(list_runs,'brute_force_elim_prec')
-    error_ = abs( brute_force_elim_prec.ampl - amplitude_norm_ref );
+    error_ = abs( brute_force_elim_prec.ampl - amplitude_norm_ref(end) );
     curr_leg = 'space-time-elim';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
@@ -277,8 +312,8 @@ if should_I_run_this(list_runs,'brute_force_elim_prec')
     legend(leg,'Location','Best');
 end
 if should_I_run_this(list_runs,'iqs_an_prec')
-    error_  = abs( iqs_an_prec.ampl           - amplitude_norm_ref );
-    error_f = abs( iqs_an_prec.power_prke_iqs - amplitude_norm_ref );
+    error_  = abs( iqs_an_prec.ampl           - amplitude_norm_ref(end) );
+    error_f = abs( iqs_an_prec.power_prke_iqs - amplitude_norm_ref(end) );
     curr_leg = 'IQS-an';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
@@ -294,8 +329,8 @@ if should_I_run_this(list_runs,'iqs_an_prec')
     legend(leg,'Location','Best');
 end
 if should_I_run_this(list_runs,'iqs_elim_prec')
-    error_  = abs( iqs_elim_prec.ampl           - amplitude_norm_ref );
-    error_f = abs( iqs_elim_prec.power_prke_iqs - amplitude_norm_ref );
+    error_  = abs( iqs_elim_prec.ampl           - amplitude_norm_ref(end) );
+    error_f = abs( iqs_elim_prec.power_prke_iqs - amplitude_norm_ref(end) );
     curr_leg = 'IQS-elim';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
@@ -311,8 +346,8 @@ if should_I_run_this(list_runs,'iqs_elim_prec')
     legend(leg,'Location','Best');
 end
 if should_I_run_this(list_runs,'iqsPC_an_prec')
-    error_  = abs( iqsPC_an_prec.ampl           - amplitude_norm_ref );
-    error_f = abs( iqsPC_an_prec.power_prke_iqs - amplitude_norm_ref );
+    error_  = abs( iqsPC_an_prec.ampl           - amplitude_norm_ref(end) );
+    error_f = abs( iqsPC_an_prec.power_prke_iqs - amplitude_norm_ref(end) );
     curr_leg = 'IQS-PC-an';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
@@ -328,8 +363,8 @@ if should_I_run_this(list_runs,'iqsPC_an_prec')
     legend(leg,'Location','Best');
 end
 if should_I_run_this(list_runs,'iqsPC_elim_prec')
-    error_  = abs( iqsPC_elim_prec.ampl           - amplitude_norm_ref );
-    error_f = abs( iqsPC_elim_prec.power_prke_iqs - amplitude_norm_ref );
+    error_  = abs( iqsPC_elim_prec.ampl           - amplitude_norm_ref(end) );
+    error_f = abs( iqsPC_elim_prec.power_prke_iqs - amplitude_norm_ref(end) );
     curr_leg = 'IQS-PC-elim';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
@@ -345,8 +380,8 @@ if should_I_run_this(list_runs,'iqsPC_elim_prec')
     legend(leg,'Location','Best');
 end
 if should_I_run_this(list_runs,'iqs_theta_prec')
-    error_  = abs( iqs_theta_prec.ampl           - amplitude_norm_ref );
-    error_f = abs( iqs_theta_prec.power_prke_iqs - amplitude_norm_ref );
+    error_  = abs( iqs_theta_prec.ampl           - amplitude_norm_ref(end) );
+    error_f = abs( iqs_theta_prec.power_prke_iqs - amplitude_norm_ref(end) );
     curr_leg = 'IQS-theta-prec';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
@@ -362,8 +397,8 @@ if should_I_run_this(list_runs,'iqs_theta_prec')
     legend(leg,'Location','Best');
 end
 if should_I_run_this(list_runs,'iqs')
-    error_  = abs( iqs.ampl           - amplitude_norm_ref );
-    error_f = abs( iqs.power_prke_iqs - amplitude_norm_ref );
+    error_  = abs( iqs.ampl           - amplitude_norm_ref(end) );
+    error_f = abs( iqs.power_prke_iqs - amplitude_norm_ref(end) );
     curr_leg = 'IQS';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
