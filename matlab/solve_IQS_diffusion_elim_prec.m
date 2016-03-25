@@ -143,5 +143,5 @@ end
 
 
 % renormalize anyway
-u_shape(1:npar.n) = u_shape(1:npar.n) / ( ((npar.phi_adj)'*npar.IV*shape_end) / npar.K0 );
-% u_shape = u_shape / ( ((npar.phi_adj)'*npar.IV*shape_end) / npar.K0 );
+% u_shape(1:npar.n) = u_shape(1:npar.n) / ( ((npar.phi_adj)'*npar.IV*shape_end) / npar.K0 );
+% % % % u_shape = u_shape / ( ((npar.phi_adj)'*npar.IV*shape_end) / npar.K0 );
