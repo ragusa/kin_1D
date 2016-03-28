@@ -20,7 +20,7 @@ io.figID = 99;
 npar.set_bc_last=true;
 
 % select problem
-pbID=2; refinements=5;
+pbID=11; refinements=1;
 problem_init(pbID,refinements);
 
 % compute fundamental eigenmode
@@ -44,44 +44,43 @@ t_end = 0.5;
 %%% MATLAB time discretization of
 %%%   the TD neutron diffusion eq and precursors eq
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% % [amplitude_norm_ref] = reference_solution( t_end, u0);
-
-[t_ref,amplitude_norm_ref,~,exact] = reference_solution( t_end, u0);
-shape_beg=exact((1:npar.n),1);
-shape_end=exact((1:npar.n),1);
-[~,beff_MGT]=compute_prke_parameters(0.,shape_beg);
-global dat npar
-X=[1;beff_MGT/dat.lambda];
-npar.solve_prke_compute_rho_each_time=true;
-[X,~,t,pow] =  solve_prke_ode(X,t_end,t_end,shape_beg,shape_end);
-   
-
-
-
-
-time_start  = dat.rod_mov.t_beg_1;
-time_finish = dat.rod_mov.t_end_1;
-[rho_start,~]=compute_prke_parameters(0   ,shape_beg);
-[rho_end  ,~]=compute_prke_parameters(1e20,shape_beg);
-m = (rho_end-rho_start)/(time_finish-time_start);
-
-h = @(t,t1,t2) 0*(t<=t1)+m*(t-t1).*(t<=t2).*(t>t1)+m*(t2-t1)*(t>t2) -beff_MGT;
-
-% tolerances for odesolvers
-rtol = 3e-14; atol = 3e-14;
-options = odeset('RelTol',rtol,'AbsTol',atol,'InitialStep',1e-10);
-[t_matlab,p_matlab]=ode15s(@(t,y) [h(t,time_start,time_finish), dat.lambda; ...
-                                   beff_MGT                   , -dat.lambda]*y,...
-                           [0 t_end],...
-                           [1;beff_MGT/dat.lambda],...
-                           options);
-
-% over-write the reference value
-amplitude_norm_ref=p_matlab(:,1);
-
+if pbID~=1
+    [amplitude_norm_ref] = reference_solution( t_end, u0);
+else
+    [t_ref,amplitude_norm_ref,~,exact] = reference_solution( t_end, u0);
+    shape_beg=exact((1:npar.n),1);
+    shape_end=exact((1:npar.n),1);
+    [~,beff_MGT]=compute_prke_parameters(0.,shape_beg);
+    global dat npar
+    X=[1;beff_MGT/dat.lambda];
+    save_param = npar.solve_prke_compute_rho_each_time;
+    npar.solve_prke_compute_rho_each_time=true;
+    [X,~,t,pow] =  solve_prke_ode(X,t_end,t_end,shape_beg,shape_end);
+    npar.solve_prke_compute_rho_each_time=save_param;
+    %
+    time_start  = dat.rod_mov.t_beg_1;
+    time_finish = dat.rod_mov.t_end_1;
+    [rho_start,~]=compute_prke_parameters(0   ,shape_beg);
+    [rho_end  ,~]=compute_prke_parameters(1e20,shape_beg);
+    m = (rho_end-rho_start)/(time_finish-time_start);
+    
+    h = @(t,t1,t2) 0*(t<=t1)+m*(t-t1).*(t<=t2).*(t>t1)+m*(t2-t1)*(t>t2) -beff_MGT;
+    
+    % tolerances for odesolvers
+    rtol = 3e-14; atol = 3e-14;
+    options = odeset('RelTol',rtol,'AbsTol',atol,'InitialStep',1e-10);
+    [t_matlab,p_matlab]=ode15s(@(t,y) [h(t,time_start,time_finish), dat.lambda; ...
+        beff_MGT                   , -dat.lambda]*y,...
+        [0 t_end],...
+        [1;beff_MGT/dat.lambda],...
+        options);
+    
+    % over-write the reference value
+    amplitude_norm_ref=p_matlab(:,1);
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-nn=3;
+nn=4;
 ntimes = 2.^(1:nn)*10;
 dt = t_end./ntimes;
 
