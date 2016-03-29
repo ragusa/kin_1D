@@ -18,7 +18,7 @@ for it=1:ntimes
         case strcmp('solve_PRKE_exact',FUNHANDLE)
             if io.save_flux
                 % shape from saved flux
-                shape_curr = io.phi_save(:,it) / (npar.phi_adj'*npar.IV*io.phi_save(:,it)) * npar.K0;
+                shape_curr = io.phi_save(:,it+1) / (npar.phi_adj'*npar.IV*io.phi_save(:,it+1)) * npar.K0;
             else
                 warning('Cannot retrieve saved flux, using initial shape instead');
                 shape_curr = shape0;

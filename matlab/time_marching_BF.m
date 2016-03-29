@@ -31,7 +31,11 @@ Ptot = dat.Ptot*ones(ntimes+1,1);
 dat.ode.f_beg=zeros(npar.n,1);
 dat.ode.f_end=zeros(npar.n,1);
 
-
+if io.save_flux
+    io.phi_save(:,1)=u0(1:npar.n,end); % / (npar.phi_adj'*npar.IV*u0(1:npar.n,end)) * npar.K0;
+    io.odefsave(:,1)=dat.ode.f_beg;
+end
+    
 %%% loop on time steps %%%
 for it=1:ntimes
     
@@ -66,7 +70,8 @@ for it=1:ntimes
     
     % save flux for usage in PRKE exact for testing purposes
     if io.save_flux
-        io.phi_save(:,it)=u(1:npar.n,end); %/Pnorm(it+1);
+        io.phi_save(:,it+1)=u(1:npar.n,end); % / (npar.phi_adj'*npar.IV*u(1:npar.n,end)) * npar.K0;
+        io.odefsave(:,it+1)=dat.ode.f_end;
     end
     
     if io.print_progress
@@ -75,7 +80,7 @@ for it=1:ntimes
         progstr = sprintf('Progress: %.3g %% \n', prog*100);
         labels = {''};
         figure(101)
-        pie([prog],labels);title(progstr);drawnow;
+        pie(prog,labels);title(progstr);drawnow;
     end
 end
 % make movie

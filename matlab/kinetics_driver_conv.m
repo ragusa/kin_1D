@@ -13,7 +13,7 @@ io.console_print         = true;
 io.plot_transient_figure = false;
 io.plot_power_figure     = false;
 io.make_movie            = false;
-io.save_flux             = false;
+io.save_flux             = true;
 io.print_progress        = true;
 io.figID = 99;
 % one of the two choices for applying BC
@@ -44,12 +44,12 @@ t_end = 0.5;
 %%% MATLAB time discretization of
 %%%   the TD neutron diffusion eq and precursors eq
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if pbID~=1
-    [amplitude_norm_ref] = reference_solution( t_end, u0);
+if pbID~=2
+    [t_ref,amplitude_norm_ref,~,~] = reference_solution( t_end, u0);
 else
-    [t_ref,amplitude_norm_ref,~,exact] = reference_solution( t_end, u0);
-    shape_beg=exact((1:npar.n),1);
-    shape_end=exact((1:npar.n),1);
+    [t_ref,amplitude_norm_ref,~,exact_arr] = reference_solution( t_end, u0);
+    shape_beg=exact_arr((1:npar.n),1);
+    shape_end=exact_arr((1:npar.n),1);
     [~,beff_MGT]=compute_prke_parameters(0.,shape_beg);
     global dat npar
     X=[1;beff_MGT/dat.lambda];
@@ -117,8 +117,8 @@ npar.prec_solve_type = 'linear';
 
 i=0;
 % not to be used for conv. studies % i=i+1; list_runs{i}= 'brute_force_matlab';
-i=i+1; list_runs{i}= 'brute_force';
-% i=i+1; list_runs{i}= 'brute_force_elim_prec';
+% i=i+1; list_runs{i}= 'brute_force';
+i=i+1; list_runs{i}= 'brute_force_elim_prec';
 % i=i+1; list_runs{i}= 'brute_force_an_prec';
 % i=i+1; list_runs{i}= 'iqs_an_prec';
 i=i+1; list_runs{i}= 'iqs_elim_prec';
@@ -192,8 +192,13 @@ for iconv=1:length(ntimes)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'iqs_elim_prec')
         display('iqs_elim_prec')
-        FUNHANDLE = @solve_IQS_diffusion_elim_prec;
-        [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
+        if ~io.save_flux
+            FUNHANDLE = @solve_IQS_diffusion_elim_prec;
+            [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
+        else
+            [a] = IQS_testing2( dt(iconv), ntimes(iconv), u0);
+            p=a;
+        end
         iqs_elim_prec.ampl(iconv)=a;
         iqs_elim_prec.power_prke_iqs(iconv)=p;
     end
