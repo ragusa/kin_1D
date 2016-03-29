@@ -37,6 +37,7 @@ for it=1:ntimes
     % contains the w coefficients such that :
     %  shape(t) = w(1) t^3 + w(2) t^2 + w(3) t + w(4)
     w = mat\rhs; w=w'; 
+    io.w=w;
     dat.ode.nw = size(w,2);
     for k=1:dat.ode.nw
         [dat.ode.rho_MGT_beg(k),dat.ode.beff_MGT_beg(k)]=compute_prke_parameters(time_beg,w(:,k));
@@ -47,7 +48,7 @@ for it=1:ntimes
     [t,y]=ode15s(@funprke_linhermite_interp,[time_beg time_end],X,options);
     
     % [X,w,t,y] =  solve_prke_ode(X_beg,dt,time_end,Phi_old,Phi_new);
-    X=y(:,ned);
+    X=y(end,:);
     p(it+1) = X(1);
 
 end

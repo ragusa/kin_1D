@@ -80,7 +80,7 @@ else
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-nn=4;
+nn=6;
 ntimes = 2.^(1:nn)*10;
 dt = t_end./ntimes;
 
@@ -199,8 +199,8 @@ for iconv=1:length(ntimes)
             [a] = IQS_testing2( dt(iconv), ntimes(iconv), u0);
             p=a;
         end
-        iqs_elim_prec.ampl(iconv)=a;
-        iqs_elim_prec.power_prke_iqs(iconv)=p;
+        iqs_elim_prec.ampl(iconv)=a(end);
+        iqs_elim_prec.power_prke_iqs(iconv)=p(end);
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% IQS version inspired from the PC-IQS method, with ANALYTICAL precursors
