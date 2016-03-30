@@ -8,7 +8,7 @@ global dat npar
 dat.PbID = problem_ID;
 
 % rod mov times
-dat.rod_mov.t_beg_1=0.1; dat.rod_mov.t_end_1=0.6;
+dat.rod_mov.t_beg_1=0.0; dat.rod_mov.t_end_1=0.5;
 dat.rod_mov.t_beg_2=1.0; dat.rod_mov.t_end_2=2.7;
 
 % kinetic parameters

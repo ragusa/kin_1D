@@ -29,7 +29,7 @@ for it=1:ntimes
             shape_curr = steady_state_eigenproblem(time_end);
     end
     % solve prke
-    X =  solve_prke(X,dt,time_end,shashape_currpe0);
+    X =  solve_prke(X,dt,time_end,shape_curr);
     % store power level for plotting
     Pnorm_prke(it+1)=X(1);
 end

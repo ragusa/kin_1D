@@ -45,13 +45,12 @@ t_end = 0.5;
 %%%   the TD neutron diffusion eq and precursors eq
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if pbID~=2
-    [t_ref,amplitude_norm_ref,~,~] = reference_solution( t_end, u0);
+    [t_ref,amplitude_norm_ref,~,exact_arr] = reference_solution( t_end, u0);
 else
     [t_ref,amplitude_norm_ref,~,exact_arr] = reference_solution( t_end, u0);
     shape_beg=exact_arr((1:npar.n),1);
-    shape_end=exact_arr((1:npar.n),1);
     [~,beff_MGT]=compute_prke_parameters(0.,shape_beg);
-    global dat npar
+    global dat
     X=[1;beff_MGT/dat.lambda];
     save_param = npar.solve_prke_compute_rho_each_time;
     npar.solve_prke_compute_rho_each_time=true;
@@ -74,13 +73,11 @@ else
         [0 t_end],...
         [1;beff_MGT/dat.lambda],...
         options);
-    
-    % over-write the reference value
     amplitude_norm_ref=p_matlab(:,1);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-nn=6;
+nn=3;
 ntimes = 2.^(1:nn)*10;
 dt = t_end./ntimes;
 
@@ -117,11 +114,12 @@ npar.prec_solve_type = 'linear';
 
 i=0;
 % not to be used for conv. studies % i=i+1; list_runs{i}= 'brute_force_matlab';
-% i=i+1; list_runs{i}= 'brute_force';
-i=i+1; list_runs{i}= 'brute_force_elim_prec';
+i=i+1; list_runs{i}= 'brute_force';
+% i=i+1; list_runs{i}= 'brute_force_elim_prec';
 % i=i+1; list_runs{i}= 'brute_force_an_prec';
 % i=i+1; list_runs{i}= 'iqs_an_prec';
-i=i+1; list_runs{i}= 'iqs_elim_prec';
+% i=i+1; list_runs{i}= 'iqs_elim_prec';
+i=i+1; list_runs{i}= 'iqs_prke_matlabshape';
 % % i=i+1; list_runs{i}= 'iqsPC_an_prec';
 % i=i+1; list_runs{i}= 'iqsPC_elim_prec';
 % i=i+1; list_runs{i}= 'iqs_theta_prec';
@@ -186,6 +184,13 @@ for iconv=1:length(ntimes)
         [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
         iqs_an_prec.ampl(iconv)=a;
         iqs_an_prec.power_prke_iqs(iconv)=p;
+    end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%% IQS IQS IQS with elimination of the  precursors
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if should_I_run_this(list_runs,'iqs_prke_matlabshape')
+        [a] = iqs_prke_matlabshape( dt(iconv), ntimes(iconv), t_ref,exact_arr);
+        iqs_prke_matlab_shape.ampl(iconv)=a(end);
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% IQS IQS IQS with elimination of the  precursors
@@ -330,6 +335,19 @@ if should_I_run_this(list_runs,'iqs_an_prec')
     plot(log10(dt),log10(error_f));
     a=get(legend(gca),'String');
     leg = char(leg, char(strcat(curr_leg, ' fine')) );
+    legend(leg,'Location','Best');
+end
+if should_I_run_this(list_runs,'iqs_prke_matlabshape')
+    error_  = abs( iqs_prke_matlab_shape.ampl           - amplitude_norm_ref(end) );
+    curr_leg = 'iqs_prke_matlabshape';
+    plot(log10(dt),log10(error_),'+-');
+    a=get(legend(gca),'String');
+    p = polyfit(log10(dt),log10(error_),1);
+    if isempty(a)
+        leg=char(strcat(curr_leg,' slope = ',num2str(p(1))));
+    else
+        leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
+    end
     legend(leg,'Location','Best');
 end
 if should_I_run_this(list_runs,'iqs_elim_prec')
