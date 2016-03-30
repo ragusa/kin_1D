@@ -143,7 +143,7 @@ switch problem_ID
             dat.ext_src{id}  = dat.ext_src{1}    ;
         end
         times = [dat.rod_mov.t_beg_1 dat.rod_mov.t_beg_2];
-        dat.siga{2} = create_material_prop('ramp_in_time',[1.1 1.08],times,'constant_in_space',0);
+        dat.siga{2} = create_material_prop('ramp_in_time',[1.1 0.98],times,'constant_in_space',0);
         
     otherwise
         error('unknown problem ID ',problem_ID);
@@ -231,7 +231,7 @@ npar.solve_prke_compute_rho_each_time = false;
 npar.prke_solve = 'matlab' ;
 npar.int_order = 3;
 % npar.prke_solve = 'no' ;
-npar.max_iter_iqs = 2;
+npar.max_iter_iqs = 3;
 npar.tol_iqs      = 1e-11;
 npar.iqs_prke_interpolation_method=2;
 

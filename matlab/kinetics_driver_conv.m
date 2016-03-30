@@ -6,14 +6,14 @@ close all;
 % turn off warning due to interp1
 warning('OFF','MATLAB:interp1:ppGriddedInterpolant')
 
-global npar io
-
+global npar io dat 
+clear npar io dat;
 % verbose/output parameters
 io.console_print         = true;
 io.plot_transient_figure = false;
 io.plot_power_figure     = false;
 io.make_movie            = false;
-io.save_flux             = true;
+io.save_flux             = false;
 io.print_progress        = true;
 io.figID = 99;
 % one of the two choices for applying BC
@@ -21,6 +21,7 @@ npar.set_bc_last=true;
 
 % select problem
 pbID=11; refinements=1;
+% pbID=2; refinements=5;
 problem_init(pbID,refinements);
 
 % compute fundamental eigenmode
@@ -50,11 +51,10 @@ else
     [t_ref,amplitude_norm_ref,~,exact_arr] = reference_solution( t_end, u0);
     shape_beg=exact_arr((1:npar.n),1);
     [~,beff_MGT]=compute_prke_parameters(0.,shape_beg);
-    global dat
     X=[1;beff_MGT/dat.lambda];
     save_param = npar.solve_prke_compute_rho_each_time;
     npar.solve_prke_compute_rho_each_time=true;
-    [X,~,t,pow] =  solve_prke_ode(X,t_end,t_end,shape_beg,shape_end);
+    [X,~,t,pow] =  solve_prke_ode(X,t_end,t_end,shape_beg,shape_beg);
     npar.solve_prke_compute_rho_each_time=save_param;
     %
     time_start  = dat.rod_mov.t_beg_1;
@@ -77,7 +77,7 @@ else
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-nn=3;
+nn=5;
 ntimes = 2.^(1:nn)*10;
 dt = t_end./ntimes;
 
@@ -88,7 +88,7 @@ dt = t_end./ntimes;
 %   2      = linear interpolation of shape
 %   3      = cubic interpolation of shape
 %   4      = quadratic interpolation of shape
-npar.iqs_prke_interpolation_method=2;
+npar.iqs_prke_interpolation_method=3;
 
 % Type of precursor interpolation for analytical elimination
 % (see solve_TD_diffusion_an_prec)
@@ -117,9 +117,9 @@ i=0;
 i=i+1; list_runs{i}= 'brute_force';
 % i=i+1; list_runs{i}= 'brute_force_elim_prec';
 % i=i+1; list_runs{i}= 'brute_force_an_prec';
-% i=i+1; list_runs{i}= 'iqs_an_prec';
-% i=i+1; list_runs{i}= 'iqs_elim_prec';
-i=i+1; list_runs{i}= 'iqs_prke_matlabshape';
+i=i+1; list_runs{i}= 'iqs_an_prec';
+i=i+1; list_runs{i}= 'iqs_elim_prec';
+% i=i+1; list_runs{i}= 'iqs_prke_matlabshape';
 % % i=i+1; list_runs{i}= 'iqsPC_an_prec';
 % i=i+1; list_runs{i}= 'iqsPC_elim_prec';
 % i=i+1; list_runs{i}= 'iqs_theta_prec';
@@ -189,8 +189,10 @@ for iconv=1:length(ntimes)
     %%% IQS IQS IQS with elimination of the  precursors
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'iqs_prke_matlabshape')
-        [a] = iqs_prke_matlabshape( dt(iconv), ntimes(iconv), t_ref,exact_arr);
-        iqs_prke_matlab_shape.ampl(iconv)=a(end);
+        if iconv==length(ntimes)
+            [a_] = iqs_prke_matlabshape( dt(iconv), ntimes(iconv), t_ref,exact_arr);
+            iqs_prke_matlab_shape.ampl(iconv)=a_(end);
+        end
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% IQS IQS IQS with elimination of the  precursors

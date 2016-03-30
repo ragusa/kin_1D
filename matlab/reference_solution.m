@@ -5,7 +5,7 @@ global dat npar io
 % options = odeset('RelTol',rtol,'AbsTol',atol,'InitialStep',1e-10,'OutputFcn',@odephas2,'OutputSel',[1:npar.ndofs]);
 % options = odeset('RelTol',rtol,'AbsTol',atol,'InitialStep',1e-10,'OutputFcn',@odeplot,'OutputSel',[1:npar.ndofs]);
 % options = odeset('RelTol',rtol,'AbsTol',atol);
-options = odeset('RelTol',1e-12,'AbsTol',1e-12,'InitialStep',1e-8,'Stats','on','MaxStep',1e-1,'Stats','off');
+options = odeset('RelTol',3e-14,'AbsTol',3e-14,'InitialStep',1e-10,'Stats','on','MaxStep',1e-3,'Stats','off');
 % options = odeset('RelTol',1e-4,'AbsTol',1e-4);
 [t_ref,u_arr]=ode15s(@residual_TD_diffusion,[0 t_end],u0,options);
 u_arr=u_arr';

@@ -36,7 +36,7 @@ p(1) = X(1);
     % tolerances for odesolvers
     rtol = 3e-14; abso = 3e-14;
     atol  = abso*ones(length(X),1);
-    options = odeset('RelTol',rtol,'AbsTol',atol,'InitialStep',1e-10);    
+    options = odeset('RelTol',rtol,'AbsTol',atol,'InitialStep',1e-10,'MaxStep',1e-1);    
     
     % call ode solver with prke function that linearly interpolates
     [t,y]=ode15s(@funprke_exact,[time_beg time_end],X,options,t_ref,exact_arr);

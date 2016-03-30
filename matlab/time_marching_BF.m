@@ -32,7 +32,9 @@ dat.ode.f_beg=zeros(npar.n,1);
 dat.ode.f_end=zeros(npar.n,1);
 
 if io.save_flux
+    io.phi_save=zeros(npar.n,1);
     io.phi_save(:,1)=u0(1:npar.n,end); % / (npar.phi_adj'*npar.IV*u0(1:npar.n,end)) * npar.K0;
+    io.odefsave=zeros(npar.n,1);
     io.odefsave(:,1)=dat.ode.f_beg;
 end
     
