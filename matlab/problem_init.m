@@ -150,8 +150,9 @@ switch problem_ID
     case 12
         % manufactured solution, one material, constant in space and time,
         % no precursors
-        
-        b=dat.beta_tot*0;
+%         dat.invvel=dat.invvel*0; % use this for steady state
+        dat.beta_tot=dat.beta_tot*0; 
+        b=dat.beta_tot;
         iv=dat.invvel;
         cdiff = 1.0;
         Sa = 1.0;
@@ -179,15 +180,17 @@ switch problem_ID
 %         a(x,t) = sin(x*(1-x)*(t+1))
 %         A(t) = int(a(x,t),x,0,1)
 %         phi(x,t) = f(t)*a(x,t)/A(t);
-        f(t) = (t+1)^2;
-        a(x,t) = (1+t)*x*(1-x)*(x+t);
+        f(t) = (t+1)^5;
+        a(x,t) = x*(1-x)*(x+t);
         A(t) = int(a(x,t),x,0,1);
         phi(x,t) = f(t)*a(x,t)/A(t);
+
+        phi(x,t) = x*(1-x)*exp(t); %(1+t)^5;
+        %         phi(x,t) = x*(1-x); % use this for steady state
         
-%         phi(x,t) = x*(1-x)*(1+t)^2;
         npar.phi_exact = matlabFunction(phi);
         
-        S_p(x,t) = iv*diff(phi,t) + (Sa-nfSf)*phi - cdiff*diff(diff(phi,x),x)
+        S_p(x,t) = iv*diff(phi,t) + (Sa-nfSf)*phi - cdiff*diff(diff(phi,x),x);
         dat.source_phi = matlabFunction(S_p);
         clear x t S_p phi
         
@@ -291,7 +294,7 @@ end
 dat.max_y_val_movie = 2.;
 
 % time integration
-time_integration=3;
+time_integration=1;
 switch time_integration
     case 1
         nstages=1;

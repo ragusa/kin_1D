@@ -29,9 +29,10 @@ for iel=1:npar.nel
     phiexact_xq= phiexact(x);
     fem_phi = phi(gn(iel,:));
     fem_phi_xq = b*fem_phi;
-    err = err + dot(wq,(fem_phi_xq-phiexact_xq).^2);
+    err = err + Jac*dot(wq,(fem_phi_xq-phiexact_xq).^2);
 end
 
+err=sqrt(err);
 
 return
 end

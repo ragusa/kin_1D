@@ -9,7 +9,7 @@ warning('OFF','MATLAB:interp1:ppGriddedInterpolant')
 global npar io
 
 % verbose/output parameters
-io.console_print         = false;
+io.console_print         = true;
 io.plot_transient_figure = false;
 io.plot_power_figure     = false;
 io.make_movie            = false;
@@ -20,7 +20,7 @@ io.figID = 99;
 npar.set_bc_last=true;
 
 % select problem
-pbID=12; refinements=10;
+pbID=12; refinements=20;
 problem_init(pbID,refinements);
 
 % compute fundamental eigenmode
@@ -29,6 +29,13 @@ if pbID~=12
     [phi0]=steady_state_eigenproblem(curr_time);
 else
     [phi0] = npar.phi_exact(npar.x',curr_time);
+%     tt=linspace(0,1.28,100);
+%     figure(666); 
+%     for it=1:length(tt)
+%         plot(npar.x,npar.phi_exact(npar.x',tt(it)));
+%         axis([0 npar.x(end) 0 max( npar.phi_exact(npar.x',1.28))]);
+%         drawnow; pause(0.1);
+%     end
 end
 
 % initialize kinetic values
@@ -40,7 +47,7 @@ u=[phi0;C0];
 u0=u;
 
 % time steping data
-t_end = 1.28;
+t_end = 1.;
 % t_end = 1.3;
 % t_end = 0.1;
 
@@ -53,7 +60,7 @@ figure(1)
 plot(npar.x,npar.phi_exact(npar.x',t_end))
 % L2norm_ref = compute_L2norm(npar.phi_exact(npar.x',t_end))
 
-nn=2;
+nn=4;
 ntimes = 2.^(0:nn-1)*20;
 dt = t_end./ntimes;
 
