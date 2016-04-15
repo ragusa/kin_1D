@@ -34,6 +34,7 @@ for i=1:rk.s
     NFIp = assemble_mass(     dat.nusigf_p,ti) / npar.keff;
     IV   = assemble_mass(     dat.inv_vel ,ti);
     NFId_new = assemble_mass( dat.nusigf_d,ti) / npar.keff;
+    S    = assemble_source(   dat.source_phi,ti);
     
     % flux-flux matrix
     TR=NFIp-(D+A);
@@ -55,7 +56,7 @@ for i=1:rk.s
     A = IV-rk.a(i,i)*dt*TR;
     
     % build rhs
-	zi = lambda*Ci;
+	zi = lambda*Ci + S;
     rhs = IV*Phi_old + rk.a(i,i)*dt *zi;
     for j=1:i-1
         rhs = rhs + rk.a(i,j)*dt*f(:,j);

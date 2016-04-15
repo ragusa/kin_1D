@@ -16,6 +16,8 @@ dat.beta_tot=600e-5;
 dat.lambda=0.1;
 dat.invvel=1e-3;
 
+dat.source_phi = @(x,t) 0;
+
 % assign function pointers to the various physical coeffcients
 switch problem_ID
     
@@ -144,6 +146,51 @@ switch problem_ID
         end
         times = [dat.rod_mov.t_beg_1 dat.rod_mov.t_beg_2];
         dat.siga{2} = create_material_prop('ramp_in_time',[1.1 1.08],times,'constant_in_space',0);
+        
+    case 12
+        % manufactured solution, one material, constant in space and time,
+        % no precursors
+        
+        b=dat.beta_tot*0;
+        iv=dat.invvel;
+        cdiff = 1.0;
+        Sa = 1.0;
+        nfSf = 1.1;        
+        dat.cdiff{1}   = create_material_prop('constant_in_time',cdiff    ,[],'constant_in_space',0);
+        dat.siga{1}    = create_material_prop('constant_in_time',Sa       ,[],'constant_in_space',0);
+        dat.nusigf{1}  = create_material_prop('constant_in_time',nfSf     ,[],'constant_in_space',0);
+        dat.nusigf_p{1}= create_material_prop('constant_in_time',1.1*(1-b),[],'constant_in_space',0);
+        dat.nusigf_d{1}= create_material_prop('constant_in_time',1.1*b    ,[],'constant_in_space',0);
+        dat.inv_vel{1} = create_material_prop('constant_in_time',iv       ,[],'constant_in_space',0);
+        dat.ext_src{1} = create_material_prop('constant_in_time',0        ,[],'constant_in_space',0);
+        dat.mass{1}   = create_material_prop('constant_in_time',1.0       ,[],'constant_in_space',0);
+        
+        n_regions=1;
+        region_width=1;
+        dat.width = region_width * n_regions;
+        
+        imat = ones(n_regions,1);
+        
+        syms x t
+        syms S_p(x,t) phi(x,t)
+        
+        syms f(t) a(x,t) A(t)
+%         f(t) = (t+1)^5
+%         a(x,t) = sin(x*(1-x)*(t+1))
+%         A(t) = int(a(x,t),x,0,1)
+%         phi(x,t) = f(t)*a(x,t)/A(t);
+        f(t) = (t+1)^2;
+        a(x,t) = (1+t)*x*(1-x)*(x+t);
+        A(t) = int(a(x,t),x,0,1);
+        phi(x,t) = f(t)*a(x,t)/A(t);
+        
+%         phi(x,t) = x*(1-x)*(1+t)^2;
+        npar.phi_exact = matlabFunction(phi);
+        
+        S_p(x,t) = iv*diff(phi,t) + (Sa-nfSf)*phi - cdiff*diff(diff(phi,x),x)
+        dat.source_phi = matlabFunction(S_p);
+        clear x t S_p phi
+        
         
     otherwise
         error('unknown problem ID ',problem_ID);

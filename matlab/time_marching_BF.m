@@ -74,6 +74,14 @@ for it=1:ntimes
         pie([prog],labels);title(progstr);drawnow;
     end
 end
+
+L2norm_error = compute_L2norm(@(x) npar.phi_exact(x,time_end),u(1:npar.n,end))
+% L2norm_error = compute_L2norm(npar.phi_exact(npar.x',time_end),u(1:npar.n,end))
+figure(1)
+hold on
+plot(npar.x,u(1:npar.n,end))
+hold off
+
 % make movie
 if io.plot_transient_figure && io.make_movie
     close(gcf)
@@ -96,6 +104,10 @@ switch nOutputs
     case 2
         varargout{1} = amplitude_norm;
         varargout{2} = Ptot;
+    case 3
+        varargout{1} = amplitude_norm;
+        varargout{2} = Ptot;
+        varargout{3} = L2norm_error;
     otherwise
         error('Wrong number of output arguments in %s',mfilename);
 end
