@@ -20,7 +20,7 @@ io.figID = 99;
 npar.set_bc_last=true;
 
 % select problem
-pbID=12; refinements=400;
+pbID=12; refinements=1;
 problem_init(pbID,refinements);
 
 % compute fundamental eigenmode
@@ -28,7 +28,7 @@ curr_time=0;
 if pbID~=12
     [phi0]=steady_state_eigenproblem(curr_time);
 else
-    [phi0] = npar.phi_exact(npar.x',curr_time);
+    [phi0] = npar.phi_exact(npar.x_dofs',curr_time);
 %     tt=linspace(0,1.28,100);
 %     figure(666); 
 %     for it=1:length(tt)
@@ -60,7 +60,7 @@ figure(1)
 plot(npar.x,npar.phi_exact(npar.x',t_end))
 % L2norm_ref = compute_L2norm(npar.phi_exact(npar.x',t_end))
 
-nn=5;
+nn=2;
 ntimes = 2.^((0:nn-1)+0)*4;
 dt = t_end./ntimes;
 

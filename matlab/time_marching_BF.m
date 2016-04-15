@@ -79,7 +79,7 @@ L2norm_error = compute_L2norm(@(x) npar.phi_exact(x,time_end),u(1:npar.n,end))
 % L2norm_error = compute_L2norm(npar.phi_exact(npar.x',time_end),u(1:npar.n,end))
 figure(1)
 hold on
-plot(npar.x,u(1:npar.n,end))
+plot(npar.x_dofs,u(1:npar.n,end))
 hold off
 
 % make movie

@@ -150,8 +150,11 @@ switch problem_ID
     case 12
         % manufactured solution, one material, constant in space and time,
         % no precursors
-%         dat.invvel=dat.invvel*0; % use this for steady state
-        dat.beta_tot=dat.beta_tot*0; 
+        do_steady = true;
+        if do_steady
+            dat.invvel=dat.invvel*0; % use this for steady state
+        end
+        dat.beta_tot=dat.beta_tot*0;
         b=dat.beta_tot;
         iv=dat.invvel;
         cdiff = 1.0;
@@ -180,14 +183,15 @@ switch problem_ID
 %         a(x,t) = sin(x*(1-x)*(t+1))
 %         A(t) = int(a(x,t),x,0,1)
 %         phi(x,t) = f(t)*a(x,t)/A(t);
-        f(t) = (t+1)^5;
+        f(t) = (t+1)^0;
         a(x,t) = x*(1-x)*(x+t);
         A(t) = int(a(x,t),x,0,1);
         phi(x,t) = f(t)*a(x,t)/A(t);
 
-        phi(x,t) = x*(1-x)*exp(10*t); %(1+t)^5;
-%         phi(x,t) = x*(1-x); % use this for steady state
-        
+        phi(x,t) = x*(1-x)*exp(t^2); %(1+t)^5;
+        if do_steady
+            phi(x,t) = x*(1-x); % use this for steady state
+        end        
         npar.phi_exact = matlabFunction(phi);
         
         S_p(x,t) = iv*diff(phi,t) + (Sa-nfSf)*phi - cdiff*diff(diff(phi,x),x);
@@ -223,7 +227,7 @@ npar.nel = nbr_refinements_per_region * n_regions ;
 % domain
 npar.x = linspace(0,dat.width,npar.nel+1);
 % polynomial degree
-npar.porder=1;
+npar.porder=2;
 % nbr of dofs per variable
 npar.ndofs = npar.porder*npar.nel+1;
 % n: linear system size
@@ -294,7 +298,7 @@ end
 dat.max_y_val_movie = 2.;
 
 % time integration
-time_integration=3;
+time_integration=1;
 switch time_integration
     case 1
         nstages=1;
