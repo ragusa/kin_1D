@@ -16,7 +16,6 @@ S=zeros(n,1);
 % initialize local matrices
 v=zeros(porder+1,1);
 % shape set
-dbdx=npar.dbdx;
 b=npar.b;
 % quadrature stuff
 xq=npar.xq;
@@ -38,7 +37,7 @@ for iel=1:npar.nel
 
     % assemble
     for i=1:porder+1
-        v(i) = dot(s.*wq , b(:,1));
+        v(i) = dot(s.*wq , b(:,i));
     end
     S(gn(iel,:)) = S(gn(iel,:)) + v;
 end

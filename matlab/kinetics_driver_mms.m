@@ -9,7 +9,7 @@ warning('OFF','MATLAB:interp1:ppGriddedInterpolant')
 global npar io
 
 % verbose/output parameters
-io.console_print         = true;
+io.console_print         = false;
 io.plot_transient_figure = false;
 io.plot_power_figure     = false;
 io.make_movie            = false;
@@ -20,7 +20,7 @@ io.figID = 99;
 npar.set_bc_last=true;
 
 % select problem
-pbID=12; refinements=20;
+pbID=12; refinements=400;
 problem_init(pbID,refinements);
 
 % compute fundamental eigenmode
@@ -60,8 +60,8 @@ figure(1)
 plot(npar.x,npar.phi_exact(npar.x',t_end))
 % L2norm_ref = compute_L2norm(npar.phi_exact(npar.x',t_end))
 
-nn=4;
-ntimes = 2.^(0:nn-1)*20;
+nn=5;
+ntimes = 2.^((0:nn-1)+0)*4;
 dt = t_end./ntimes;
 
 % Interpolation type of shape for IQS prke parameters

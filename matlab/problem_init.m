@@ -185,8 +185,8 @@ switch problem_ID
         A(t) = int(a(x,t),x,0,1);
         phi(x,t) = f(t)*a(x,t)/A(t);
 
-        phi(x,t) = x*(1-x)*exp(t); %(1+t)^5;
-        %         phi(x,t) = x*(1-x); % use this for steady state
+        phi(x,t) = x*(1-x)*exp(10*t); %(1+t)^5;
+%         phi(x,t) = x*(1-x); % use this for steady state
         
         npar.phi_exact = matlabFunction(phi);
         
@@ -294,7 +294,7 @@ end
 dat.max_y_val_movie = 2.;
 
 % time integration
-time_integration=1;
+time_integration=3;
 switch time_integration
     case 1
         nstages=1;
