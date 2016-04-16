@@ -26,7 +26,7 @@ yold=0.25;
 
 tend=.1;
 
-ntimes=[10 20 40];
+ntimes=[10 20 40 80 500];
 for iconv=1:length(ntimes)
     dt=tend/ntimes(iconv); 
     tn=0;
@@ -34,16 +34,23 @@ for iconv=1:length(ntimes)
     for it=1:ntimes(iconv)
         for i=1:rk.nstages
             ti = tn + rk.c(i)*dt;
-            rhs = yn + dt*rk.a(i,i)*S(ti);
+            SS(i)=S(ti);
+            rhs = IV*yn + dt*rk.a(i,i)*SS(i);
             for j=1:i-1
-                rhs = rhs + dt*rk.a(i,j)*(A*y(j)+S(tn+dt*rk.c(j)));
+                rhs = rhs + dt*rk.a(i,j)*(A*y(j)+SS(j));
             end
             y(i) = (IV -rk.a(i,i)*dt*A) \ rhs;
         end
         yn = y(3);
         tn = tn + dt;
     end
-    err(iconv)=abs(yn-ex(tend))
+    err(iconv)=abs(yn-ex(tend));
 end
 
-plot( log10(tend./ntimes), log10(err) )
+plot( log10(tend./ntimes), log10(err), '+-' )
+% reference line y=Cx^s log(y) = log(C) + s log(x)
+% we pick one value of (x,y) to get C
+% the multiplier in front of C is used to shift the ref. line
+s=3;C=0.5*err(end)/(tend/ntimes(end))^s;
+y=C*(tend./ntimes).^s;
+hold on;plot(log10(tend./ntimes), log10(y), 'r-')
