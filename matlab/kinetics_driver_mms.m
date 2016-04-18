@@ -47,9 +47,9 @@ u=[phi0;C0];
 u0=u;
 
 % time steping data
-t_end = 1.;
+% t_end = 1.;
 % t_end = 1.3;
-% t_end = 0.1;
+t_end = 0.1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% MATLAB time discretization of
@@ -60,8 +60,9 @@ figure(1)
 plot(npar.x,npar.phi_exact(npar.x',t_end))
 % L2norm_ref = compute_L2norm(npar.phi_exact(npar.x',t_end))
 
-nn=2;
-ntimes = 2.^((0:nn-1)+0)*4;
+nn=6;
+ntimes = 2.^((0:nn-1)+0)*5;
+% ntimes = [10 50];
 dt = t_end./ntimes;
 
 % Interpolation type of shape for IQS prke parameters

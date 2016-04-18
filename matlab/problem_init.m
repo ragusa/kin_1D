@@ -14,7 +14,7 @@ dat.rod_mov.t_beg_2=1.0; dat.rod_mov.t_end_2=2.7;
 % kinetic parameters
 dat.beta_tot=600e-5;
 dat.lambda=0.1;
-dat.invvel=1e-3;
+dat.invvel=1.;
 
 dat.source_phi = @(x,t) 0;
 
@@ -150,7 +150,7 @@ switch problem_ID
     case 12
         % manufactured solution, one material, constant in space and time,
         % no precursors
-        do_steady = true;
+        do_steady = false;
         if do_steady
             dat.invvel=dat.invvel*0; % use this for steady state
         end
@@ -178,17 +178,17 @@ switch problem_ID
         syms x t
         syms S_p(x,t) phi(x,t)
         
-        syms f(t) a(x,t) A(t)
+%         syms f(t) a(x,t) A(t)
 %         f(t) = (t+1)^5
 %         a(x,t) = sin(x*(1-x)*(t+1))
 %         A(t) = int(a(x,t),x,0,1)
 %         phi(x,t) = f(t)*a(x,t)/A(t);
-        f(t) = (t+1)^0;
-        a(x,t) = x*(1-x)*(x+t);
-        A(t) = int(a(x,t),x,0,1);
-        phi(x,t) = f(t)*a(x,t)/A(t);
+%         f(t) = (t+1)^0;
+%         a(x,t) = x*(1-x)*(x+t);
+%         A(t) = int(a(x,t),x,0,1);
+%         phi(x,t) = f(t)*a(x,t)/A(t);
 
-        phi(x,t) = x*(1-x)*exp(t^2); %(1+t)^5;
+        phi(x,t) = x*(1-x)*(1+t)^2;
         if do_steady
             phi(x,t) = x*(1-x); % use this for steady state
         end        
@@ -298,7 +298,7 @@ end
 dat.max_y_val_movie = 2.;
 
 % time integration
-time_integration=1;
+time_integration=3;
 switch time_integration
     case 1
         nstages=1;
@@ -307,6 +307,14 @@ switch time_integration
         a(1,1)=1;
         c=sum(a,2);
         b(1)=1;
+        
+    case 2
+        nstages=2;
+        g = (2-sqrt(2))/2;
+        a = [g     0 ...
+             1-2*g g];
+        b = [0.5 0.5];
+        c = sum(a,2);
         
     case 3
         nstages=3;

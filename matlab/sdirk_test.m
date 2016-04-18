@@ -1,11 +1,11 @@
 clear all; close all; clc;
 
 bf=@(x)4*x.*(1-x);
-a=integral(@(x)bf(x).*bf(x),0,1)
-b=integral(@(x)bf(x),0,1)
-g=integral(@(x)(4*(1-2*x)).^2,0,1)
+a=integral(@(x)bf(x).*bf(x),0,1);
+b=integral(@(x)bf(x),0,1);
+g=integral(@(x)(4*(1-2*x)).^2,0,1);
 D=1;
-v=1;
+v=1000;
 nsf=1.1;sa=1;
 p=2;
 
@@ -26,7 +26,8 @@ yold=0.25;
 
 tend=.1;
 
-ntimes=[10 20 40 80 500];
+ntimes=[5 10 20 40 80 160];
+% ntimes = [10 50];
 for iconv=1:length(ntimes)
     dt=tend/ntimes(iconv); 
     tn=0;
@@ -39,7 +40,10 @@ for iconv=1:length(ntimes)
             for j=1:i-1
                 rhs = rhs + dt*rk.a(i,j)*(A*y(j)+SS(j));
             end
-            y(i) = (IV -rk.a(i,i)*dt*A) \ rhs;
+%             ti
+%             M = (IV -rk.a(i,i)*dt*A)
+%             rhs
+            y(i) = (IV -rk.a(i,i)*dt*A) \ rhs
         end
         yn = y(3);
         tn = tn + dt;
@@ -48,6 +52,7 @@ for iconv=1:length(ntimes)
 end
 
 plot( log10(tend./ntimes), log10(err), '+-' )
+slope_err = polyfit(log10(tend./ntimes), log10(err),1)
 % reference line y=Cx^s log(y) = log(C) + s log(x)
 % we pick one value of (x,y) to get C
 % the multiplier in front of C is used to shift the ref. line
