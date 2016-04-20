@@ -5,9 +5,9 @@ a=integral(@(x)bf(x).*bf(x),0,1);
 b=integral(@(x)bf(x),0,1);
 g=integral(@(x)(4*(1-2*x)).^2,0,1);
 D=1;
-v=1e3;
+v=1e2;
 nsf=1.1;sa=1;
-p=8;
+p=4;
 
 A=-D*g+(nsf-sa)*a;
 IV=a/v;
@@ -29,8 +29,8 @@ switch time_integration
         rk.nstages=3;
         rk.g=0.2113248654051871177454256097490213;
         rk.a=[rk.g, 0, 0 ;...
-              rk.g, rk.g, 0;...
-              rk.g, 0.5773502691896257645091487805019573, rk.g ];
+            rk.g, rk.g, 0;...
+            rk.g, 0.5773502691896257645091487805019573, rk.g ];
         rk.c=sum(rk.a,2);
         rk.b=rk.a(rk.nstages,:);
         rk.order=3;
@@ -38,7 +38,7 @@ switch time_integration
         rk.nstages=2;
         rk.g=0.2928932188134524755991556378951510;
         rk.a=[rk.g, 0 ;...
-              1-rk.g, rk.g];
+            1-rk.g, rk.g];
         rk.c=sum(rk.a,2);
         rk.b=rk.a(rk.nstages,:);
         rk.order=2;
@@ -46,7 +46,7 @@ switch time_integration
         rk.nstages=2;
         rk.g=1.707106781186547524400844362104849;
         rk.a=[rk.g, 0 ;...
-              1-rk.g, rk.g];
+            1-rk.g, rk.g];
         rk.c=sum(rk.a,2);
         rk.b=rk.a(rk.nstages,:);
         rk.order=2;
@@ -54,10 +54,10 @@ switch time_integration
         rk.nstages=5;
         rk.g=0.25;
         rk.a=[rk.g, 0, 0, 0, 0 ;...
-              0.5,rk.g, 0, 0, 0;...
-              0.34, -0.04, rk.g, 0, 0;...
-              0.2727941176470588235294117647058824, -0.05036764705882352941176470588235294, 0.02757352941176470588235294117647059, rk.g, 0;...
-              1.041666666666666666666666666666667,-1.020833333333333333333333333333333,7.8125,-7.083333333333333333333333333333333, rk.g ];
+            0.5,rk.g, 0, 0, 0;...
+            0.34, -0.04, rk.g, 0, 0;...
+            0.2727941176470588235294117647058824, -0.05036764705882352941176470588235294, 0.02757352941176470588235294117647059, rk.g, 0;...
+            1.041666666666666666666666666666667,-1.020833333333333333333333333333333,7.8125,-7.083333333333333333333333333333333, rk.g ];
         rk.c=sum(rk.a,2);
         rk.b=rk.a(rk.nstages,:);
         rk.order=4;
@@ -65,10 +65,10 @@ switch time_integration
         rk.nstages=5;
         rk.g=0.2666666666666666666666666666666667;
         rk.a=[rk.g, 0, 0, 0, 0 ;...
-              0.5,rk.g, 0, 0, 0;...
-              0.3541539528432732316227461858529820, -0.05415395284327323162274618585298197, rk.g, 0, 0;...
-              0.08515494131138652076337791881433756, -0.06484332287891555171683963466229754, 0.07915325296404206392428857585141242, rk.g, 0;...
-              2.100115700566932777970612055999074, -0.7677800284445976813343102185062276, 2.399816361080026398094746205273880, -2.998818699869028161397714709433394, rk.g ];
+            0.5,rk.g, 0, 0, 0;...
+            0.3541539528432732316227461858529820, -0.05415395284327323162274618585298197, rk.g, 0, 0;...
+            0.08515494131138652076337791881433756, -0.06484332287891555171683963466229754, 0.07915325296404206392428857585141242, rk.g, 0;...
+            2.100115700566932777970612055999074, -0.7677800284445976813343102185062276, 2.399816361080026398094746205273880, -2.998818699869028161397714709433394, rk.g ];
         rk.c=sum(rk.a,2);
         rk.b=rk.a(rk.nstages,:);
         rk.order=4;
@@ -79,6 +79,8 @@ end
 yold=0.25;
 
 tend=5;
+
+do_bdf2=true;
 
 ntimes=[10 20 40 80 500 1000 5000 1e4 5e4 1e5];% 5e5];% 5e5];
 for iconv=1:length(ntimes)
@@ -112,4 +114,43 @@ nn=1; %
 nn=length(err);
 s=rk.order; C=0.5*err(nn)/(tend/ntimes(nn))^s;
 y=C*(tend./ntimes).^s;
-hold on;plot(log10(tend./ntimes), log10(y), 'r-')
+hold all;plot(log10(tend./ntimes), log10(y), 'r-')
+
+
+
+if do_bdf2
+    for iconv=1:length(ntimes)
+        dt=tend/ntimes(iconv);
+        tn=0;
+        yn=yold;
+        fprintf('%d/%d\n',iconv,length(ntimes));
+        y=zeros(rk.nstages,1); SS=y;
+        yolder=yn;
+        % first time step: CN
+        %         for it=1:ntimes(iconv)
+        yn = (IV-dt/2*A)\ ( (IV+dt/2*A)*yn + dt/2*(S(tn)+S(tn+dt)));
+        tn = tn + dt;
+        %         end
+        % other time steps: BDF2
+        for it=2:ntimes(iconv)
+            ynew = ( IV -2/3*dt*A) \ ( IV/3*(4*yn-yolder) +2/3*dt*S(tn+dt));
+            tn = tn + dt;
+            yolder=yn;
+            yn=ynew;
+        end
+        err(iconv)=abs(yn-ex(tend));
+    end
+    
+    plot( log10(tend./ntimes), log10(err), '+-' )
+    % slope_err = polyfit(log10(tend./ntimes), log10(err),1)
+    % reference line y=Cx^s log(y) = log(C) + s log(x)
+    % we pick one value of (x,y) to get C
+    % the multiplier in front of C is used to shift the ref. line
+    nn=1; %
+    nn=length(err);
+    s=2; C=0.5*err(nn)/(tend/ntimes(nn))^s;
+    y=C*(tend./ntimes).^s;
+    hold all;plot(log10(tend./ntimes), log10(y), 'r-')
+    
+end
+
