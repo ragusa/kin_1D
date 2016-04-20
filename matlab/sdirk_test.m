@@ -5,7 +5,7 @@ a=integral(@(x)bf(x).*bf(x),0,1)
 b=integral(@(x)bf(x),0,1)
 g=integral(@(x)(4*(1-2*x)).^2,0,1)
 D=1;
-v=1;
+v=1e3;
 nsf=1.1;sa=1;
 p=2;
 
@@ -24,13 +24,14 @@ rk.b=rk.a(rk.nstages,:);
 
 yold=0.25;
 
-tend=.1;
+tend=0.1;
 
-ntimes=[10 20 40 80 500];
+ntimes=[10 20 40 80 500 1000 5000 1e4 5e4 1e5];% 5e5];
 for iconv=1:length(ntimes)
     dt=tend/ntimes(iconv); 
     tn=0;
     yn=yold;
+    fprintf('%d/%d\n',iconv,length(ntimes));
     for it=1:ntimes(iconv)
         for i=1:rk.nstages
             ti = tn + rk.c(i)*dt;
@@ -51,6 +52,8 @@ plot( log10(tend./ntimes), log10(err), '+-' )
 % reference line y=Cx^s log(y) = log(C) + s log(x)
 % we pick one value of (x,y) to get C
 % the multiplier in front of C is used to shift the ref. line
-s=3;C=0.5*err(end)/(tend/ntimes(end))^s;
+nn=1; % 
+nn=length(err);
+s=3;C=0.5*err(nn)/(tend/ntimes(nn))^s;
 y=C*(tend./ntimes).^s;
 hold on;plot(log10(tend./ntimes), log10(y), 'r-')
