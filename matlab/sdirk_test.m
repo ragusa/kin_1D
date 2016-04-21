@@ -5,7 +5,7 @@ a=integral(@(x)bf(x).*bf(x),0,1);
 b=integral(@(x)bf(x),0,1);
 g=integral(@(x)(4*(1-2*x)).^2,0,1);
 D=1;
-v=1e2;
+v=1e4;
 nsf=1.1;sa=1;
 p=4;
 
@@ -13,6 +13,14 @@ A=-D*g+(nsf-sa)*a;
 IV=a/v;
 S =@(t) a/4/v*p*(1+t).^(p-1) + (1+t).^p*((sa-nsf)*a/4+2*D*b);
 ex=@(t)(1+t).^p/4;
+
+yinit=0.25;
+tend=55;
+
+do_bdf2=true;
+do_bdf3=true;
+
+ntimes=[10 20 40 80 500 1000 5000 1e4]; % 5e4 1e5];% 5e5];% 5e5];
 
 time_integration='sdirk4a';
 switch time_integration
@@ -76,17 +84,10 @@ switch time_integration
         error('this sdirk is not available');
 end
 
-yold=0.25;
-
-tend=5;
-
-do_bdf2=true;
-
-ntimes=[10 20 40 80 500 1000 5000 1e4 5e4 1e5];% 5e5];% 5e5];
 for iconv=1:length(ntimes)
     dt=tend/ntimes(iconv);
     tn=0;
-    yn=yold;
+    yn=yinit;
     fprintf('%d/%d\n',iconv,length(ntimes));
     y=zeros(rk.nstages,1); SS=y;
     for it=1:ntimes(iconv)
@@ -115,14 +116,17 @@ nn=length(err);
 s=rk.order; C=0.5*err(nn)/(tend/ntimes(nn))^s;
 y=C*(tend./ntimes).^s;
 hold all;plot(log10(tend./ntimes), log10(y), 'r-')
-
+leg=char(time_integration); 
+leg=char(leg,sprintf('slope %d',s)); 
 
 
 if do_bdf2
+    leg=char(leg,'BDF2'); 
+    leg=char(leg,sprintf('slope %d',2));
     for iconv=1:length(ntimes)
         dt=tend/ntimes(iconv);
         tn=0;
-        yn=yold;
+        yn=yinit;
         fprintf('%d/%d\n',iconv,length(ntimes));
         y=zeros(rk.nstages,1); SS=y;
         yolder=yn;
@@ -141,7 +145,7 @@ if do_bdf2
         err(iconv)=abs(yn-ex(tend));
     end
     
-    plot( log10(tend./ntimes), log10(err), '+-' )
+    plot( log10(tend./ntimes), log10(err), 'o-' )
     % slope_err = polyfit(log10(tend./ntimes), log10(err),1)
     % reference line y=Cx^s log(y) = log(C) + s log(x)
     % we pick one value of (x,y) to get C
@@ -154,3 +158,49 @@ if do_bdf2
     
 end
 
+
+
+if do_bdf3
+    leg=char(leg,'BDF3'); 
+    leg=char(leg,sprintf('slope %d',3));
+    for iconv=1:length(ntimes)
+        dt=tend/ntimes(iconv);
+        tn=0;
+        yn=yinit;
+        fprintf('%d/%d\n',iconv,length(ntimes));
+        y=zeros(rk.nstages,1); SS=y;
+        % first time step: CN
+        yn = (IV-dt/2*A)\ ( (IV+dt/2*A)*yn + dt/2*(S(tn)+S(tn+dt)));
+        tn = tn + dt;
+        % second time step: BDF2
+        yolder=yinit;
+        ynew = ( IV -2/3*dt*A) \ ( IV/3*(4*yn-yolder) +2/3*dt*S(tn+dt));
+        tn = tn + dt;
+        yoldest=yinit;
+        yolder=yn;
+        yn=ynew;
+        % other time steps: BDF3
+        for it=3:ntimes(iconv)
+            ynew = ( IV -6/11*dt*A) \ ( IV/11*(18*yn-9*yolder+2*yoldest) +6/11*dt*S(tn+dt));
+            tn = tn + dt;
+            yoldest=yolder;
+            yolder=yn;
+            yn=ynew;
+        end
+        err(iconv)=abs(yn-ex(tend));
+    end
+    
+    plot( log10(tend./ntimes), log10(err), 's-' )
+    % slope_err = polyfit(log10(tend./ntimes), log10(err),1)
+    % reference line y=Cx^s log(y) = log(C) + s log(x)
+    % we pick one value of (x,y) to get C
+    % the multiplier in front of C is used to shift the ref. line
+    nn=1; %
+    nn=length(err);
+    s=3; C=0.5*err(nn)/(tend/ntimes(nn))^s;
+    y=C*(tend./ntimes).^s;
+    hold all;plot(log10(tend./ntimes), log10(y), 'r-')
+    
+end
+
+legend(leg)
