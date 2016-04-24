@@ -11,21 +11,27 @@ global npar io
 % verbose/output parameters
 io.console_print         = false;
 io.plot_transient_figure = false;
-io.plot_power_figure     = false;
+io.plot_power_figure     = true;
 io.make_movie            = false;
 io.save_flux             = false;
-io.print_progress        = true;
+io.print_progress        = false;
 io.figID = 99;
 % one of the two choices for applying BC
 npar.set_bc_last=true;
 
 % select problem
-pbID=11; refinements=1;
+pbID=11; refinements=8;
 problem_init(pbID,refinements);
 
 % compute fundamental eigenmode
 curr_time=0;
-[phi0]=steady_state_eigenproblem(curr_time);
+if pbID~=12
+    [phi0]=steady_state_eigenproblem(curr_time);
+else
+    [phi0] = npar.phi_exact(npar.x_dofs',curr_time);
+    figure(77)
+    plot(npar.x_dofs,phi0)
+end
 
 % initialize kinetic values
 C0 = kinetics_init(phi0,curr_time);
@@ -44,10 +50,14 @@ t_end = 1.28;
 %%% MATLAB time discretization of
 %%%   the TD neutron diffusion eq and precursors eq
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-amplitude_norm_ref = reference_solution( t_end, u0);
+if pbID==12
+    amplitude_norm_ref = 0;
+else
+    amplitude_norm_ref = reference_solution( t_end, u0);
+end
 
-nn=5;
-ntimes = 2.^(0:nn-1)*4;
+nn=9;
+ntimes = 2.^(3:nn-1)*4;
 dt = t_end./ntimes;
 
 % Interpolation type of shape for IQS prke parameters
@@ -63,7 +73,7 @@ npar.iqs_prke_interpolation_method=2;
 % (see solve_TD_diffusion_an_prec)
 % Redefine near where the function is called below
 npar.an_interp_type='lagrange'; % This is just a place holder, actual definition is below
-
+    
 % Number of steps in history for lagrange interpolation of precursors for
 % analytical elimination precursors (see solve_TD_diffusion_an_prec)
 npar.interpolation_order=1;
@@ -84,8 +94,8 @@ npar.prec_solve_type = 'linear';
 i=0;
 % not to be used for conv. studies % i=i+1; list_runs{i}= 'brute_force_matlab';
 i=i+1; list_runs{i}= 'brute_force';
-i=i+1; list_runs{i}= 'brute_force_elim_prec';
-i=i+1; list_runs{i}= 'brute_force_an_prec';
+% i=i+1; list_runs{i}= 'brute_force_elim_prec';
+% i=i+1; list_runs{i}= 'brute_force_an_prec';
 % i=i+1; list_runs{i}= 'iqs_an_prec';
 % i=i+1; list_runs{i}= 'iqs_elim_prec';
 % % i=i+1; list_runs{i}= 'iqsPC_an_prec';

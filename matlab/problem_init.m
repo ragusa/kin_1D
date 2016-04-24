@@ -16,6 +16,8 @@ dat.beta_tot=600e-5;
 dat.lambda=0.1;
 dat.invvel=1e-3;
 
+dat.source_phi = @(x,t) 0;
+
 % assign function pointers to the various physical coeffcients
 switch problem_ID
     
@@ -145,6 +147,58 @@ switch problem_ID
         times = [dat.rod_mov.t_beg_1 dat.rod_mov.t_beg_2];
         dat.siga{2} = create_material_prop('ramp_in_time',[1.1 1.08],times,'constant_in_space',0);
         
+    case 12
+        % manufactured solution, one material, constant in space and time,
+        % no precursors
+        do_steady = false;
+        if do_steady
+            dat.invvel=dat.invvel*0; % use this for steady state
+        end
+        dat.beta_tot=dat.beta_tot*0;
+        b=dat.beta_tot;
+        iv=dat.invvel;
+        cdiff = 1.0;
+        Sa = 1.0;
+        nfSf = 1.1;        
+        dat.cdiff{1}   = create_material_prop('constant_in_time',cdiff    ,[],'constant_in_space',0);
+        dat.siga{1}    = create_material_prop('constant_in_time',Sa       ,[],'constant_in_space',0);
+        dat.nusigf{1}  = create_material_prop('constant_in_time',nfSf     ,[],'constant_in_space',0);
+        dat.nusigf_p{1}= create_material_prop('constant_in_time',1.1*(1-b),[],'constant_in_space',0);
+        dat.nusigf_d{1}= create_material_prop('constant_in_time',1.1*b    ,[],'constant_in_space',0);
+        dat.inv_vel{1} = create_material_prop('constant_in_time',iv       ,[],'constant_in_space',0);
+        dat.ext_src{1} = create_material_prop('constant_in_time',0        ,[],'constant_in_space',0);
+        dat.mass{1}   = create_material_prop('constant_in_time',1.0       ,[],'constant_in_space',0);
+        
+        n_regions=1;
+        region_width=1;
+        dat.width = region_width * n_regions;
+        
+        imat = ones(n_regions,1);
+        
+        syms x t
+        syms S_p(x,t) phi(x,t)
+        
+%         syms f(t) a(x,t) A(t)
+%         f(t) = (t+1)^5
+%         a(x,t) = sin(x*(1-x)*(t+1))
+%         A(t) = int(a(x,t),x,0,1)
+%         phi(x,t) = f(t)*a(x,t)/A(t);
+%         f(t) = (t+1)^0;
+%         a(x,t) = x*(1-x)*(x+t);
+%         A(t) = int(a(x,t),x,0,1);
+%         phi(x,t) = f(t)*a(x,t)/A(t);
+
+        phi(x,t) = x*(1-x)*(1+t)^5;
+        if do_steady
+            phi(x,t) = x*(1-x); % use this for steady state
+        end        
+        npar.phi_exact = matlabFunction(phi);
+        
+        S_p(x,t) = iv*diff(phi,t) + (Sa-nfSf)*phi - cdiff*diff(diff(phi,x),x);
+        dat.source_phi = matlabFunction(S_p);
+        clear x t S_p phi
+    
+    
     otherwise
         error('unknown problem ID ',problem_ID);
 end
@@ -173,7 +227,7 @@ npar.nel = nbr_refinements_per_region * n_regions ;
 % domain
 npar.x = linspace(0,dat.width,npar.nel+1);
 % polynomial degree
-npar.porder=1;
+npar.porder=2;
 % nbr of dofs per variable
 npar.ndofs = npar.porder*npar.nel+1;
 % n: linear system size
@@ -244,7 +298,17 @@ end
 dat.max_y_val_movie = 2.;
 
 % time integration
-time_integration=3;
+t_order=3;
+
+% npar.method = 'SDIRK';
+npar.method = 'BDF';
+
+if strcmp(npar.method,'SDIRK')
+    time_integration = t_order;
+    npar.bdf_order = 1;
+else
+    time_integration = 1;
+end
 switch time_integration
     case 1
         nstages=1;
@@ -267,6 +331,33 @@ switch time_integration
 end
 npar.rk.s=nstages;
 npar.rk.a=a; npar.rk.b=b; npar.rk.c=c;
+
+if strcmp(npar.method,'BDF')
+    a = zeros(t_order);
+    b = zeros(t_order,1);
+    for i = 1:t_order
+        switch i
+            case 1
+                a(i,1:i) = [1];
+                b(i) = 1;
+            case 2
+                a(i,1:i) = [-1/3 4/3];
+                b(i) = 2/3;
+            case 3
+                a(i,1:i) = [2/11 -9/11 18/11];
+                b(i) = 6/11;
+            case 4
+                a(i,1:i) = [-3/25 16/25 -36/25 48/25];
+                b(i) = 12/25;
+            otherwise
+                error('time integration %d not yet implemented',t_order);
+        end
+    end
+    npar.bdf.a=a;
+    npar.bdf.b=b;
+    npar.bdf_order = t_order;
+end
+            
 
 return
 end

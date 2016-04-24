@@ -84,12 +84,15 @@ lambda = dat.lambda;
 % gives (f=Qy+z)
 %  [I-aii.h.Q(ti)]Yi = yn + h.aii zi + h sum(j=1..i-1) ( aij {Q(tj)Yj + zj} )
 rk=npar.rk;
+if strcmp(npar.method,'BDF')
+    bdf = npar.bdf;
+end
 
 % beginning of the time interval
 time_beg = tn(end);
+order = length(tn);
 
 if strcmp(npar.an_interp_type,'lagrange')
-    order = length(tn);
     a = zeros(order+1,2);
 elseif strcmp(npar.an_interp_type,'hermite')
     i2 = zeros(npar.n,2); i3=i2;
@@ -124,6 +127,7 @@ for i=1:rk.s
     NFIp = assemble_mass(     dat.nusigf_p,ti) / npar.keff;
     IV   = assemble_mass(     dat.inv_vel ,ti);
     NFId_new = assemble_mass( dat.nusigf_d,ti) / npar.keff;
+    S    = assemble_source(   dat.source_phi,ti);
     
     % integrals for the analytical expressions for the precursors
     t2=ti;
@@ -134,7 +138,7 @@ for i=1:rk.s
     % flux-flux matrix
     TR=NFIp-(D+A);        
     % build rhs
-    zi =  lambda *( C_old*exp(-lambda*dti) );
+    zi =  lambda*(C_old*exp(-lambda*dti)) + S;
     
     if strcmp(npar.an_interp_type,'lagrange')
         for j=1:(order+1)
@@ -167,12 +171,23 @@ for i=1:rk.s
         
     end
     
-    % build system matrix
-    A = IV-rk.a(i,i)*dt*TR;
-    
-    rhs = IV*Phi_old(:,end) + rk.a(i,i)*dt *zi;
-    for j=1:rk.s-1
-        rhs = rhs + rk.a(i,j)*dt*K(:,j);
+    if strcmp(npar.method,'BDF')
+        % build system matrix
+        A = IV - dt*bdf.b(order)*TR;
+        % build rhs
+        rhs = 0;
+        for j=1:order
+            rhs = rhs + bdf.a(order,j)*Phi_old(:,j);
+        end
+        rhs = dt*bdf.b(order)*zi + IV*rhs;        
+    else
+        % build system matrix
+        A = IV-rk.a(i,i)*dt*TR;
+        % build rhs
+        rhs = IV*Phi_old(:,end) + rk.a(i,i)*dt *zi;
+        for j=1:rk.s-1
+            rhs = rhs + rk.a(i,j)*dt*K(:,j);
+        end
     end
     % apply BC
     if npar.set_bc_last
