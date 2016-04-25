@@ -11,7 +11,7 @@ global npar io
 % verbose/output parameters
 io.console_print         = false;
 io.plot_transient_figure = false;
-io.plot_power_figure     = false;
+io.plot_power_figure     = true;
 io.make_movie            = false;
 io.save_flux             = false;
 io.print_progress        = false;
@@ -94,7 +94,7 @@ npar.prec_solve_type = 'linear';
 i=0;
 % not to be used for conv. studies % i=i+1; list_runs{i}= 'brute_force_matlab';
 i=i+1; list_runs{i}= 'brute_force';
-% i=i+1; list_runs{i}= 'brute_force_elim_prec';
+i=i+1; list_runs{i}= 'brute_force_elim_prec';
 % i=i+1; list_runs{i}= 'brute_force_an_prec';
 % i=i+1; list_runs{i}= 'iqs_an_prec';
 % i=i+1; list_runs{i}= 'iqs_elim_prec';
