@@ -11,7 +11,7 @@ global npar io
 % verbose/output parameters
 io.console_print         = false;
 io.plot_transient_figure = false;
-io.plot_power_figure     = true;
+io.plot_power_figure     = false;
 io.make_movie            = false;
 io.save_flux             = false;
 io.print_progress        = false;
@@ -20,7 +20,7 @@ io.figID = 99;
 npar.set_bc_last=true;
 
 % select problem
-pbID=11; refinements=8;
+pbID=11; refinements=1;
 problem_init(pbID,refinements);
 
 % compute fundamental eigenmode
