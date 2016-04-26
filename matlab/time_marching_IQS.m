@@ -15,10 +15,11 @@ if io.make_movie
 end
 
 %initial stuff
-if strcmp(func2str(FUNHANDLE),'solve_IQS_diffusion_an_prec') && strcmp(npar.an_interp_type,'lagrange')
+order=1;
+if strcmp(npar.method,'BDF')
+    order = npar.bdf_order;
+elseif strcmp(func2str(FUNHANDLE),'solve_TD_diffusion_an_prec') && strcmp(npar.an_interp_type,'lagrange')
     order=npar.interpolation_order;
-else
-    order=1;
 end
 u_shape=zeros(length(u0),order+1);
 X = zeros(2,order+1);
@@ -109,6 +110,15 @@ if io.plot_power_figure
     plot_power_level( func2str(FUNHANDLE),...
         linspace(0,dt*ntimes,ntimes+1), amplitude_norm,...
         time_prke_iqs, power_prke_iqs );
+end
+
+if dat.PbID==12
+    if (strcmp(func2str(FUNHANDLE),'solve_IQS_PC_diffusion_an_prec') || ...
+    strcmp(func2str(FUNHANDLE),'solve_IQS_PC_diffusion_elim_prec'))
+        amplitude_norm = compute_L2norm(@(x) npar.phi_exact(x,time_end),         u_shape(1:npar.n,end))
+    else
+        amplitude_norm = compute_L2norm(@(x) npar.phi_exact(x,time_end),X(1,end)*u_shape(1:npar.n,end))
+    end
 end
 
 % output

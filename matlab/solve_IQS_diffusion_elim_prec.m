@@ -36,7 +36,7 @@ for iter = 1: max_iter_iqs
     if strcmpi(npar.prke_solve,'matlab')
         [X,w,t,y] =  solve_prke_ode(X_beg,dt_macro,time_end,shape_beg,shape_end);
     else
-        [X,dpdt,t,y] =  solve_prke_iqs(X_beg,dt_macro,time_end,shape_beg,shape_end,n_micro,freq_react);
+        [X,dpdt,t,y] =  solve_prke_iqs(X_beg,dt_macro,time_end,shape_beg,shape_end,npar.n_micro,npar.freq_react);
     end
     
     % interpolating polynomial

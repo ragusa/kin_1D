@@ -104,7 +104,7 @@ for i=1:rk.s
 end
 
 % save for hermite interp
-    dat.ode.f_end=f(:,rk.s);
+dat.ode.f_end=IV\f(:,rk.s);
 
 
 % re-package as single solution vector

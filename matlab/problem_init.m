@@ -298,7 +298,7 @@ end
 dat.max_y_val_movie = 2.;
 
 % time integration
-t_order=1;
+t_order=3;
 
 % npar.method = 'SDIRK';
 npar.method = 'BDF';

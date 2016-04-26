@@ -11,7 +11,7 @@ global npar io
 % verbose/output parameters
 io.console_print         = false;
 io.plot_transient_figure = false;
-io.plot_power_figure     = true;
+io.plot_power_figure     = false;
 io.make_movie            = false;
 io.save_flux             = false;
 io.print_progress        = false;
@@ -29,8 +29,6 @@ if pbID~=12
     [phi0]=steady_state_eigenproblem(curr_time);
 else
     [phi0] = npar.phi_exact(npar.x_dofs',curr_time);
-    figure(77)
-    plot(npar.x_dofs,phi0)
 end
 
 % initialize kinetic values
@@ -84,7 +82,8 @@ npar.hermite_prec_update=true;
 
 % Used of IQS_PC, determines how precursors are solved after diffusion
 % evaluation (see solve_IQS_PC_diffusion_elim_prec line 80)
-% 'none'   = runge-kutta revaluation
+% 'none'   = do not update precursor
+% 'rk'     = runge-kutta revaluation
 % 'linear' = linear interpolatin of shape
 % 'H2'     = quadratic hermite interpolation of shape
 % 'H3'     = cubic hermite interpolation of shape
@@ -93,12 +92,12 @@ npar.prec_solve_type = 'linear';
 
 i=0;
 % not to be used for conv. studies % i=i+1; list_runs{i}= 'brute_force_matlab';
-i=i+1; list_runs{i}= 'brute_force';
-i=i+1; list_runs{i}= 'brute_force_elim_prec';
-% i=i+1; list_runs{i}= 'brute_force_an_prec';
-% i=i+1; list_runs{i}= 'iqs_an_prec';
+% i=i+1; list_runs{i}= 'brute_force';
+% i=i+1; list_runs{i}= 'brute_force_elim_prec';
+i=i+1; list_runs{i}= 'brute_force_an_prec';
+i=i+1; list_runs{i}= 'iqs_an_prec';
 % i=i+1; list_runs{i}= 'iqs_elim_prec';
-% % i=i+1; list_runs{i}= 'iqsPC_an_prec';
+i=i+1; list_runs{i}= 'iqsPC_an_prec';
 % i=i+1; list_runs{i}= 'iqsPC_elim_prec';
 % i=i+1; list_runs{i}= 'iqs_theta_prec';
 % i=i+1; list_runs{i}= 'iqs';
@@ -157,7 +156,7 @@ for iconv=1:length(ntimes)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'iqs_an_prec')
         display('iqs_an_prec')
-        npar.an_interp_type='hermite';
+%         npar.an_interp_type='hermite';
         FUNHANDLE = @solve_IQS_diffusion_an_prec;
         [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
         iqs_an_prec.ampl(iconv)=a;

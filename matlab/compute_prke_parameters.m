@@ -1,4 +1,4 @@
-function [rho_MGT,beff_MGT]=compute_prke_parameters(curr_time,shape)
+function [rho_MGT,beff_MGT,q_MGT]=compute_prke_parameters(curr_time,shape)
 
 global dat npar
 
@@ -9,21 +9,24 @@ A    = assemble_mass(     dat.siga    ,curr_time);
 NFI  = assemble_mass(     dat.nusigf  ,curr_time) / npar.keff;
 NFId = assemble_mass(     dat.nusigf_d,curr_time) / npar.keff;
 IV   = assemble_mass(     dat.inv_vel ,curr_time);
+S    = assemble_source(   dat.source_phi,curr_time);
 
 IV   = apply_BC_mat_only(IV,npar.add_zero_on_diagonal);
 NFId = apply_BC_mat_only(NFId,npar.add_zero_on_diagonal);
+S    = apply_BC_vec_only(S);
 
 PmM = apply_BC_mat_only(NFI-D-A,npar.add_zero_on_diagonal);
 % rho  = phi_adjoint' * (NFI-D-A) * shape;
 rho  = phi_adjoint' * (PmM) * shape;
 beff = phi_adjoint' * NFId * shape;
 % MGT  = phi_adjoint' * IV * shape; % obviously, MGT = npar.K0 as well
-
+q    = phi_adjoint' * S;
 
 % rho_MGT  = rho/MGT;
 % beff_MGT = beff/MGT;
 rho_MGT  = rho/npar.K0;
 beff_MGT = beff/npar.K0;
+q_MGT    = q/npar.K0;
 
 % prec_MGT = phi_adjoint' * C / MGT; 
 % % obviously, this is the same as beff_MGT/dat.lambda because, at steady
