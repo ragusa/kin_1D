@@ -1,4 +1,4 @@
-function  [varargout] = time_marching_BF( dt, ntimes, u0, FUNHANDLE)
+function  [varargout] = time_marching_BF( dt, time_final, u0, FUNHANDLE)
 
 global dat npar io
 
@@ -15,36 +15,68 @@ if io.make_movie
 end
 
 % initial stuff
-if strcmp(func2str(FUNHANDLE),'solve_TD_diffusion_an_prec') && strcmp(npar.an_interp_type,'lagrange')
+if strcmp(func2str(FUNHANDLE),'solve_TD_diffusion_an_prec') && strcmp(npar.an_interp_type,'lagrange') && strcmp(npar.time_stepper,'constant')
     order=npar.interpolation_order;
 else
     order=1;
 end
+
 u=zeros(length(u0),order+1); u(:,end)=u0;
-t = 0:dt:ntimes*dt;
-amplitude_norm=ones(ntimes+1,1);
-Ptot = dat.Ptot*ones(ntimes+1,1);
+t=0;
+if strcmp(npar.time_stepper,'constant')
+    ntimes = time_final/dt;
+%     t = 0:dt:ntimes*dt;
+    amplitude_norm=ones(ntimes+1,1);
+    Ptot = dat.Ptot*ones(ntimes+1,1);
+    e_tol = 0.1;
+else
+    amplitude_norm=ones(2,1);
+    Ptot = dat.Ptot*ones(2,1);
+    e_tol = npar.time_tol;
+end
 
 dat.ode.f_beg=zeros(npar.n,1);
 dat.ode.f_end=zeros(npar.n,1);
 
 
 %%% loop on time steps %%%
-for it=1:ntimes
-    
-    time_end=it*dt;
-    if io.console_print, fprintf('time end = %g \n',time_end); end
-    
+time_end = 0;
+it = 0;
+while time_end < time_final
+    it = it+1;
     u(:,1:end-1) = u(:,2:end);
     
-    % solve time-dependent diffusion for flux
-    if it<order;
-        od = it;
-    else
-        od = order;
+    err = 1.0;
+    while err > e_tol
+        t(it+1) = t(it)+dt;
+        time_end=t(end);
+        if io.console_print, fprintf('time end = %g \n',time_end); end    
+
+        % solve time-dependent diffusion for flux
+        if it<order;
+            od = it;
+        else
+            od = order;
+        end
+        u(:,end) = FUNHANDLE(u(:,end-od:end-1),dt,t(it-od+2:it+1));
+
+        if strcmp(npar.time_stepper,'DT2')
+            u_half = FUNHANDLE(u(:,end-od:end-1),dt/2,(t(it)+t(it+1))/2);
+            u_half = FUNHANDLE(u_half,dt/2,t(it+1));
+            err_norm = compute_L2norm(u_half,u(:,end));
+            u_norm = compute_L2norm(zeros(size(u(:,end))),u(:,end));
+            u_half_norm = compute_L2norm(zeros(size(u_half)),u_half);
+            err = err_norm/max([u_norm u_half_norm]);
+            u(:,end) = u_half;
+            dt = dt * (e_tol/err)^(1/npar.rk.s);
+            if err <= e_tol && time_final<time_end+dt
+                dt = time_final - time_end;
+            end
+        else
+            err = 0.0;
+        end
     end
-    u(:,end) = FUNHANDLE(u(:,end-od:end-1),dt,t(it-od+2:it+1));
-    
+        
     % update data for hermite interpolation
     dat.ode.f_beg=dat.ode.f_end;
     
@@ -83,8 +115,7 @@ end
 
 % plot power level
 if io.plot_power_figure
-    plot_power_level( func2str(FUNHANDLE), ...
-        linspace(0,dt*ntimes,ntimes+1), amplitude_norm);
+    plot_power_level( func2str(FUNHANDLE), t, amplitude_norm);
 end
 
 % output

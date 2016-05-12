@@ -14,12 +14,13 @@ io.plot_transient_figure = true;
 io.plot_power_figure     = true;
 io.make_movie            = false;
 io.save_flux             = false;
+io.print_progress        = false;
 io.figID = 99;
 % one of the two choices for applying BC
 npar.set_bc_last=true;
 
 % select problem
-pbID=11; refinements=1;
+pbID=10; refinements=1;
 problem_init(pbID,refinements);
 
 % compute fundamental eigenmode
@@ -35,9 +36,17 @@ u=[phi0;C0];
 u0=u;
 
 % time steping data
+npar.time_stepper = 'DT2';
+% npar.time_stepper = 'constant';
 t_end = 1.25;
-ntimes=50;
-dt = t_end/ntimes;
+if strcmp(npar.time_stepper,'constant')
+    ntimes=50;
+    dt = t_end/ntimes;
+else
+    dt = 1e-6;
+    npar.time_tol = 1e-10;
+    npar.max_increase = 1.0e9;
+end
 % testing with another weighting function
 % npar.phi_adj = ones(length(npar.phi_adj),1);
 % npar.phi_adj(1)=0;
@@ -75,16 +84,16 @@ npar.prec_solve_type = 'linear';
 
 
 i=0;
-% not to be used for conv. studies % i=i+1; list_runs{i}= 'brute_force_matlab';
+i=i+1; list_runs{i}= 'brute_force_matlab';
 i=i+1; list_runs{i}= 'brute_force';
-i=i+1; list_runs{i}= 'brute_force_elim_prec';
-i=i+1; list_runs{i}= 'brute_force_an_prec';
-i=i+1; list_runs{i}= 'iqs_an_prec';
-i=i+1; list_runs{i}= 'iqs_elim_prec';
+% i=i+1; list_runs{i}= 'brute_force_elim_prec';
+% i=i+1; list_runs{i}= 'brute_force_an_prec';
+% i=i+1; list_runs{i}= 'iqs_an_prec';
+% i=i+1; list_runs{i}= 'iqs_elim_prec';
 % % i=i+1; list_runs{i}= 'iqsPC_an_prec';
-i=i+1; list_runs{i}= 'iqsPC_elim_prec';
+% i=i+1; list_runs{i}= 'iqsPC_elim_prec';
 % i=i+1; list_runs{i}= 'iqs_theta_prec';
-i=i+1; list_runs{i}= 'iqs';
+% i=i+1; list_runs{i}= 'iqs';
 % % npar.iqs_prke_interpolation_method=3
 
 % i=i+1; list_runs{i}= 'prke_initial_shape';
@@ -104,7 +113,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if should_I_run_this(list_runs,'brute_force')
     FUNHANDLE = @solve_TD_diffusion;
-    [brute_force.ampl, brute_force.Ptot]=time_marching_BF( dt, ntimes, u0, FUNHANDLE);
+    [brute_force.ampl, brute_force.Ptot]=time_marching_BF( dt, t_end, u0, FUNHANDLE);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% brute force discretization of
