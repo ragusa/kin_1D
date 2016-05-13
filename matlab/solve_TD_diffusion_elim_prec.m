@@ -49,9 +49,10 @@ for i=1:rk.s
         for j=1:order
             Ci = Ci + bdf.a(order,j)*C_old(:,j);
         end
-        deno = (1 + dt*bdf.b(order)*lambda)/bdf.b(order);
+        deno = (1 + dt*bdf.b(order)*lambda);
+        Ci = Ci/deno;
         % build transient matrix
-        TR = TR + dt*lambda/deno*NFId_new;
+        TR = TR + dt*bdf.b(order)*lambda/deno*NFId_new;
         % build sysetm matrix
         A = IV - dt*bdf.b(order)*TR;
         % build rhs
@@ -95,7 +96,11 @@ for i=1:rk.s
     % solve
     Phi_new = A\rhs;
     % finish Ci
-    Ci = Ci +  rk.a(i,i)*dt / deno * NFId_new*Phi_new;
+    if strcmp(npar.method,'BDF')
+        Ci = Ci +  bdf.b(order)*dt / deno * NFId_new*Phi_new;
+    else
+        Ci = Ci +  rk.a(i,i)*dt / deno * NFId_new*Phi_new;
+    end
     % save intermediate fluxes
     auxPhi(:,i)=Phi_new;
     % store for temp SDIRK quantities

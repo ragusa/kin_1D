@@ -1,4 +1,4 @@
-function [u_end, X,t,y] = solve_IQS_PC_diffusion_elim_prec(u,X,dt_macro,time_end)
+function [u_end, X,t,y] = solve_IQS_PC_diffusion_elim_prec(u,X,dt_macro,tn)
 
 global io dat npar
 
@@ -6,7 +6,8 @@ global io dat npar
 lambda = dat.lambda;
 C_old = u(npar.n+1:end);
 dt = dt_macro;
-time_beg = time_end-dt;
+time_end = tn(end);
+time_beg = time_end - dt_macro;
 
 max_iter_iqs = npar.max_iter_iqs;
 tol_iqs      = npar.tol_iqs;
@@ -14,18 +15,17 @@ tol_iqs      = npar.tol_iqs;
 npar.theta_old=[];
 
 % save values at beginning of macro time step: they are needed in the IQS iteration
-X_beg=X;
+X_beg=X(:,end);
 u_beg=u;
 % for clarity, I also single out the shape function at the beginning/end of the macro time step
 % IV   = assemble_mass(     dat.inv_vel ,time_end);
-z = (npar.phi_adj)'*npar.IV*u(1:npar.n)/npar.K0;
-shape_beg=u(1:npar.n)/z; dat.ode.shape_beg = shape_beg;
+z = (npar.phi_adj)'*npar.IV*u(1:npar.n,end)/npar.K0;
+shape_beg=u(1:npar.n,end)/z; dat.ode.shape_beg=shape_beg;
 
 for iter = 1: max_iter_iqs
     
     % solve time-dependent diffusion for flux
-    [u_end, auxphi] = solve_TD_diffusion_elim_prec(u_beg,dt_macro,time_end);
-%     [u_end] = solve_TD_diffusion_an_prec(u_beg,dt_macro,time_end);
+    [u_end, auxphi] = solve_TD_diffusion_elim_prec(u_beg,dt_macro,tn);
 
     % get a predicted value of the end flux
     flux_end = u_end(1:npar.n);
@@ -38,7 +38,6 @@ for iter = 1: max_iter_iqs
     % solve for amplitude function
     if strcmpi(npar.prke_solve,'matlab')
         [X,w,t,y] =  solve_prke_ode(X_beg,dt_macro,time_end,shape_beg,shape_end);
-%         [X,dpdt,t,y] =  solve_prke_ode_events(X_beg,dt_macro,time_end,shape_beg,shape_end);
     else
         [X,dpdt,t,y] =  solve_prke_iqs(X_beg,dt_macro,time_end,shape_beg,shape_end,npar.n_micro,npar.freq_react);
     end
@@ -77,6 +76,7 @@ for iter = 1: max_iter_iqs
     t1=time_beg;
     
     if strcmp(npar.prec_solve_type,'linear')
+        C_old = C_old(:,end);
         A1= @(t)( ((t2-t)/dt).^2      .*exp(-lambda*(t2-t)) .*p(t) );
         A2= @(t)( (t-t1).*(t2-t)/dt^2 .*exp(-lambda*(t2-t)) .*p(t) );
         A3= @(t)( ((t-t1)/dt).^2      .*exp(-lambda*(t2-t)) .*p(t) );
@@ -92,6 +92,7 @@ for iter = 1: max_iter_iqs
         C_new =  C_old*exp(-lambda*dt) + ( a1*NFId_old + a2*NFId_new )*shape_beg + ( a2*NFId_old + a3*NFId_new )*shape_end ;
         
     elseif strcmp(npar.prec_solve_type,'H2')
+        C_old = C_old(:,end);
         for k=1:dat.ode.nw
             Abeg{k}= @(t)( (t2-t)/dt.*t.^(dat.ode.nw-k).*exp(-lambda*(t2-t)) .*p(t) );
             Aend{k}= @(t)( (t-t1)/dt.*t.^(dat.ode.nw-k).*exp(-lambda*(t2-t)) .*p(t) );
@@ -107,6 +108,7 @@ for iter = 1: max_iter_iqs
             C_new = C_new + (abeg(k)*NFId_old + aend(k)*NFId_new)*w(:,k);
         end
     elseif strcmp(npar.prec_solve_type,'H3')
+        C_old = C_old(:,end);
         mat=[ t1^3 t1^2 t1 1; t2^3 t2^2 t2 1;  3*t1^2 2*t1 1 0; 3*t2^2 2*t2 1 0];
         rhs = [ shape_beg' ;shape_end' ; dat.ode.f_beg'; dat.ode.f_end'];
         % contains the w coefficients such that :
@@ -123,9 +125,13 @@ for iter = 1: max_iter_iqs
         NFId_new = assemble_mass(dat.nusigf_d,time_end)    / npar.keff ;
         
         C_new =  C_old*exp(-lambda*dt) + NFId_old*tmp(:,1) + NFId_new*tmp(:,2);
-    else
+    elseif strcmp(npar.prec_solve_type,'rk')
         time_beg=time_end-dt;
         rk=npar.rk;
+        if strcmp(npar.method,'BDF')
+            order = length(tn);
+            bdf = npar.bdf;
+        end
         for i=1:rk.s
             ti = time_beg + rk.c(i)*dt;
             NFId_new = assemble_mass( dat.nusigf_d,ti) / npar.keff;
@@ -137,19 +143,28 @@ for iter = 1: max_iter_iqs
             % get better flux
             flux_ti = shape_ti * p(ti);
             % prec
-            Ci = C_old;
-            for j=1:i-1
-                Ci = Ci + rk.a(i,j)*dt*fC(:,j);
-            end
-            Ci = Ci + rk.a(i,i)*dt * NFId_new*flux_ti;
-            deno = (1+lambda*rk.a(i,i)*dt);
-            Ci = Ci/deno;
-            % store for temp SDIRK quantities
-            if i<rk.s
-                fC(:,i)=-lambda*Ci + NFId_new*flux_ti;
+            if strcmp(npar.method,'BDF')
+                Ci = dt*bdf.b(order)/(1+dt*bdf.b(order)*lambda)*NFId_new*flux_ti;
+                for j=1:order
+                    Ci = Ci + bdf.a(order,j)*C_old(:,j);
+                end
+            else
+                Ci = C_old;
+                for j=1:i-1
+                    Ci = Ci + rk.a(i,j)*dt*fC(:,j);
+                end
+                Ci = Ci + rk.a(i,i)*dt * NFId_new*flux_ti;
+                deno = (1+lambda*rk.a(i,i)*dt);
+                Ci = Ci/deno;
+                % store for temp SDIRK quantities
+                if i<rk.s
+                    fC(:,i)=-lambda*Ci + NFId_new*flux_ti;
+                end
             end
         end
         C_new=Ci;
+    else
+        C_new= u_end(npar.n+1:end);
     end
     
     % re-package as single solution vector

@@ -1,11 +1,11 @@
-function [u_shape, X,t,y] = solve_IQS_diffusion_elim_prec(u_shape,X,dt_macro,time_end)
+function [u_shape, X,t,y] = solve_IQS_diffusion_elim_prec(u_shape,X,dt_macro,tn)
 
 global io dat npar
 
 % shortcuts
 lambda = dat.lambda;
 dt = dt_macro;
-C_old = u_shape(npar.n+1:end);
+C_old = u_shape(npar.n+1:end,:);
 
 max_iter_iqs = npar.max_iter_iqs;
 tol_iqs      = npar.tol_iqs;
@@ -14,16 +14,22 @@ npar.theta_old=[];
 % save values at beginning of macro time step: they are needed in the IQS iteration
 X_beg=X;
 % for clarity, I also single out the shape function at the beginning/end of the macro time step
-shape_beg=u_shape(1:npar.n);
-shape_end=shape_beg;
+shape_beg=u_shape(1:npar.n,:);
+shape_end=shape_beg(:,end);
 
 % SDIRK solve
 % Yi = yn + h sum_j aij f(tj,Yj)
 % gives (f=Qy+z)
 %  [I-aii.h.Q(ti)]Yi = yn + h.aii zi + h sum(j=1..i-1) ( aij {Q(tj)Yj + zj} )
 rk=npar.rk;
+if strcmp(npar.method,'BDF')
+    bdf = npar.bdf;
+    order = length(tn);
+end
+
 % beginning of the time interval
-time_beg = time_end - dt;
+time_end = tn(end);
+time_beg = time_end - dt_macro;
 % storage for temp SDIRK quantities (-lambda Ci + Bi Phii)
 f=zeros(length(shape_beg),rk.s);
 fC=f;
@@ -34,9 +40,9 @@ for iter = 1: max_iter_iqs
     
     % solve for amplitude function over the entire macro-step
     if strcmpi(npar.prke_solve,'matlab')
-        [X,w,t,y] =  solve_prke_ode(X_beg,dt_macro,time_end,shape_beg,shape_end);
+        [X,w,t,y] =  solve_prke_ode(X_beg(:,end),dt_macro,time_end,shape_beg(:,end),shape_end);
     else
-        [X,dpdt,t,y] =  solve_prke_iqs(X_beg,dt_macro,time_end,shape_beg,shape_end,npar.n_micro,npar.freq_react);
+        [X,dpdt,t,y] =  solve_prke_iqs(X_beg(:,end),dt_macro,time_end,shape_beg(:,end),shape_end,npar.n_micro,npar.freq_react);
     end
     
     % interpolating polynomial
@@ -74,31 +80,54 @@ for iter = 1: max_iter_iqs
         IV   = assemble_mass(     dat.inv_vel ,ti);
         Aiqs = assemble_mass(     dat.inv_vel ,ti) * dpdti/pi;
         NFId_new = assemble_mass( dat.nusigf_d,ti) / npar.keff;
+        S    = assemble_source(   dat.source_phi,ti)/pi;
         
         % flux-flux matrix
         TR=NFIp-(D+A+Aiqs);
         
-        % expressions for the precursors
-        % Ci = [ C_old + h aii FISdi.Phii + sum_{j<i} h aij(-lambda.Cj + FISdj.Phij)]/(1+lambda h aii)
-        % let fci = -lambda.Ci + FISdi.Phii
-        % in the above, Phii is the flux, not the shape since we are looking at the precursors eqs
-        Ci = C_old;
-        for j=1:i-1
-            Ci = Ci + rk.a(i,j)*dt*fC(:,j);
-        end
-        deno = (1+lambda*rk.a(i,i)*dt);
-        Ci = Ci/deno; % this is Ci without: h.aii.FISdi.Phii/deno
-        
-        % build transient matrix (divide lambda by p)
-        TR = TR + (lambda * ( rk.a(i,i)*dt / deno )) * NFId_new;
-        % build system matrix
-        A = IV-rk.a(i,i)*dt*TR;
-        
-        % build rhs (divide lambda by p)
-        zi = lambda/pi*Ci;
-        rhs = IV*shape_beg + rk.a(i,i)*dt *zi;
-        for j=1:i-1
-            rhs = rhs + rk.a(i,j)*dt*f(:,j);
+        if strcmp(npar.method,'BDF')
+            % expressions for the precursors
+            Ci = 0;
+            for j=1:order
+                Ci = Ci + bdf.a(order,j)*C_old(:,j);
+            end
+            deno = (1 + dt*bdf.b(order)*lambda);
+            Ci = Ci/deno;
+            % build transient matrix
+            TR = TR + dt*bdf.b(order)*lambda/deno*NFId_new;
+            % build sysetm matrix
+            A = IV - dt*bdf.b(order)*TR;
+            % build rhs
+            zi = lambda/pi*Ci+S;
+            rhs = 0;
+            for j=1:order
+                rhs = rhs + bdf.a(order,j)*shape_beg(:,j);
+            end
+            rhs = dt*bdf.b(order)*zi + IV*rhs;
+            
+        else
+            % expressions for the precursors
+            % Ci = [ C_old + h aii FISdi.Phii + sum_{j<i} h aij(-lambda.Cj + FISdj.Phij)]/(1+lambda h aii)
+            % let fci = -lambda.Ci + FISdi.Phii
+            % in the above, Phii is the flux, not the shape since we are looking at the precursors eqs
+            Ci = C_old;
+            for j=1:i-1
+                Ci = Ci + rk.a(i,j)*dt*fC(:,j);
+            end
+            deno = (1+lambda*rk.a(i,i)*dt);
+            Ci = Ci/deno; % this is Ci without: h.aii.FISdi.Phii/deno
+
+            % build transient matrix (divide lambda by p)
+            TR = TR + (lambda * ( rk.a(i,i)*dt / deno )) * NFId_new;
+            % build system matrix
+            A = IV-rk.a(i,i)*dt*TR;
+
+            % build rhs (divide lambda by p)
+            zi = lambda/pi*Ci;
+            rhs = IV*shape_beg + rk.a(i,i)*dt *zi;
+            for j=1:i-1
+                rhs = rhs + rk.a(i,j)*dt*f(:,j);
+            end
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         if npar.set_bc_last
@@ -109,7 +138,11 @@ for iter = 1: max_iter_iqs
         % solve for new shape_end
         shape_end = A\rhs;
         % finish Ci
-        Ci = Ci +  rk.a(i,i)*dt / deno * NFId_new*shape_end*pi;
+        if strcmp(npar.method,'BDF')
+            Ci = Ci +  bdf.b(order)*dt / deno * NFId_new*shape_end*pi;
+        else
+            Ci = Ci +  rk.a(i,i)   *dt / deno * NFId_new*shape_end*pi;
+        end
         % store for temp SDIRK quantities
         f(:,i)=TR*shape_end + zi;
         fC(:,i)=-lambda*Ci + NFId_new*shape_end*pi;
