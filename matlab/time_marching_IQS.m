@@ -1,4 +1,4 @@
-function  [varargout] = time_marching_IQS( dt, ntimes, u0, FUNHANDLE)
+function  [varargout] = time_marching_IQS( dt, time_final, u0, FUNHANDLE)
 
 global dat npar io
 
@@ -20,11 +20,21 @@ if strcmp(func2str(FUNHANDLE),'solve_IQS_diffusion_an_prec') && strcmp(npar.an_i
 else
     order=1;
 end
+
 u_shape=zeros(length(u0),order+1);
 X = zeros(2,order+1);
-tn = 0:dt:ntimes*dt;
-amplitude_norm=ones(ntimes+1,1);
-Ptot = dat.Ptot*ones(ntimes+1,1);
+tn=0;
+if strcmp(npar.time_stepper,'constant')
+    ntimes = time_final/dt;
+%     t = 0:dt:ntimes*dt;
+    amplitude_norm=ones(ntimes+1,1);
+    Ptot = dat.Ptot*ones(ntimes+1,1);
+    e_tol = 0.1;
+else
+    amplitude_norm=ones(2,1);
+    Ptot = dat.Ptot*ones(2,1);
+    e_tol = npar.time_tol;
+end
 
 % initial solution vector
  u_shape(:,end)=u0;
@@ -39,25 +49,62 @@ time_prke_iqs=[];
 power_prke_iqs=[];
 
 %%% loop on time steps %%%
-for it=1:ntimes
-    
-    time_end=it*dt;
-    if io.console_print, fprintf('time end = %g \n',time_end); end
-    
-    u_shape(:,1:end-1) = u_shape(:,2:end); 
+time_end = 0;
+it = 0;
+while time_end < time_final
+    it = it+1;
+    u_shape(:,1:end-1) = u_shape(:,2:end);
     X(:,1:end-1) = X(:,2:end);
-    % solve time-dependent diffusion for flux
-    if it<order;
-        od = it;
-    else
-        od = order;
+    f_beg=dat.ode.f_beg;
+    
+    err = 1.0;
+    while err > e_tol
+        tn(it+1) = tn(it)+dt;
+        time_end=tn(end);
+        if io.console_print, fprintf('time end = %g \n',time_end); end
+    
+        % solve time-dependent diffusion for flux
+        if it<order;
+            od = it;
+        else
+            od = order;
+        end
+
+        dat.ode.f_beg=f_beg;
+        
+        % solve time-dependent diffusion for flux
+        [u_shape(:,end),X(:,end),t,y] = FUNHANDLE(u_shape(:,end-od:end-1),X(:,end-od:end-1),dt,tn(it-od+2:it+1));
+        
+        if strcmp(npar.time_stepper,'DT2')
+            dt_old = dt;
+            [u_half,X_half,t1,y1] = FUNHANDLE(u_shape(:,end-od:end-1),X(:,end-od:end-1),dt/2,(tn(it)+tn(it+1))/2);
+            dat.ode.f_beg=dat.ode.f_end;
+            [u_half,X_half,t2,y2] = FUNHANDLE(u_half,X_half,dt/2,tn(it+1));
+            t = [t1; t2];
+            y = [y1; y2];
+            err_norm = compute_L2norm(u_half(1:npar.n),u_shape(1:npar.n,end));
+            shape_norm = compute_L2norm(zeros(size(u_shape(1:npar.n,end))),u_shape(1:npar.n,end));
+            shape_half_norm = compute_L2norm(zeros(size(u_half(1:npar.n))),u_half(1:npar.n));
+            err = err_norm/max([shape_norm shape_half_norm]);
+            u_shape(:,end) = u_half;
+            X(:,end) = X_half;
+            dt = dt * (e_tol/err)^(1/npar.rk.s);
+            if err <= e_tol
+                if time_final<time_end+dt
+                    dt = time_final - time_end;
+                end
+                if dt/dt_old > npar.max_increase
+                    dt = npar.max_increase*dt_old;
+                end
+            end
+        else
+            err = 0.0;
+        end
+    
     end
-    
-    % solve time-dependent diffusion for flux
-    [u_shape(:,end),X(:,end),t,y] = FUNHANDLE(u_shape(:,end-od:end-1),X(:,end-od:end-1),dt,tn(it-od+2:it+1));
-    
+
     % update data for hermite interpolation
-        dat.ode.f_beg=dat.ode.f_end;
+    dat.ode.f_beg=dat.ode.f_end;
 
     % plot/movie
     if io.plot_transient_figure
@@ -107,7 +154,7 @@ end
 % plot power level
 if io.plot_power_figure
     plot_power_level( func2str(FUNHANDLE),...
-        linspace(0,dt*ntimes,ntimes+1), amplitude_norm,...
+        tn, amplitude_norm,...
         time_prke_iqs, power_prke_iqs );
 end
 

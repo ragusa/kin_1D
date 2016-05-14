@@ -45,6 +45,7 @@ it = 0;
 while time_end < time_final
     it = it+1;
     u(:,1:end-1) = u(:,2:end);
+    f_beg=dat.ode.f_beg;
     
     err = 1.0;
     while err > e_tol
@@ -58,20 +59,31 @@ while time_end < time_final
         else
             od = order;
         end
+                
+        dat.ode.f_beg=f_beg;
+        
         u(:,end) = FUNHANDLE(u(:,end-od:end-1),dt,t(it-od+2:it+1));
 
         if strcmp(npar.time_stepper,'DT2')
+            dt_old = dt;
             u_half = FUNHANDLE(u(:,end-od:end-1),dt/2,(t(it)+t(it+1))/2);
+            dat.ode.f_beg=dat.ode.f_end;
             u_half = FUNHANDLE(u_half,dt/2,t(it+1));
-            err_norm = compute_L2norm(u_half,u(:,end));
-            u_norm = compute_L2norm(zeros(size(u(:,end))),u(:,end));
-            u_half_norm = compute_L2norm(zeros(size(u_half)),u_half);
-            err = err_norm/max([u_norm u_half_norm]);
+            err_norm = compute_L2norm(u_half(1:npar.n),u(1:npar.n,end));
+            phi_norm = compute_L2norm(zeros(size(u(1:npar.n,end))),u(1:npar.n,end));
+            phi_half_norm = compute_L2norm(zeros(size(u_half(1:npar.n))),u_half(1:npar.n));
+            err = err_norm/max([phi_norm phi_half_norm]);
             u(:,end) = u_half;
             dt = dt * (e_tol/err)^(1/npar.rk.s);
-            if err <= e_tol && time_final<time_end+dt
-                dt = time_final - time_end;
+            if err <= e_tol
+                if time_final<time_end+dt
+                    dt = time_final - time_end;
+                end
+                if dt/dt_old > npar.max_increase
+                    dt = npar.max_increase*dt_old;
+                end
             end
+            
         else
             err = 0.0;
         end
