@@ -38,14 +38,14 @@ u0=u;
 % time steping data
 npar.time_stepper = 'DT2';
 % npar.time_stepper = 'constant';
-t_end = 1.25;
+t_end = 2.0;
 if strcmp(npar.time_stepper,'constant')
     ntimes=50;
     dt = t_end/ntimes;
 else
     dt = 1e-5;
-    npar.time_tol = 1e-5;
-    npar.max_increase = 1.0e2;
+    npar.time_tol = 1e-2;
+    npar.max_increase = 1.0e3;
 end
 % testing with another weighting function
 % npar.phi_adj = ones(length(npar.phi_adj),1);

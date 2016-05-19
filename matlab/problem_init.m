@@ -244,7 +244,7 @@ end
 dat.max_y_val_movie = 2.;
 
 % time integration
-time_integration=3;
+time_integration=1;
 switch time_integration
     case 1
         nstages=1;

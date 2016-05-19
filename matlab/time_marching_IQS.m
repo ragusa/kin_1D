@@ -85,10 +85,10 @@ while time_end < time_final
             err_norm = compute_L2norm(u_half(1:npar.n),u_shape(1:npar.n,end));
             shape_norm = compute_L2norm(zeros(size(u_shape(1:npar.n,end))),u_shape(1:npar.n,end));
             shape_half_norm = compute_L2norm(zeros(size(u_half(1:npar.n))),u_half(1:npar.n));
-            err = err_norm/max([shape_norm shape_half_norm]);
+            err = err_norm/max([shape_norm shape_half_norm]) / dt;
             u_shape(:,end) = u_half;
             X(:,end) = X_half;
-            dt = dt * (e_tol/err)^(1/npar.rk.s);
+            dt = dt * (e_tol/err)^(1/(npar.rk.s));
             if err <= e_tol
                 if time_final<time_end+dt
                     dt = time_final - time_end;
