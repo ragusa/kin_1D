@@ -90,6 +90,9 @@ end
 
 if dat.PbID==12
     amplitude_norm = compute_L2norm(@(x) npar.phi_exact(x,time_end),u(1:npar.n,end))
+    [Cend] = assemble_source(npar.C_exact,time_end);
+
+    amplitude_norm = norm(Cend-u(npar.n+1:end,end),2)
 end
     
 % output

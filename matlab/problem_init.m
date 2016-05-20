@@ -17,6 +17,7 @@ dat.lambda=0.1;
 dat.invvel=1e-3;
 
 dat.source_phi = @(x,t) 0;
+dat.source_c   = @(x,t) 0;
 
 % assign function pointers to the various physical coeffcients
 switch problem_ID
@@ -150,11 +151,11 @@ switch problem_ID
     case 12
         % manufactured solution, one material, constant in space and time,
         % no precursors
-        do_steady = false;
+        do_steady = true;
         if do_steady
             dat.invvel=dat.invvel*0; % use this for steady state
         end
-        dat.beta_tot=dat.beta_tot*0;
+%         dat.beta_tot=dat.beta_tot*0;
         b=dat.beta_tot;
         iv=dat.invvel;
         cdiff = 1.0;
@@ -176,7 +177,7 @@ switch problem_ID
         imat = ones(n_regions,1);
         
         syms x t
-        syms S_p(x,t) phi(x,t)
+        syms S_p(x,t) phi(x,t) C(x,t) S_c(x,t)
         
 %         syms f(t) a(x,t) A(t)
 %         f(t) = (t+1)^5
@@ -188,15 +189,23 @@ switch problem_ID
 %         A(t) = int(a(x,t),x,0,1);
 %         phi(x,t) = f(t)*a(x,t)/A(t);
 
-        phi(x,t) = x*(1-x)*(1+t)^5;
+        phi(x,t) = x*(1-x)*(1+t)^2;
+        C(x,t) = x*(1-x)*(1+t)^1.2;
         if do_steady
             phi(x,t) = x*(1-x); % use this for steady state
         end        
         npar.phi_exact = matlabFunction(phi);
-        
-        S_p(x,t) = iv*diff(phi,t) + (Sa-nfSf)*phi - cdiff*diff(diff(phi,x),x);
+        npar.C_exact = matlabFunction(C);
+%         npar.C_exact = @(x,t) 0.*x.*t;
+                
+
+%         S_p(x,t) = iv*diff(phi,t) + (Sa-nfSf*(1-b))*phi - cdiff*diff(diff(phi,x),x) ;
+        S_p(x,t) = iv*diff(phi,t) + (Sa-nfSf*(1-b))*phi - cdiff*diff(diff(phi,x),x) -dat.lambda*C;
+        S_c(x,t) = diff(C,t) + dat.lambda *C -nfSf*b*phi;
         dat.source_phi = matlabFunction(S_p);
-        clear x t S_p phi
+        dat.source_c = matlabFunction(S_c);
+%         dat.source_c = @(x,t) 0.*x.*t;
+        clear x t S_p phi C S_c 
     
     
     otherwise
@@ -298,7 +307,7 @@ end
 dat.max_y_val_movie = 2.;
 
 % time integration
-t_order=3;
+t_order=2;
 
 % npar.method = 'SDIRK';
 npar.method = 'BDF';
