@@ -3,7 +3,7 @@ clear all; close all; clc;
 % exact solution for precusors: (1-x)*x*(1+t)^p = bf2(x)/4*(1+t)^p
 p=4;
 % pb data
-D=1; v=1e4;
+D=1; v=1e0;
 beta=0.001; nsf=1.1;sa=1;
 lambda=0.1;
 
@@ -13,38 +13,61 @@ bf1=@(x)(1-x).*(0.5-x)*2;
 bf3=@(x)x.*(x-0.5)*2;
 % middle basis function
 bf2=@(x)4*x.*(1-x);
+% derivative of the middle basis function
+dbf2=@(x)4*(1-2.*x);
+% second derivative of the middle basis function
+ddbf2=@(x)-8+0.*x;
+% temporal component
+f = @(t) (1+t)^p;
+dfdt = @(t) p*(1+t)^(p-1);
+
+% exact solution for flux and prec
+exact=@(x,t) f(t)*bf2(x);
 
 % fem entry for second basis function
-a=integral(@(x)bf2(x).*bf2(x),0,1);
-b=integral(@(x)bf2(x),0,1);
-g=integral(@(x)(4*(1-2*x)).^2,0,1);
-A=-D*g+(nsf*(1-beta)-sa)*a;
-IV=a/v;
+b2b2=integral(@(x)bf2(x).*bf2(x),0,1); % used for mass matrix of flux
+ddb2=integral(@(x)ddbf2(x).*bf2(x),0,1);
+grad2grad2 =integral(@(x)(dbf2(x)).^2,0,1);
+% matrix entry for the flux
+Aflx=-D*grad2grad2+(nsf*(1-beta)-sa)*b2b2;
+IV=b2b2/v;
 % source term for the flux equation after fem stuff
-S_flx =@(t) a/4/v*p*(1+t).^(p-1) + (1+t).^p*((sa-nsf*(1-beta))*a/4 + 2*D*b) + lambda*a/4*(1+t).^p;
+S_flx =@(t) b2b2/v*dfdt(t) - f(t)*((nsf*(1-beta)-sa)*b2b2 -D*ddb2) - f(t)*lambda*b2b2;
 % exact solution for the flux at x=0.5 ==> bf2(0.5)/4*(1+t)^p = (1+t)^p /4
-ex_flux=@(t)(1+t).^p/4;
 
-% source term for the precursors after fem stuff (precursors that are not coupled to flux, 1 and 3)
+% source term for the precursors after fem stuff (precursors that are not coupled to flux: 1 and 3)
+% exact solution for precursors x(1-x)*(1+t)^p = bf2(x)/4*(1+t)^p
 b1b2=integral(@(x)bf1(x).*bf2(x),0,1);
-S_p1 = @(t) p*(1+t).^(p-1)*b1b2/4 + (1+t).^p*lambda*b1b2/4;
-S_p2 = @(t) p*(1+t).^(p-1)*a/4    + (1+t).^p*lambda*a/4    -beta*nsf*a/4*(1+t).^p;
+S_p1 = @(t) dfdt(t)*b1b2 + f(t)*lambda*b1b2;
+S_p2 = @(t) dfdt(t)*b2b2 + f(t)*lambda*b2b2  - beta*nsf*b2b2*f(t);
 % no need for 3 equation because b1b2=b3b2
 b3b2=integral(@(x)bf3(x).*bf2(x),0,1);
-ex_p1=@(t)(1+t).^p *b1b2/4;
-ex_p2=@(t)(1+t).^p *a/4;
+ex_p1=@(t) f(t)*b1b2;
+ex_p2=@(t) f(t)*b2b2;
 
-yinit=[bf2(0.5)/4  b1b2/4 a/4]';
+% full exact solution
+ex = @(t) [ exact(0.5,t); ex_p2(t); ex_p1(t) ] ;
+
+% initial values: flux(x=0.5,t=0), p1(t=0)=int( bf1(x) exact_p1(x,t=0) dx,
+% same for p2
+yinit=ex (0.);
+
+% simulation end time
 tend=5;
 
-TD_matrix = [ IV 0 0 ; 0 1 0 ; 0 0 1];
-big_A = [ A lambda lambda ; beta*nsf*b1b2/4 -lambda 0; beta*nsf*a/4 0 -lambda]; 
-S_vec = @(t) [ S_flx(t) ; S_p1(t) ; S_p2(t) ];
+% size of size
+n=3;
+% create the time-deriviative part of the system matrix
+TD = [ IV 0 0 ; 0 1 0 ; 0 0 1];
+% create the steady-state part of the system matrix
+A = [ Aflx lambda 0 ; beta*nsf*b2b2 -lambda 0; 0 0 -lambda]; 
+% create the time-dependent rhs
+S_vec = @(t) [ S_flx(t) ; S_p2(t) ; S_p1(t) ];
 
 do_bdf2=true;
 do_bdf3=true;
 
-ntimes=[10 20 40 80 500 1000 5000 1e4]; % 5e4 1e5];% 5e5];% 5e5];
+ntimes=[10 20 40 80]; % 500 1000 5000 1e4]; % 5e4 1e5];% 5e5];% 5e5];
 
 time_integration='sdirk4a';
 switch time_integration
@@ -108,36 +131,39 @@ switch time_integration
         error('this sdirk is not available');
 end
 
+err=zeros(n,length(ntimes));
 for iconv=1:length(ntimes)
     dt=tend/ntimes(iconv);
     tn=0;
     yn=yinit;
     fprintf('%d/%d\n',iconv,length(ntimes));
-    y=zeros(rk.nstages,1); SS=y;
+    y=zeros(n,rk.nstages); SS=y;
     for it=1:ntimes(iconv)
         for i=1:rk.nstages
             ti = tn + rk.c(i)*dt;
-            SS(i)=S(ti);
-            rhs = IV*yn + dt*rk.a(i,i)*SS(i);
+            SS(:,i)=S_vec(ti);
+            rhs = TD*yn + dt*rk.a(i,i)*SS(:,i);
             for j=1:i-1
-                rhs = rhs + dt*rk.a(i,j)*(A*y(j)+SS(j));
+                rhs = rhs + dt*rk.a(i,j)*(A*y(:,j)+SS(:,j));
             end
-            y(i) = (IV -rk.a(i,i)*dt*A) \ rhs;
+            y(:,i) = (TD -rk.a(i,i)*dt*A) \ rhs;
         end
-        yn = y(end);
+        yn = y(:,end);
         tn = tn + dt;
     end
-    err(iconv)=abs(yn-ex(tend));
+    err(:,iconv)=abs(yn-ex(tend));
 end
 
-plot( log10(tend./ntimes), log10(err), '+-' )
+plot( log10(tend./ntimes), log10(err(1,:)), '+-' ); hold all
+plot( log10(tend./ntimes), log10(err(2,:)), '+-' ); hold all
+plot( log10(tend./ntimes), log10(err(3,:)), '+-' ); hold all
 % slope_err = polyfit(log10(tend./ntimes), log10(err),1)
 % reference line y=Cx^s log(y) = log(C) + s log(x)
 % we pick one value of (x,y) to get C
 % the multiplier in front of C is used to shift the ref. line
 nn=1; %
 nn=length(err);
-s=rk.order; C=0.5*err(nn)/(tend/ntimes(nn))^s;
+s=rk.order; C=0.5*err(3,nn)/(tend/ntimes(nn))^s;
 y=C*(tend./ntimes).^s;
 hold all;plot(log10(tend./ntimes), log10(y), 'r-')
 leg=char(time_integration); 
@@ -152,21 +178,20 @@ if do_bdf2
         tn=0;
         yn=yinit;
         fprintf('%d/%d\n',iconv,length(ntimes));
-        y=zeros(rk.nstages,1); SS=y;
         yolder=yn;
         % first time step: CN
         %         for it=1:ntimes(iconv)
-        yn = (IV-dt/2*A)\ ( (IV+dt/2*A)*yn + dt/2*(S(tn)+S(tn+dt)));
+        yn = (TD-dt/2*A)\ ( (TD+dt/2*A)*yn + dt/2*(S_vec(tn)+S_vec(tn+dt)));
         tn = tn + dt;
         %         end
         % other time steps: BDF2
         for it=2:ntimes(iconv)
-            ynew = ( IV -2/3*dt*A) \ ( IV/3*(4*yn-yolder) +2/3*dt*S(tn+dt));
+            ynew = ( TD -2/3*dt*A) \ ( TD/3*(4*yn-yolder) +2/3*dt*S_vec(tn+dt));
             tn = tn + dt;
             yolder=yn;
             yn=ynew;
         end
-        err(iconv)=abs(yn-ex(tend));
+        err(:,iconv)=abs(yn-ex(tend));
     end
     
     plot( log10(tend./ntimes), log10(err), 'o-' )
@@ -192,20 +217,19 @@ if do_bdf3
         tn=0;
         yn=yinit;
         fprintf('%d/%d\n',iconv,length(ntimes));
-        y=zeros(rk.nstages,1); SS=y;
         % first time step: CN
-        yn = (IV-dt/2*A)\ ( (IV+dt/2*A)*yn + dt/2*(S(tn)+S(tn+dt)));
+        yn = (TD-dt/2*A)\ ( (TD+dt/2*A)*yn + dt/2*(S_vec(tn)+S_vec(tn+dt)));
         tn = tn + dt;
         % second time step: BDF2
         yolder=yinit;
-        ynew = ( IV -2/3*dt*A) \ ( IV/3*(4*yn-yolder) +2/3*dt*S(tn+dt));
+        ynew = ( TD -2/3*dt*A) \ ( TD/3*(4*yn-yolder) +2/3*dt*S_vec(tn+dt));
         tn = tn + dt;
         yoldest=yinit;
         yolder=yn;
         yn=ynew;
         % other time steps: BDF3
         for it=3:ntimes(iconv)
-            ynew = ( IV -6/11*dt*A) \ ( IV/11*(18*yn-9*yolder+2*yoldest) +6/11*dt*S(tn+dt));
+            ynew = ( TD -6/11*dt*A) \ ( TD/11*(18*yn-9*yolder+2*yoldest) +6/11*dt*S_vec(tn+dt));
             tn = tn + dt;
             yoldest=yolder;
             yolder=yn;
