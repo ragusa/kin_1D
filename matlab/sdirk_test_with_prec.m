@@ -3,7 +3,7 @@ clear all; close all; clc;
 % exact solution for precusors: (1-x)*x*(1+t)^p = bf2(x)/4*(1+t)^p
 p=4;
 % pb data
-D=1; v=1e0;
+D=1; v=1e4;
 beta=0.001; nsf=1.1;sa=1;
 lambda=0.1;
 
@@ -31,8 +31,11 @@ grad2grad2 =integral(@(x)(dbf2(x)).^2,0,1);
 % matrix entry for the flux
 Aflx=-D*grad2grad2+(nsf*(1-beta)-sa)*b2b2;
 IV=b2b2/v;
-% source term for the flux equation after fem stuff
-S_flx =@(t) b2b2/v*dfdt(t) - f(t)*((nsf*(1-beta)-sa)*b2b2 -D*ddb2) - f(t)*lambda*b2b2;
+% source term for the flux equation after fem stuff (i.e., analytical src
+% term tested against bf2 and integrated over space:
+% recall: analytcial src term is: 
+%  1/v dfdt(t) b2(x) - [(nsf(1-beta)-sa)b2(x)+div(D.grad b2(x))]f(t)
+S_flx =@(t) b2b2/v*dfdt(t) - f(t)*((nsf*(1-beta)-sa)*b2b2 +D*ddb2) - f(t)*lambda*b2b2;
 % exact solution for the flux at x=0.5 ==> bf2(0.5)/4*(1+t)^p = (1+t)^p /4
 
 % source term for the precursors after fem stuff (precursors that are not coupled to flux: 1 and 3)
@@ -67,9 +70,9 @@ S_vec = @(t) [ S_flx(t) ; S_p2(t) ; S_p1(t) ];
 do_bdf2=true;
 do_bdf3=true;
 
-ntimes=[10 20 40 80]; % 500 1000 5000 1e4]; % 5e4 1e5];% 5e5];% 5e5];
+ntimes=[10 20 40 80 500 1000 5000 1e4 ]; % 5e4 1e5];% 5e5];% 5e5];
 
-time_integration='sdirk4a';
+time_integration='sdirk2a';
 switch time_integration
     case 'sdirk3'
         rk.nstages=3;
@@ -155,20 +158,22 @@ for iconv=1:length(ntimes)
 end
 
 plot( log10(tend./ntimes), log10(err(1,:)), '+-' ); hold all
-plot( log10(tend./ntimes), log10(err(2,:)), '+-' ); hold all
-plot( log10(tend./ntimes), log10(err(3,:)), '+-' ); hold all
+% plot( log10(tend./ntimes), log10(err(2,:)), '+-' ); hold all
+% plot( log10(tend./ntimes), log10(err(3,:)), '+-' ); hold all
 % slope_err = polyfit(log10(tend./ntimes), log10(err),1)
 % reference line y=Cx^s log(y) = log(C) + s log(x)
 % we pick one value of (x,y) to get C
 % the multiplier in front of C is used to shift the ref. line
 nn=1; %
-nn=length(err);
-s=rk.order; C=0.5*err(3,nn)/(tend/ntimes(nn))^s;
+nn=length(err(1,:));
+s=rk.order; C=0.5*err(1,nn)/(tend/ntimes(nn))^s;
 y=C*(tend./ntimes).^s;
 hold all;plot(log10(tend./ntimes), log10(y), 'r-')
-leg=char(time_integration); 
+leg=char(strcat(time_integration,'-flux')); 
+% leg=char(leg,strcat(time_integration,'-p2')); 
+% leg=char(leg,strcat(time_integration,'-p1')); 
 leg=char(leg,sprintf('slope %d',s)); 
-
+% legend(leg)
 
 if do_bdf2
     leg=char(leg,'BDF2'); 
@@ -194,20 +199,21 @@ if do_bdf2
         err(:,iconv)=abs(yn-ex(tend));
     end
     
-    plot( log10(tend./ntimes), log10(err), 'o-' )
+    plot( log10(tend./ntimes), log10(err(1,:)), 'o-' )
     % slope_err = polyfit(log10(tend./ntimes), log10(err),1)
     % reference line y=Cx^s log(y) = log(C) + s log(x)
     % we pick one value of (x,y) to get C
     % the multiplier in front of C is used to shift the ref. line
     nn=1; %
-    nn=length(err);
-    s=2; C=0.5*err(nn)/(tend/ntimes(nn))^s;
+    nn=length(err(1,:));
+    s=2; C=0.5*err(1,nn)/(tend/ntimes(nn))^s;
     y=C*(tend./ntimes).^s;
     hold all;plot(log10(tend./ntimes), log10(y), 'r-')
     
 end
 
-
+% legend(leg)
+% return
 
 if do_bdf3
     leg=char(leg,'BDF3'); 
@@ -235,17 +241,17 @@ if do_bdf3
             yolder=yn;
             yn=ynew;
         end
-        err(iconv)=abs(yn-ex(tend));
+        err(:,iconv)=abs(yn-ex(tend));
     end
     
-    plot( log10(tend./ntimes), log10(err), 's-' )
+    plot( log10(tend./ntimes), log10(err(1,:)), 's-' )
     % slope_err = polyfit(log10(tend./ntimes), log10(err),1)
     % reference line y=Cx^s log(y) = log(C) + s log(x)
     % we pick one value of (x,y) to get C
     % the multiplier in front of C is used to shift the ref. line
     nn=1; %
-    nn=length(err);
-    s=3; C=0.5*err(nn)/(tend/ntimes(nn))^s;
+    nn=length(err(1,:));
+    s=3; C=0.5*err(1,nn)/(tend/ntimes(nn))^s;
     y=C*(tend./ntimes).^s;
     hold all;plot(log10(tend./ntimes), log10(y), 'r-')
     
