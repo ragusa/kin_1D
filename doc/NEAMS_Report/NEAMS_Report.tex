@@ -1,4 +1,6 @@
-\documentclass[10pt]{scrartcl} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[12pt]{scrartcl} 
+%########################### Preferences #################################
 
 \usepackage{vmargin}
 \usepackage{color}
@@ -39,6 +41,9 @@
 \newcommand{\vn}{\vec{n}}
 \newcommand{\vel}{\vec{\mathrm{v}}}
 \newcommand{\adj}{\Phi^\dagger_0}
+\newcommand{\tcr}[1]{\textcolor{red}{#1}}
+\newcommand{\tcb}[1]{\textcolor{blue}{#1}}
+
 
 % ********* Caption Layout ************
 %\usepackage{ccaption} % allows special formating of the captions
@@ -49,12 +54,14 @@
 \setlength{\oddsidemargin}{1in}
 \setlength{\evensidemargin}{1in}
 \setlength{\textwidth}{6.5in}
+% ********* Header and Footer **********
+% This is something to play with forever. I use here the advanced settings of the KOMA script
 
-\title{Improved Quasi-Static Method}
-\subtitle{IQS Method Implemention for CFEM Diffusion in Rattlesnake}
+\title{Improved Quasi-Static Methods in RATTLESNAKE}
+\subtitle{Development and Implementation of Improved Quasi-Static (IQS) methods for time-dependent neutron diffusion and neutron transport solvers in RATTLESNAKE}
 \author{ \normalsize
   \textbf{Zachary M. Prince$^\dagger$, Jean C. Ragusa$^\dagger$, Yaqi Wang$^\star$} \\
-\normalsize $^\dagger$Department of Nuclear Engineering \\
+ \normalsize $^\dagger$Department of Nuclear Engineering \\
  \normalsize Texas A\&M University, College Station, TX, USA\\
  \normalsize $^\star$Idaho National Laboratory\\
  \normalsize \href{mailto:zachmprince@tamu.edu}{zachmprince@tamu.edu}, \href{jean.ragusa@tamu.edu}{jean.ragusa@tamu.edu}, \href{yaqi.wang@inl.gov}{yaqi.wang@inl.gov} 
@@ -71,105 +78,137 @@
 \rfoot{DRAFT}
 \cfoot{\thepage}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% boxes
+\usepackage{color}
+\definecolor{myblue}{rgb}{.8, .8, 1}
+\usepackage{empheq}
+
+\newlength\mytemplen
+\newsavebox\mytempbox
+
+\makeatletter
+\newcommand\mybluebox{%
+    \@ifnextchar[%]
+       {\@mybluebox}%
+       {\@mybluebox[0pt]}}
+
+\def\@mybluebox[#1]{%
+    \@ifnextchar[%]
+       {\@@mybluebox[#1]}%
+       {\@@mybluebox[#1][0pt]}}
+
+\def\@@mybluebox[#1][#2]#3{
+    \sbox\mytempbox{#3}%
+    \mytemplen\ht\mytempbox
+    \advance\mytemplen #1\relax
+    \ht\mytempbox\mytemplen
+    \mytemplen\dp\mytempbox
+    \advance\mytemplen #2\relax
+    \dp\mytempbox\mytemplen
+    \colorbox{myblue}{\hspace{1em}\usebox{\mytempbox}\hspace{1em}}}
+
+\makeatother
+
+%################ End Preferences, Begin Document #####################
+
+\pagestyle{plain} % on headers or footers on the first page
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% set relative directory for figures. can be changed at any time later with \renewcommand
+\newcommand{\FiguresDir}{./figs}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \maketitle
 \pagenumbering{arabic}
 
+\tcb{I will fix the cover page and page footers later}
+
+\tcb{I removed CFEM from the title}
+
+\tcr{you need Yaqi's concurrence since you list him as co-author}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Overview}
+\paragraph*{Abstract}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tcr{we need a short abstract}
+
+\pagebreak
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Theory}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \par
-The improved quasi-static (IQS) method is a transient spatial kinetics method that involves factorizing flux into space- and time-dependent components.  These components include the flux's power and shape. Power is time-dependent, while the shape is both space- and time-dependent.  However, the impetus of the method is the assumption that the shape is only weakly dependent on time; therefore, the shape may not require computation at every time step, invoking the “quasi-static” nature.
-\\ 
+The improved quasi-static (IQS) method \tcr{you need to give 3-4 references} is a transient spatial kinetics method that involves factorizing the neutron flux into a space- and time-dependent component (the shape) and a time-dependent component (the amplitude). The technique relies on the shape being less rapidly varying in time compared to the flux, hence
+requiring fewer shape computations or updates. 
+The IQS method has primarily been developped in the context of the neutron diffusion approximation \tcr{give refs}, but \tcr{cite sedat} provides an extension of the technique to transport, implemented in TDTORT. 
+The method has mostly being applied to neutron kinetics, without thermal-hydraulic feedback. In this report, we extend the IQS
+method in the context of transient multiphysics simulations.
+%The method These components include the flux's power and shape. Power is time-dependent, while the shape is both space- and time-dependent.  However, the impetus of the method is the assumption that the shape is only weakly dependent on time; therefore, the shape may not require computation at every time step, invoking the Աuasi-staticԠnature.
 
-In this Section, we recall the equations for the IQS method, starting from the standard multigroup diffusion equations written below:
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{IQS for Multigroup Diffusion Equations}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In this Section, we recall the equations for the IQS method, using the standard multigroup diffusion equations written below:
+\begin{subequations}
 \begin{align}
 \frac{1}{v^g} \frac{\partial \phi^g }{\partial t} =& \frac{\chi_p^g}{\keff} (1-\beta)\sum_{g'=1}^G  \nu^{g'} \Sigma_f^{g'} \phi^{g'} -  \left( -\div D^g \grad  + \Sigma_r^g \right) \phi^g  \nonumber \\
 &  + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \phi^{g'}  + \sum_{i=1}^I\chi_{d,i}^g\lambda_i C_i \ , \quad 1 \le g \le G 
 \label{eq:flux}
 \end{align}
 \be
-\frac{dC_i}{dt} = \frac{\beta_i}{k_{eff}}\sum_{g=1}^G\nu^{g} \Sigma_f^g \phi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
+\frac{dC_i}{dt} = \frac{\beta_i}{\keff}\sum_{g=1}^G\nu^{g} \Sigma_f^g \phi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
 \label{eq:precursor}
 \ee
-with
-\be
+\end{subequations}
+%
+Extension to the transport equations will be provided subsequently, once a concise operator notation has been introduced. 
+In the above equations, \tcr{give a long text naming each variables, for example: $\phi^g$ is the neutron flux in group $g$, the removal, fission, scattering cross sections are denoted by ...; the total delayed neutron fraction is 
+\[
 \beta = \sum_{i=1}^I \beta_{i} 
-\ee
+\]
+}
+Note that the prompt fission terms have been normalized by $\keff$, the eigenvalue of the initial state, as transient simulations are often carried out for initially critical reactors. The expressions for subcritical and source-driven problems are straightforward to derive but omitted in this report for brevity.
 
-Factorization is the most important step in the derivation of the IQS method. The factorization approach leads to a decomposition of the multigroup flux into the product of a time-dependent amplitude ($p$) and a space-/time-dependent multigroup shape ($\varphi^g$):
+The factorization approach in IQS leads to a decomposition of the multigroup flux into the product of a time-dependent amplitude ($p$) and a space-/time-dependent multigroup shape ($\varphi^g$):
 \be
 \phi^g(\vec{r},t)=p(t)\varphi^g(\vec{r},t)
 \ee
-Then the flux and precursor equations become:
+The factorization is not an approximation. Reporting it in the flux and precursor equations yields, after some simple algebra, the following equations for the shape and the precursors:
+\begin{subequations}
 \begin{align}
-\frac{1}{v^g}\left(\frac{dp}{dt}\varphi^g + p\frac{\partial \varphi^g}{\partial t}\right) =&\frac{\chi_p^g}{k_{eff}}(1-\beta) \sum_{g'=1}^G  \nu^{g'} \Sigma_f^{g'} p \varphi^{g'} - \left( -\div D^g \grad  + \Sigma_r^g \right)p \varphi^g \nonumber \\
-&  + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} p \varphi^{g'}  + \sum_{i=1}^I\chi_{d,i}^g\lambda_i C_i \ , \quad 1 \le g \le G 
-\label{eq:shape}
+\frac{1}{v^g}\frac{\partial\varphi^g}{\partial t} = &\frac{\chi_p^g}{\keff} (1-\beta)\sum_{g'=1}^G  \nu^{g'} \Sigma_f^{g'} \varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'} \nonumber \\ 
+& -  \left( -\div D^g \grad  + \Sigma_r^g + \frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\right) \varphi^g + \frac{1}{p}\sum_{i=1}^I\chi_{d,i}^g\lambda_iC_i  , \quad 1 \le g \le G 
+\label{eq:shape2}
 \end{align}
 \be
-\frac{dC_i}{dt} = \frac{\beta_i}{k_{eff}}\sum_{g=1}^G\nu^{g} \Sigma_f^g p \varphi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
-\label{eq:prec}
+\frac{dC_i}{dt} = \frac{\beta_i}{\keff}p \sum_{g=1}^G\nu^{g} \Sigma_f^g \varphi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
+\label{eq:preq2}
 \ee
+\end{subequations}
 
-PRKE formulation (amplitude equations):
+We note that the time-dependent shape equation is similar to the time-dependent flux, with the following modifications:
+\begin{enumerate}
+\item the shape equation contains an additional term equivalent to a removal cross section,  $ \frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}$,
+\item the delayed neutron source term is divided by $p$,
+\item the system of equations is now nonlinear due to the factorization,
+\item an equation is needed to obtain the amplitude $p$.
+\end{enumerate}
 
-\begin{align}
-\sum_{g=1}^G\int_D &\left[\frac{1}{v^g}\left(\frac{dp}{dt}\varphi^g + p\frac{\partial \varphi^g}{\partial t}\right)\right]w^gd^3r =  \nonumber \\
-& \sum_{g=1}^G\int_D\left[\frac{\chi_p^g}{k_{eff}} (1-\beta)\sum_{g'=1}^G  \nu^{g'} \Sigma_f^{g'} p \varphi^{g'} - \left( -\div D^g \grad  + \Sigma_r^g \right)p \varphi^g\right]w^gd^3r   \\ 
- +&\sum_{g=1}^G\int_D \left[\sum_{g'\neq g}^G\Sigma_s^{g'\to g} p \varphi^{g'}  + \sum_{i=1}^I\chi_{d,i}^g\lambda_i C_i\right]w^gd^3r \ , \quad 1 \le g \le G  \nonumber
-\end{align}
-\be 
-\int_D\frac{dC_i}{dt}\sum_{g=1}^G\chi_{d,i}^gw^gd^3r = \int_D \frac{\beta_i}{k_{eff}}\left[\sum_{g=1}^G\left(\sum_{g'=1}^G\nu^{g'} \Sigma_f^{g' }\varphi^{g'} - \lambda_i C_i \right)\chi_{d,i}^g w^g\right]d^3r \ , \quad 1 \le i \le I 
-\ee
-
-It can be shown that the most appropriate weighting function $(w^g)$ is the initial adjoint flux $(\phi^{*g})$.  For brevity, the following definition will be applied: $\int_D\phi^{*g}(\vec{r})f(\vec{r})d^3r=\left(\phi^{*g},f\right)$
-\begin{align}
-& \quad \frac{dp}{dt}\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)+ p\frac{d}{dt}\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)= \nonumber \\
-& p\sum_{g=1}^G\left(\phi^{*g},\frac{\chi_p^g}{k_{eff}}(1-\beta) \sum_{g'=1}^G  \nu^{g'} \Sigma_f^{g'} \varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'} - \left( -\div D^g \grad  + \Sigma_r^g \right) \varphi^g\right)  \\
-& + \sum_{i=1}^I\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g\lambda_i C_i) \nonumber
-\end{align}
-\be
-\frac{d}{dt}\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^gC_i)=\frac{1}{k_{eff}}\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g\beta_i\sum_{g'=1}^G\nu^{g'} \Sigma_f^{g' }\varphi^{g'})p - \sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g\lambda_iC_i) \quad 1 \le i \le I 
-\ee
-
-In order to impose uniqueness of the factorization, one imposes:
-\be
-\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)=constant
-\ee
-
-Therefore the PRKE formulation reduces to:
-\begin{align}
-\frac{dp}{dt}= &\frac{\sum_{g=1}^G\left(\phi^{*g},\frac{\chi_p^g}{k_{eff}}(1-\beta) \sum_{g'=1}^G  \nu^{g'} \Sigma_f^{g'} \varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g}  \varphi^{g'} - \left( -\div D^g \grad  + \Sigma_r^g \right) \varphi^g\right)}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}p \nonumber \\ 
-& +\sum_{i=1}^I\frac{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g\lambda_i C_i)}{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^gC_i)}\xi_i
-\end{align}
-\be
-\frac{d\xi_i}{dt}=\frac{1}{k_{eff}}\frac{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g\beta_i\sum_{g'=1}^G\nu^{g'} \Sigma_f^{g' }\varphi^{g'})}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}p - \frac{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g\lambda_iC_i)}{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^gC_i)}\xi_i \quad 1 \le i \le I 
-\ee
-Where:
-\be
-\xi_i=\frac{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g C_i)}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}
-\ee
-
-It is convenient to define the effective reactivity, delay-neutron fraction, and delayed-neutron precursor decay constant:
-\be
-\frac{\rho-\bar{\beta}}{\Lambda}=\frac{ \sum_{g=1}^G\left(\phi^{*g},\frac{\chi_p^g}{k_{eff}}(1-\beta)\sum_{g'=1}^G \nu^{g'} \Sigma_f^{g'}\varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'} -\left( -\div D^g \grad  + \Sigma_r^g \right)\varphi^g\right)}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}
-\label{eq:rmb}
-\ee
-\be
-\frac{\bar{\beta}}{\Lambda}=\sum_{i=1}^I\frac{\bar{\beta}_i}{\Lambda}=\sum_{i=1}^I\frac{1}{k_{eff}}\frac{\sum_{g=1}^G(\phi^{*g}, \chi_{d,i}^g\beta_i\sum_{g'=1}^G\nu^{g'} \Sigma_f^{g' }\varphi^{g'})}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}
-\label{eq:b}
-\ee
-\be
-\bar{\lambda}_i=\frac{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g\lambda_i C_i)}{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^gC_i)}
-\label{eq:l}
-\ee
-
-So:
+To derive the amplitude equation (also known as the PRKE equations), the shape/precursors equations are weighed by a space-dependent function (typically the initial adjoint flux, $\phi^{*g}$) and integrated over the phase-space. The final expressions are given below (the derivations are given in appendix for the interested reader).
+\begin{subequations}
 \be
 \frac{dp}{dt}=\left[\frac{\rho-\bar{\beta}}{\Lambda}\right]p+\sum_{i=1}^I\bar{\lambda}_i\xi_i
 \label{eq:p}
@@ -178,28 +217,33 @@ So:
 \frac{d\xi_i}{dt}=\frac{\bar{\beta}_i}{\Lambda}-\bar{\lambda}_i\xi_i \quad 1 \le i \le I 
 \label{eq:c}
 \ee
-
-Equations (\ref{eq:p}) and (\ref{eq:c}) are a formulation of the point reactor kinetics equation (PRKE), but the parameters (Equations (\ref{eq:rmb})-(\ref{eq:l})) are dependent on the shape.  If the assumption is made that the shape is time-independent, the shape is computed once at the first time step and used for the PRKE parameter evaluation at all other steps.  However, if the shape is dependent on time, the shape needs to be computed in transient using equation (\ref{eq:shape}) and (\ref{eq:prec}) in order retain accuracy.  Equations (\ref{eq:shape2}) and (\ref{eq:preq2}) shows the usual form of the shape and precursor equations with amplitude put on the right hand side.  Equation (\ref{eq:shape2}) is very similar to the multigroup flux equation (\ref{eq:flux}), except the removal cross-section term is augmented by a $\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}$ term and the precursor contribution has a $\frac{1}{p}$ mulitiplier.  Equation (\ref{eq:preq2}) is very similar to the normal precursor equation (\ref{eq:precursor}), except the fission source term is multiplied by $p$.  These differences are crucial for IQS implementation in Rattlesnake.
-
-\begin{align}
-\frac{1}{v^g}\frac{\partial\varphi^g}{\partial t} = &\frac{\chi_p^g}{\keff} (1-\beta)\sum_{g'=1}^G  \nu^{g'} \Sigma_f^{g'} \varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'} \nonumber \\ 
-& -  \left( -\div D^g \grad  + \Sigma_r^g + \frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\right) \varphi^g + \frac{1}{p}\sum_{i=1}^I\chi_{d,i}^g\lambda_iC_i  , \quad 1 \le g \le G 
-\label{eq:shape2}
-\end{align}
+\end{subequations}
+where we haved define the reactivity, effective delayed-neutron fraction, and delayed-neutron precursor decay constant as follows:
+\begin{subequations}
 \be
-\frac{dC_i}{dt} = \frac{\beta_i}{k_{eff}}p \sum_{g=1}^G\nu^{g} \Sigma_f^g \varphi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
-\label{eq:preq2}
+\frac{\rho-\bar{\beta}}{\Lambda} = 
+\frac{ \sum_{g=1}^G\left(\phi^{*g},\frac{\chi_p^g}{\keff}(1-\beta)\sum_{g'=1}^G \nu^{g'} \Sigma_f^{g'}\varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'} -\left( -\div D^g \grad  + \Sigma_r^g \right)\varphi^g\right)}
+{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}
+\label{eq:rmb}
 \ee
+\be
+\frac{\bar{\beta}}{\Lambda} = \sum_{i=1}^I\frac{\bar{\beta}_i}{\Lambda} = 
+\sum_{i=1}^I\frac{1}{\keff}\frac{\sum_{g=1}^G(\phi^{*g}, \chi_{d,i}^g\beta_i\sum_{g'=1}^G\nu^{g'} \Sigma_f^{g' }\varphi^{g'})}
+{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}
+\label{eq:b}
+\ee
+\be
+\bar{\lambda}_i = \frac{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g\lambda_i C_i)}{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^gC_i)}
+\label{eq:l}
+\ee 
+\end{subequations}
+The following inner product definition has been used: $\left(\phi^{*g},f\right):=\int_D\phi^{*g}(\vec{r})f(\vec{r})d^3r$.
 
-%\begin{align}
-%& \quad \sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\frac{\partial\varphi^g}{\partial t}\right)= \nonumber \\ 
-%&\sum_{g=1}^G\left(\phi^{*g},\frac{\chi_p^g}{\keff} \sum_{g'=1}^G (1-\beta) \nu^{g'} \Sigma_f^{g'} \varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'} -  \left( -\div D^g \grad  + \Sigma_r^g + \frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\right) \varphi^g\right) \\
-%&+\frac{1}{p}\sum_{i=1}^I\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g\lambda_iC_i) \nonumber
-%\end{align}
+
 
 Computing this shape can become expensive, especially in two or three dimensions.  Subsequently, it is attractive to make the assumption that the shape is weakly time-dependent so the shape can be computed after a multitude of PRKE calculations which is the root of IQS.  To visualize:
 \begin{figure}[!htbp]
-\includegraphics[width=\linewidth]{IQS_visualization.jpg}
+\includegraphics[width=\linewidth]{\FiguresDir/IQS_visualization.jpg}
 \caption{IQS method visualization}
 \end{figure}
 
@@ -237,7 +281,7 @@ The advantage to the predictor-corrector method is there is no iteration necessa
 This section will explain how, thus far, IQS has been implemented in Rattlesnake. 
  
 \subsection{Executioner}
-The IQS executioner derives from the Transient executioner in MOOSE.  The IQS executioner contains a loop over micro time steps that computes the PRKE and then passes $p$ and $\frac{dp}{dt}$ for the Transient executioner to evaluate the shape equation at each macro step.  The PRKE is computed with a user specified option of backward-Euler, Crank-Nicolson, or SDIRK33.   The IQS executioner also supplements Transient’s Picard iteration process by adding its own error criteria:
+The IQS executioner derives from the Transient executioner in MOOSE.  The IQS executioner contains a loop over micro time steps that computes the PRKE and then passes $p$ and $\frac{dp}{dt}$ for the Transient executioner to evaluate the shape equation at each macro step.  The PRKE is computed with a user specified option of backward-Euler, Crank-Nicolson, or SDIRK33.   The IQS executioner also supplements Transient Picard iteration process by adding its own error criteria:
 \be
 Error_{IQS}=\left|\frac{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^{g,n}\right)}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^{g,0}\right)}-1\right|
 \ee
@@ -269,7 +313,7 @@ using, for simplicity, a single neutron group and a single precursor group.
 First, we note that we could keep this system of two time-dependent equations and solve it as a coupled system. 
 However, this is unnecessary and a memory expensive endeavor because the precursor equation is only an ODE and not a PDE. 
 Instead, one may discretize in time the shape equation, which typically requires the knowledge of the
-precursor concentrations at the end of the time step. This precursor value is taken from the solution, numerical or anlaytical,
+precursor concentrations at the end of the time step. This precursor value is taken from the solution, numerical or analytical,
 of the precursors ODE. This document will discuss two techniques for solving the precursor equation.  First is a time discretization method that is currently being implemented in Rattlesnake.  The second is a analytical integration of the precursors, the latter method has proven to be more beneficial for IQS convergence.
 
 
@@ -360,7 +404,7 @@ In order to preserve the already implemented standard version of IQS, an option 
 \ee
 
 \subsection{Input}
-The input deck for IQS is very similar to the current transient diffusion input file.  The IQS input has a different executioner type and parameters.  The executioner type is simply “IQS” and input parameters include number of micro time steps, IQS error tolerance, and initial power.  The Rattlesnake transient action system currently requires a multi-app and transfer to compute and pass the initial $\phi$ and $k_{eff}$, which is present in the transient input deck.  However, IQS also requires an initial evaluation of the adjoint flux, for the weighting function.  So another input file was made for the adjoint calculation, as well as including another multi-app and transfer in the IQS input deck.
+The input deck for IQS is very similar to the current transient diffusion input file.  The IQS input has a different executioner type and parameters.  The executioner type is simply ԉQSԠand input parameters include number of micro time steps, IQS error tolerance, and initial power.  The Rattlesnake transient action system currently requires a multi-app and transfer to compute and pass the initial $\phi$ and $\keff$, which is present in the transient input deck.  However, IQS also requires an initial evaluation of the adjoint flux, for the weighting function.  So another input file was made for the adjoint calculation, as well as including another multi-app and transfer in the IQS input deck.
 
 \subsection{Unintended Contributions}
 The implementation of IQS in Rattlesnake put pressure on many features of Rattlesnake and MOOSE that reveled bugs and possible improvement.  Two significant issues in Rattlesnake that were found involved the adjoint solve and the diffusion fission kernel.  When testing IQS, it was found that the adjoint flux solution was not the same as the forward flux solution in a single group test, which is obviously invalid.  Also, when investigating which action to include the IQS kernel in, it turned out that the fission diffusion kernel was placed in the neutron transport action, so this kernel was demoted to the neutron diffusion actions for clarity.  Additionally, the pressure on the save in feature in MOOSE propagated its application to boundary conditions and initial solves.  MOOSE also updated its ability to restart dense vector data and to set MooseApp executioner right after executioner is created.  Merge requests: \#5474, \#5489, \#5495, and \#5497
@@ -481,14 +525,14 @@ $\Sigma_{a,4} (cm^{-1})$ & 1.1 & 1.1 & 1.105 & 1.105 & 1.105 \\
 Figure \ref{fig:power} shows the power at each macro time step as compared to the traditional brute force (full flux time discretization) method.  The strong correlation between the two curves shows that IQS is consistent with a proven method for a highly transient example.  Figure \ref{fig:conv} shows that IQS is not only consistent for this example, but also has a better error constant in the convergence study.  Figures \ref{fig:initial} - \ref{fig:final} plots shape changes in the IQS method, showing where the shape solution is necessary and a simple PRKE evaluation is inadequate.  Figure \ref{fig:conv} shows the error convergence for brute force and IQS methods.  This plot shows that IQS has consistent convergence slope for first and second order time schemes and that IQS has a better error constant for the convergence.  Table \ref{tab:1Ddt2} shows the results for time adaptation.  These results show that traditional IQS does not perform well with step doubling time adaptation and IQS P-C performs moderately better than brute force.
 
 \begin{figure}[!htbp]
-\includegraphics[width=\linewidth]{1D_het_power_plot.png}
+\includegraphics[width=\linewidth]{\FiguresDir/1D_het_power_plot.png}
 \caption{Power level of 1D heterogeneous example using IQS and Brute Force with $\Delta t = 0.025$}
 \label{fig:power}
 \end{figure}
 
 \begin{figure}[!htbp]
 \begin{center}
-\includegraphics[width=5in,height=2in]{initial_flux.jpg}
+\includegraphics[width=5in,height=2in]{\FiguresDir/initial_flux.jpg}
 \caption{Initial Flux Plot}
 \label{fig:initial}
 \end{center}
@@ -496,7 +540,7 @@ Figure \ref{fig:power} shows the power at each macro time step as compared to th
 
 \begin{figure}[!htbp]
 \begin{center}
-\includegraphics[width=5in,height=2in]{max_flux.jpg}
+\includegraphics[width=5in,height=2in]{\FiguresDir/max_flux.jpg}
 \caption{Flux Plot when Absorption Cross Section is at Minimum}
 \label{fig:max}
 \end{center}
@@ -504,7 +548,7 @@ Figure \ref{fig:power} shows the power at each macro time step as compared to th
 
 \begin{figure}[!htbp]
 \begin{center}
-\includegraphics[width=5in,height=2in]{final_flux.jpg}
+\includegraphics[width=5in,height=2in]{\FiguresDir/final_flux.jpg}
 \caption{Final Flux Computation (not steady-state)}
 \label{fig:final}
 \end{center}
@@ -512,7 +556,7 @@ Figure \ref{fig:power} shows the power at each macro time step as compared to th
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=5in]{1D_het_convergence.jpg}
+\includegraphics[width=5in]{\FiguresDir/1D_het_convergence.jpg}
 \caption{Error convergence comparison of 1D hetergenous example}
 \label{fig:conv}
 \end{figure}
@@ -547,7 +591,7 @@ This benchmark problem originates from the Argonne National Lab Benchmark Proble
 
 \begin{figure}[!htbp]
 \begin{center}
-\includegraphics[width=0.75\textwidth]{TWIGL_regions.jpg}
+\includegraphics[width=0.75\textwidth]{\FiguresDir/TWIGL_regions.jpg}
 \caption{TWIGL benchmark problem description}
 \label{fig:TWIGL_reg}
 \end{center}
@@ -584,7 +628,7 @@ Figures \ref{fig:TWIGL_power} and \ref{fig:TWIGL_plots} show the IQS  solution a
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[height=3.0in]{TWIGL_power_plot.png}
+\includegraphics[height=3.0in]{\FiguresDir/TWIGL_power_plot.png}
 \caption{Power level comarison of 1D heterogeneous example between IQS and Brute Force using $\Delta t = 0.004$}
 \label{fig:TWIGL_power}
 \end{figure}
@@ -592,12 +636,12 @@ Figures \ref{fig:TWIGL_power} and \ref{fig:TWIGL_plots} show the IQS  solution a
 \begin{figure}[!htbp]
 \begin{center}
 \begin{subfigure}[!htbp]{0.4\textwidth}
-\includegraphics[width=\textwidth]{ndiff_ramp_flux.jpg}
+\includegraphics[width=\textwidth]{\FiguresDir/ndiff_ramp_flux.jpg}
 \caption{Brute force flux}
 \end{subfigure}
 \quad
 \begin{subfigure}[!htbp]{0.4\textwidth}
-\includegraphics[width=\textwidth]{iqs_ramp_shape.jpg}
+\includegraphics[width=\textwidth]{\FiguresDir/iqs_ramp_shape.jpg}
 \caption{IQS Shape}
 \end{subfigure}
 \caption{TWIGL Benchmark flux/shape comparison at $t=0.2$}
@@ -607,7 +651,7 @@ Figures \ref{fig:TWIGL_power} and \ref{fig:TWIGL_plots} show the IQS  solution a
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=5in]{TWIGL_convergence.jpg}
+\includegraphics[width=5in]{\FiguresDir/TWIGL_convergence.jpg}
 \caption{Error convergence comparison of TWIGL Benchmark}
 \label{fig:TWIGL_conv}
 \end{figure}
@@ -667,7 +711,7 @@ The initial precursor concentrations are in equilibrium with the initial critica
 The geometry is illustrated in~\fig{fig:lra-geometry}.\\
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.8\linewidth]{lra.png}
+\includegraphics[width=0.8\linewidth]{\FiguresDir/lra.png}
 \caption{LRA benchmark geometry with region assignment.}
 \label{fig:lra-geometry}
 \end{figure}
@@ -749,11 +793,11 @@ Figure \ref{fig:LRA_plots} show the IQS  solution as compared with the Brute For
 \begin{figure}[!htbp]
 \begin{center}
 \begin{subfigure}[!htbp]{0.49\textwidth}
-\includegraphics[width=\textwidth]{lra_power_profile.jpg}
+\includegraphics[width=\textwidth]{\FiguresDir/lra_power_profile.jpg}
 \caption{Power Profile}
 \end{subfigure}
 \begin{subfigure}[!htbp]{0.49\textwidth}
-\includegraphics[width=\textwidth]{lra_temp_profile.jpg}
+\includegraphics[width=\textwidth]{\FiguresDir/lra_temp_profile.jpg}
 \caption{Temperature Profile}
 \end{subfigure}
 \caption{LRA Benchmark power and temperature comparison}
@@ -763,11 +807,93 @@ Figure \ref{fig:LRA_plots} show the IQS  solution as compared with the Brute For
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=5in]{lra_convergence.jpg}
+\includegraphics[width=5in]{\FiguresDir/lra_convergence.jpg}
 \caption{Error convergence comparison of LRA Benchmark}
 \label{fig:lra_conv}
 \end{figure}
 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tcr{putting stuff here for now}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+It can be shown that the most appropriate weighting function $(w^g)$ is the initial adjoint flux $(\phi^{*g})$.  For brevity, the following definition will be applied: $\int_D\phi^{*g}(\vec{r})f(\vec{r})d^3r=\left(\phi^{*g},f\right)$
+\begin{align}
+& \quad \frac{dp}{dt}\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)+ p\frac{d}{dt}\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)= \nonumber \\
+& p\sum_{g=1}^G\left(\phi^{*g},\frac{\chi_p^g}{\keff}(1-\beta) \sum_{g'=1}^G  \nu^{g'} \Sigma_f^{g'} \varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'} - \left( -\div D^g \grad  + \Sigma_r^g \right) \varphi^g\right)  \\
+& + \sum_{i=1}^I\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g\lambda_i C_i) \nonumber
+\end{align}
+\be
+\frac{d}{dt}\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^gC_i)=\frac{1}{\keff}\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g\beta_i\sum_{g'=1}^G\nu^{g'} \Sigma_f^{g' }\varphi^{g'})p - \sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g\lambda_iC_i) \quad 1 \le i \le I 
+\ee
+
+In order to impose uniqueness of the factorization, one imposes:
+\be
+\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)=constant
+\ee
+
+Therefore the PRKE formulation reduces to:
+\begin{align}
+\frac{dp}{dt}= &\frac{\sum_{g=1}^G\left(\phi^{*g},\frac{\chi_p^g}{\keff}(1-\beta) \sum_{g'=1}^G  \nu^{g'} \Sigma_f^{g'} \varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g}  \varphi^{g'} - \left( -\div D^g \grad  + \Sigma_r^g \right) \varphi^g\right)}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}p \nonumber \\ 
+& +\sum_{i=1}^I\frac{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g\lambda_i C_i)}{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^gC_i)}\xi_i
+\end{align}
+\be
+\frac{d\xi_i}{dt}=\frac{1}{\keff}\frac{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g\beta_i\sum_{g'=1}^G\nu^{g'} \Sigma_f^{g' }\varphi^{g'})}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}p - \frac{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g\lambda_iC_i)}{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^gC_i)}\xi_i \quad 1 \le i \le I 
+\ee
+Where:
+\be
+\xi_i=\frac{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g C_i)}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}
+\ee
+
+It is convenient to define the effective reactivity, delay-neutron fraction, and delayed-neutron precursor decay constant:
+\be
+\frac{\rho-\bar{\beta}}{\Lambda}=\frac{ \sum_{g=1}^G\left(\phi^{*g},\frac{\chi_p^g}{\keff}(1-\beta)\sum_{g'=1}^G \nu^{g'} \Sigma_f^{g'}\varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'} -\left( -\div D^g \grad  + \Sigma_r^g \right)\varphi^g\right)}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}
+\label{eq:rmb}
+\ee
+\be
+\frac{\bar{\beta}}{\Lambda}=\sum_{i=1}^I\frac{\bar{\beta}_i}{\Lambda}=\sum_{i=1}^I\frac{1}{\keff}\frac{\sum_{g=1}^G(\phi^{*g}, \chi_{d,i}^g\beta_i\sum_{g'=1}^G\nu^{g'} \Sigma_f^{g' }\varphi^{g'})}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}
+\label{eq:b}
+\ee
+\be
+\bar{\lambda}_i=\frac{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g\lambda_i C_i)}{\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^gC_i)}
+\label{eq:l}
+\ee
+
+So:
+\be
+\frac{dp}{dt}=\left[\frac{\rho-\bar{\beta}}{\Lambda}\right]p+\sum_{i=1}^I\bar{\lambda}_i\xi_i
+\label{eq:p}
+\ee
+\be
+\frac{d\xi_i}{dt}=\frac{\bar{\beta}_i}{\Lambda}-\bar{\lambda}_i\xi_i \quad 1 \le i \le I 
+\label{eq:c}
+\ee
+
+Equations (\ref{eq:p}) and (\ref{eq:c}) are a formulation of the point reactor kinetics equation (PRKE), but the parameters (Equations (\ref{eq:rmb})-(\ref{eq:l})) are dependent on the shape.  If the assumption is made that the shape is time-independent, the shape is computed once at the first time step and used for the PRKE parameter evaluation at all other steps.  However, if the shape is dependent on time, the shape needs to be computed in transient using equation (\ref{eq:shape}) and (\ref{eq:prec}) in order retain accuracy.  Equations (\ref{eq:shape2}) and (\ref{eq:preq2}) shows the usual form of the shape and precursor equations with amplitude put on the right hand side.  Equation (\ref{eq:shape2}) is very similar to the multigroup flux equation (\ref{eq:flux}), except the removal cross-section term is augmented by a $\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}$ term and the precursor contribution has a $\frac{1}{p}$ multiplier.  Equation (\ref{eq:preq2}) is very similar to the normal precursor equation (\ref{eq:precursor}), except the fission source term is multiplied by $p$.  These differences are crucial for IQS implementation in Rattlesnake.
+
+\begin{align}
+\frac{1}{v^g}\frac{\partial\varphi^g}{\partial t} = &\frac{\chi_p^g}{\keff} (1-\beta)\sum_{g'=1}^G  \nu^{g'} \Sigma_f^{g'} \varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'} \nonumber \\ 
+& -  \left( -\div D^g \grad  + \Sigma_r^g + \frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\right) \varphi^g + \frac{1}{p}\sum_{i=1}^I\chi_{d,i}^g\lambda_iC_i  , \quad 1 \le g \le G 
+\label{eq:shape2}
+\end{align}
+\be
+\frac{dC_i}{dt} = \frac{\beta_i}{\keff}p \sum_{g=1}^G\nu^{g} \Sigma_f^g \varphi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
+\label{eq:preq2}
+\ee
+
+%\begin{align}
+%& \quad \sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\frac{\partial\varphi^g}{\partial t}\right)= \nonumber \\ 
+%&\sum_{g=1}^G\left(\phi^{*g},\frac{\chi_p^g}{\keff} \sum_{g'=1}^G (1-\beta) \nu^{g'} \Sigma_f^{g'} \varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'} -  \left( -\div D^g \grad  + \Sigma_r^g + \frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\right) \varphi^g\right) \\
+%&+\frac{1}{p}\sum_{i=1}^I\sum_{g=1}^G(\phi^{*g},\chi_{d,i}^g\lambda_iC_i) \nonumber
+%\end{align}
 
 
 \end{document}
