@@ -179,15 +179,14 @@ The factorization approach in IQS leads to a decomposition of the multigroup flu
 \phi^g(\vec{r},t)=p(t)\varphi^g(\vec{r},t)
 \ee
 The factorization is not an approximation. Reporting it in the flux and precursor equations yields the following equations
-\begin{enumerate}
-\item for the shape:
+for the shape and the precursors:
 \begin{align}
 \frac{1}{v^g}\left(\frac{dp}{dt}\varphi^g + p\frac{\partial \varphi^g}{\partial t}\right) =&\frac{\chi_p^g}{k_{eff}}(1-\beta) \sum_{g'=1}^G  \nu^{g'} \Sigma_f^{g'} p \varphi^{g'} - \left( -\div D^g \grad  + \Sigma_r^g \right)p \varphi^g \nonumber \\
 &  + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} p \varphi^{g'}  + \sum_{i=1}^I\chi_{d,i}^g\lambda_i C_i \ , \quad 1 \le g \le G 
 \label{eq:shape}
 \end{align}
 \be
-\frac{dC_i}{dt} = \frac{\beta_i}{k_{eff}}\sum_{g=1}^G\nu^{g} \Sigma_f^g p \varphi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
+\frac{dC_i}{dt} = \frac{\beta_i}{\keff}\sum_{g=1}^G\nu^{g} \Sigma_f^g p \varphi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
 \label{eq:prec}
 \ee
 
