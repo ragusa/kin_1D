@@ -239,18 +239,68 @@ where we haved define the reactivity, effective delayed-neutron fraction, and de
 \end{subequations}
 The following inner product definition has been used: $\left(\phi^{*g},f\right):=\int_D\phi^{*g}(\vec{r})f(\vec{r})d^3r$.
 
+\tcr{add the normalization condition I forgot to mention thus far}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Operator Notation and Extension of IQS to Multigroup Transport Equations}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\tcr{introduce operator notation, then switch to transport}
 
 
-Computing this shape can become expensive, especially in two or three dimensions.  Subsequently, it is attractive to make the assumption that the shape is weakly time-dependent so the shape can be computed after a multitude of PRKE calculations which is the root of IQS.  To visualize:
+For simplicity and intuitiveness the previous section only described IQS implementation in CFEM diffusion.  Rattlesnake has other action systems capable of transient simulation, where IQS can be implemented and be effective.  One of these action systems is DFEM diffusion, where the only major difference from CFEM is the diffusion term in Equation \ref{eq:flux} and \ref{eq:shape2}.  However, in the derivation for IQS is term is unaffected between shape and flux evaluation.  So saving the residual for this diffusion kernel in the \texttt{save\_in} variable is the only alteration to this action for IQS to function. \\
+
+The derivation of IQS was done using multi-group diffusion, but the derivation with transport is very similar.  For simplicity, the transport equation is written in operator form in Equation \ref{eq:transport}.  Factorization is defined as $\Psi^g(\vec{r},\vec{\Omega},t)=p(t)\psi^g(\vec{r},\vec{\Omega},t)$ and the resulting shape equation is defined by Equation \ref{eq:tshape}.  Finally, the PRKE parameters are defined by Equations \ref{eq:trmb} and \ref{eq:tb}, where $\left(\Psi^{*g},f^g\right) = \int_{4\pi}\int_D \Psi^{*g}(\vec{r},\vec{\Omega})f^g(\vec{r},\vec{\Omega})d^3r d\Omega$.
+\be
+\frac{1}{v^g}\frac{\partial \Psi^g}{\partial d} = \left(H^g + P_p^g - L^g\right)\Psi^g + S_d^g
+\label{eq:transport}
+\ee
+\be
+\frac{1}{v^g}\frac{\partial \psi^g}{\partial d} = \left(H^g + P_p^g - L^g - \frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\right)\psi^g + \frac{1}{p} S_d^g
+\label{eq:tshape}
+\ee
+\be
+\frac{\rho-\bar{\beta}}{\Lambda}=\frac{ \sum_{g=1}^G\left(\Psi^{*g},(H^g+P_p^g-L^g)\psi^g\right)}{\sum_{g=1}^G\left(\Psi^{*g},\frac{1}{v^g}\psi^g\right)}
+\label{eq:trmb}
+\ee
+\be
+\frac{\bar{\beta}}{\Lambda}=\sum_{i=1}^I\frac{\bar{\beta}_i}{\Lambda}=\sum_{i=1}^I\frac{\sum_{g=1}^G(\Psi^{*g}, P_{d,i}^g \psi^g)}{\sum_{g=1}^G\left(\Psi^{*g},\frac{1}{v^g}\psi^g\right)}
+\label{eq:tb}
+\ee
+
+The derivation of IQS in transport is simple and straight-forward, and its implementation into Rattlesnake is even more so.  The main differences between diffusion implementation in transport is outlined below:
+\begin{enumerate}
+\item The form of the operators in the shape equations is different, but Rattlesnake has already implemented all the kernels necessary to represent these operators.  So no change is necessary to these kernels is necessary for IQS.  Additionally, the $\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}$ is the same, so both actions can use the same kernel.
+\item The PRKE parameters also change because of the operators.  For the $(\rho-\bar{\beta})$ parameter, the same post-processor can be used with the \texttt{save\_in} functionality in MOOSE.  The post-processor for $\bar{\beta}_i$ must be re-written for transport, but takes a very similar form as diffusion.
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Solving the IQS System of Equations}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Solving for the shape can become expensive, especially in two or three dimensions.  Using IQS, one \tcr{hopes} that the 
+shape's time dependency is weaker than that of the flux itself,  thus allowing larger time step sizes in computing the shape. The PRKE equations form a small ODE system and can be solved using a much smaller time step size. In transients where the
+shape varies much less than the flux, IQS can thus be very computationally effective. The two time scale solution process,
+a micro scale for the PRKE and a macro scale for the shape, is illustrated in \tcr{add label for fig}.
+
 \begin{figure}[!htbp]
 \includegraphics[width=\linewidth]{\FiguresDir/IQS_visualization.jpg}
 \caption{IQS method visualization}
 \end{figure}
 
+\tcr{add a hint that additional befefits can be relaized using time adaptation and refer to that upcoming Section}
+
+
+As we noted earlier, \tcr{add blurb about IQS is a nonlinear system, Picard, ...}
+
+\tcr{add another blurb + schematics about how IQS can be used in multiphysics simulation, where neutronics is nonlinear coupled to, say thermal-hydraulics}
+
+
 Additionally, to improve consistency and accuracy, each macro time step can be iterated so the best shape is used to compute power at the micro time steps.  This iteration process must converge the shape such that the uniqueness condition $(\frac{d}{dt}\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)=0)$ is preserved.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{IQS Predictor-Corrector (IQS P-C)}
+\subsection{A Predictor-Corrector version of IQS (IQS P-C)}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The Predictor-Corrector version of IQS factorizes the flux and derives the PRKE the same way as the standard version, but the evaluation of the coupled system is different.  This version first solves the flux diffusion (represented by Equations \ref{eq:flux} and \ref{eq:precursor}) to get a predicted flux.  The predicted flux at this step is then converted to shape by rescaling as follows:
@@ -273,33 +323,12 @@ The PRKE parameters are then computed with this shape using Equations \ref{eq:rm
 
 The advantage to the predictor-corrector method is there is no iteration necessary for this method and in turn is much simpler and faster than the standard IQS.  The disadvantage is that the method assumes $\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g_{n+1}\right)$ is inherently constant.
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Rattlesnake Implementation}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-This section will explain how, thus far, IQS has been implemented in Rattlesnake. 
- 
-\subsection{Executioner}
-The IQS executioner derives from the Transient executioner in MOOSE.  The IQS executioner contains a loop over micro time steps that computes the PRKE and then passes $p$ and $\frac{dp}{dt}$ for the Transient executioner to evaluate the shape equation at each macro step.  The PRKE is computed with a user specified option of backward-Euler, Crank-Nicolson, or SDIRK33.   The IQS executioner also supplements Transient Picard iteration process by adding its own error criteria:
-\be
-Error_{IQS}=\left|\frac{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^{g,n}\right)}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^{g,0}\right)}-1\right|
-\ee
-
-\subsection{Action System}
-IQS defines its uniqueness from its executioner type; however, many changes needed to be made in the Rattlesnake action system in order to support IQS execution.   First, changes needed to be made in order to evaluate the shape equation.  The shape equation, after some manipulation, is very similar to the time-dependent, which Rattlesnake is already set up to solve:
-
-\begin{align}
-\frac{1}{v^g}\frac{\partial\varphi^g}{\partial t}=&\underbrace{\frac{\chi_p^g}{\keff} \sum_{g'=1}^G (1-\beta) \nu^{g'} \Sigma_f^{g'} \varphi^{g'}}_{Flux Kernel} + \underbrace{\sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'}}_{Flux Kernel} - \underbrace{\left( -\div D^g \grad \right)\varphi^g}_{Flux Kernel} - \underbrace{\Sigma_r^g\varphi^g}_{Flux Kernel} \nonumber \\
-& - \underbrace{\frac{1}{v^g} \overbrace{\frac{1}{p}\frac{dp}{dt}}^{From Executioner}\varphi^g}_{IQS Kernel}+\underbrace{\frac{1}{p}\sum_{i=1}^I\chi_{d,i}^g\lambda_iC_i}_{Modified Flux Kernel}
-\end{align}
-
-To enable Rattlesnake to solve this equation, another kernel was created that evaluated $\sum_{g=1}^G\frac{1}{v^gp}\frac{dp}{dt}\varphi^g$ and added when the IQS executioner is called.  Second, four postprocessors were created in order to calculate the PRKE parameters.  The parameter calculations were separated by $\frac{\bar{\beta}_i}{\Lambda}$ numerator, $\bar{\lambda}_i$ numerator/denominator, $\frac{\rho}{\Lambda}/\frac{\bar{\beta}}{\Lambda}$ denominator, and $\frac{\rho-\bar{\beta}}{\Lambda}$ numerator.  The first three are relatively simple, only relying on material properties and solution quantities.  The $\frac{\rho-\bar{\beta}}{\Lambda}$ numerator requires the use of the MOOSE save in feature, which saves the residual from a calculated kernel or boundary contribution in the shape evaluation to an auxiliary variable.  Finally, a user object was created to pull together all the postprocessor values and carryout the numerator/denominator divisions that were then passed to the executioner.
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Precursor Integration}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\tcr{ this subsection and its 2 subsubsections on precursors is way to long. make it short and sweet}
+
 This section presents two different time-integration methods to solve coupled IQS shape + precursor equations, recalled below
 using, for simplicity, a single neutron group and a single precursor group.
 
@@ -317,7 +346,9 @@ precursor concentrations at the end of the time step. This precursor value is ta
 of the precursors ODE. This document will discuss two techniques for solving the precursor equation.  First is a time discretization method that is currently being implemented in Rattlesnake.  The second is a analytical integration of the precursors, the latter method has proven to be more beneficial for IQS convergence.
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Time Discretization using the Theta Method}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 A fairly simple way to evaluate the precursor equation is to employ the $\theta$-scheme ($0\le\theta\le1$),
 explicit when $\theta=0$, implicit when $\theta=1$, and Crank-Nicholson when $\theta=1/2$).
@@ -350,7 +381,9 @@ Reporting this value of $C^{n+1}$, one can solve for the shape $\varphi^{n+1}$ a
 Once $\varphi^{n+1}$ has been determined, $C^{n+1}$ is updated. Rattlesnake currently implements both implicit and Crank-Nicholson as options for precursor evaluation.
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Analytical Integration}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Through prototyping, it has been found that neither implicit nor Crank-Nicholson time discretization of precursors are preferable methods for solving the shape equation in IQS.  It has been found that these discretizations result in a lack of convergence of the shape over the IQS iteration process.  In order to remedy the error, a analytical representation of the precursors was implemented in the prototype and the shape solution was able to converge (the normalization constant of the IQS method can be preserved to $10^{-10}$ while the theta-scheme only allowed convergence in the normalization factor to about $10^{-3}$).  The following section shows how this method was implemented in the prototype and the desired implementation for Rattlesnake.
 
@@ -396,52 +429,9 @@ The amplitude $(p)$ is included in the integration coefficient because it has be
 
 The prototype code uses Matlab software to interpolate the amplitude between micro steps and a quadrature integration for the coefficients.  So the challenge for Rattlesnake is to replicate this procedure: passing the amplitude vector to the DNP auxkernel, interpolating it, and integrating the coefficients. 
 
-\subsection{Predictor-Corrector Modification}
-In order to preserve the already implemented standard version of IQS, an option in the IQS executioner was created to specify which method is desired.  Because the diffusion solve is flux instead of shape, when predictor-corrector option is specied, the IQS removal kernel ($\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}$) and the modified precursor kernel are bypassed, while all the postprocessors are still executed.  However, it is difficult to rescale the flux to shape before the PRKE parameter postprocessor are executed.  So the parameters are computed using the full flux, but amplitude is space independent and comes out of the integrals.  As seen in parameter definitions, when shape is replaced with flux, the amplitude comes out of the integral and cancels out.  So the conversion of the predicted flux in Equation \ref{eq:rescale} to shape is unnecessary if the corrected flux is solved with Equation \ref{eq:phicorr2}.  After obtaining the corrected flux, the precursors are re-evaluated using a \texttt{EXEC\_LINEAR}.
-\be
-\underbrace{\phi^g_{n+1}}_{\text{corrected}} = \underbrace{\phi^g_{n+1}}_{\text{predicted}} \frac{K_0}{K_{n+1}} p_{n+1}
-\label{eq:phicorr2}
-\ee
-
-\subsection{Input}
-The input deck for IQS is very similar to the current transient diffusion input file.  The IQS input has a different executioner type and parameters.  The executioner type is simply ԉQSԠand input parameters include number of micro time steps, IQS error tolerance, and initial power.  The Rattlesnake transient action system currently requires a multi-app and transfer to compute and pass the initial $\phi$ and $\keff$, which is present in the transient input deck.  However, IQS also requires an initial evaluation of the adjoint flux, for the weighting function.  So another input file was made for the adjoint calculation, as well as including another multi-app and transfer in the IQS input deck.
-
-\subsection{Unintended Contributions}
-The implementation of IQS in Rattlesnake put pressure on many features of Rattlesnake and MOOSE that reveled bugs and possible improvement.  Two significant issues in Rattlesnake that were found involved the adjoint solve and the diffusion fission kernel.  When testing IQS, it was found that the adjoint flux solution was not the same as the forward flux solution in a single group test, which is obviously invalid.  Also, when investigating which action to include the IQS kernel in, it turned out that the fission diffusion kernel was placed in the neutron transport action, so this kernel was demoted to the neutron diffusion actions for clarity.  Additionally, the pressure on the save in feature in MOOSE propagated its application to boundary conditions and initial solves.  MOOSE also updated its ability to restart dense vector data and to set MooseApp executioner right after executioner is created.  Merge requests: \#5474, \#5489, \#5495, and \#5497
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{IQS in Other Action Systems}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-For simplicity and intuitiveness the previous section only described IQS implementation in CFEM diffusion.  Rattlesnake has other action systems capable of transient simulation, where IQS can be implemented and be effective.  One of these action systems is DFEM diffusion, where the only major difference from CFEM is the diffusion term in Equation \ref{eq:flux} and \ref{eq:shape2}.  However, in the derivation for IQS is term is unaffected between shape and flux evaluation.  So saving the residual for this diffusion kernel in the \texttt{save\_in} variable is the only alteration to this action for IQS to function. \\
-
-The derivation of IQS was done using multi-group diffusion, but the derivation with transport is very similar.  For simplicity, the transport equation is written in operator form in Equation \ref{eq:transport}.  Factorization is defined as $\Psi^g(\vec{r},\vec{\Omega},t)=p(t)\psi^g(\vec{r},\vec{\Omega},t)$ and the resulting shape equation is defined by Equation \ref{eq:tshape}.  Finally, the PRKE parameters are defined by Equations \ref{eq:trmb} and \ref{eq:tb}, where $\left(\Psi^{*g},f^g\right) = \int_{4\pi}\int_D \Psi^{*g}(\vec{r},\vec{\Omega})f^g(\vec{r},\vec{\Omega})d^3r d\Omega$.
-\be
-\frac{1}{v^g}\frac{\partial \Psi^g}{\partial d} = \left(H^g + P_p^g - L^g\right)\Psi^g + S_d^g
-\label{eq:transport}
-\ee
-\be
-\frac{1}{v^g}\frac{\partial \psi^g}{\partial d} = \left(H^g + P_p^g - L^g - \frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\right)\psi^g + \frac{1}{p} S_d^g
-\label{eq:tshape}
-\ee
-\be
-\frac{\rho-\bar{\beta}}{\Lambda}=\frac{ \sum_{g=1}^G\left(\Psi^{*g},(H^g+P_p^g-L^g)\psi^g\right)}{\sum_{g=1}^G\left(\Psi^{*g},\frac{1}{v^g}\psi^g\right)}
-\label{eq:trmb}
-\ee
-\be
-\frac{\bar{\beta}}{\Lambda}=\sum_{i=1}^I\frac{\bar{\beta}_i}{\Lambda}=\sum_{i=1}^I\frac{\sum_{g=1}^G(\Psi^{*g}, P_{d,i}^g \psi^g)}{\sum_{g=1}^G\left(\Psi^{*g},\frac{1}{v^g}\psi^g\right)}
-\label{eq:tb}
-\ee
-
-The derivation of IQS in transport is simple and straight-forward, and its implementation into Rattlesnake is even more so.  The main differences between diffusion implementation in transport is outlined below:
-\begin{enumerate}
-\item The form of the operators in the shape equations is different, but Rattlesnake has already implemented all the kernels necessary to represent these operators.  So no change is necessary to these kernels is necessary for IQS.  Additionally, the $\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}$ is the same, so both actions can use the same kernel.
-\item The PRKE parameters also change because of the operators.  For the $(\rho-\bar{\beta})$ parameter, the same post-processor can be used with the \texttt{save\_in} functionality in MOOSE.  The post-processor for $\bar{\beta}_i$ must be re-written for transport, but takes a very similar form as diffusion.
-\end{enumerate}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Time Adaptation}
+\subsection{Time Adaptation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 A very important aspect of IQS is how it performs with time adaptation because this will most likely be used with IQS.  The time adaptation used for quantifying IQS's ability is step doubling.  The step doubling technique involves estimating the local error for a certain time step by taking the difference between a solution with one full step and a solution with two half steps.  If the step is small enough, the error will be smaller than a user driven tolerance and the magnitude of the next step will be calculated based on the error.  If the step is too large, the step will be repeated with a smaller step calculated with the resulting error.  The error of the time step is approximated by Equation \ref{eq:edt2}, where $\varphi^g_1$ and $\varphi^g_2$ are the solutions with the full step and half step, respectively.  $\varphi$ is changed to $\phi$ for regular flux evaluation and IQS P-C.  If $e_n > e_{max}$ the time step is repeated; if $e_n < e_{max}$ the system moves to the next time step.  The next $\Delta t$ is calculated using Equation \ref{eq:dt2}, where $p$ is the convergence order of the time integration scheme being used.  $e_{max}$ and $e_{tol}$ are user defined parameters; $e_{max}$ is usually less than $e_{tol}$ to better guarantee that the calculated $\Delta t_{new}$ will pass the error criteria so time steps won't be repeated.
@@ -457,17 +447,96 @@ e_n = \frac{\norm{\sum_{g=1}^G\varphi^g_2 - \sum_{g=1}^G\varphi^g_1}}{\text{max}
 
 To be clear, each solution undergoes Picard iterations until $Error_{IQS}$ converges before the error is calculated; for IQS P-C, each solution is re-scaled by $p$.  Additionally, if the PJFNK iteration does not converge, the entire step doubling process is repeated with half the time original time step. 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Rattlesnake Implementation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\tcr{I think we need an introduction on how things work in a MOOSE-based application, before going into the details of each part}
+
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Executioner}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The IQS executioner derives from the Transient executioner in MOOSE.  The IQS executioner contains a loop over micro time steps that computes the PRKE and then passes $p$ and $\frac{dp}{dt}$ for the Transient executioner to evaluate the shape equation at each macro step.  The PRKE is computed with a user specified option of backward-Euler, Crank-Nicolson, or SDIRK33.   The IQS executioner also supplements Transient Picard iteration process by adding its own error criteria:
+\be
+Error_{IQS}=\left|\frac{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^{g,n}\right)}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^{g,0}\right)}-1\right|
+\ee
+
+\tcr{need to make sure this error is also explained int he theory section}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Action System}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+IQS defines its uniqueness from its executioner type; however, many changes needed to be made in the Rattlesnake action system in order to support IQS execution.   First, changes needed to be made in order to evaluate the shape equation.  The shape equation, after some manipulation, is very similar to the time-dependent, which Rattlesnake is already set up to solve:
+
+\begin{align}
+\frac{1}{v^g}\frac{\partial\varphi^g}{\partial t}=&\underbrace{\frac{\chi_p^g}{\keff} \sum_{g'=1}^G (1-\beta) \nu^{g'} \Sigma_f^{g'} \varphi^{g'}}_{Flux Kernel} + \underbrace{\sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'}}_{Flux Kernel} - \underbrace{\left( -\div D^g \grad \right)\varphi^g}_{Flux Kernel} - \underbrace{\Sigma_r^g\varphi^g}_{Flux Kernel} \nonumber \\
+& - \underbrace{\frac{1}{v^g} \overbrace{\frac{1}{p}\frac{dp}{dt}}^{From Executioner}\varphi^g}_{IQS Kernel}+\underbrace{\frac{1}{p}\sum_{i=1}^I\chi_{d,i}^g\lambda_iC_i}_{Modified Flux Kernel}
+\end{align}
+
+To enable Rattlesnake to solve this equation, another kernel was created that evaluated $\sum_{g=1}^G\frac{1}{v^gp}\frac{dp}{dt}\varphi^g$ and added when the IQS executioner is called.  Second, four postprocessors were created in order to calculate the PRKE parameters.  The parameter calculations were separated by $\frac{\bar{\beta}_i}{\Lambda}$ numerator, $\bar{\lambda}_i$ numerator/denominator, $\frac{\rho}{\Lambda}/\frac{\bar{\beta}}{\Lambda}$ denominator, and $\frac{\rho-\bar{\beta}}{\Lambda}$ numerator.  The first three are relatively simple, only relying on material properties and solution quantities.  The $\frac{\rho-\bar{\beta}}{\Lambda}$ numerator requires the use of the MOOSE save in feature, which saves the residual from a calculated kernel or boundary contribution in the shape evaluation to an auxiliary variable.  Finally, a user object was created to pull together all the postprocessor values and carryout the numerator/denominator divisions that were then passed to the executioner.
+
+\tcr{need to make it clear what action system will have IQS in the end. a list would be good}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{PRKE coefficients}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\tcr{here you should talk about save in and postprocessors. Remove the relevant info, neatly, from the theory section and bring it here}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Predictor-Corrector Modification}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In order to preserve the already implemented standard version of IQS, an option in the IQS executioner was created to specify which method is desired.  Because the diffusion solve is flux instead of shape, when predictor-corrector option is specied, the IQS removal kernel ($\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}$) and the modified precursor kernel are bypassed, while all the postprocessors are still executed.  However, it is difficult to rescale the flux to shape before the PRKE parameter postprocessor are executed.  So the parameters are computed using the full flux, but amplitude is space independent and comes out of the integrals.  As seen in parameter definitions, when shape is replaced with flux, the amplitude comes out of the integral and cancels out.  So the conversion of the predicted flux in Equation \ref{eq:rescale} to shape is unnecessary if the corrected flux is solved with Equation \ref{eq:phicorr2}.  After obtaining the corrected flux, the precursors are re-evaluated using a \texttt{EXEC\_LINEAR}.
+\be
+\underbrace{\phi^g_{n+1}}_{\text{corrected}} = \underbrace{\phi^g_{n+1}}_{\text{predicted}} \frac{K_0}{K_{n+1}} p_{n+1}
+\label{eq:phicorr2}
+\ee
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Input}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The input deck for IQS is very similar to the current transient diffusion input file.  The IQS input has a different executioner type and parameters.  The executioner type is simply IQS and input parameters include number of micro time steps, IQS error tolerance, and initial power.  The Rattlesnake transient action system currently requires a multi-app and transfer to compute and pass the initial $\phi$ and $\keff$, which is present in the transient input deck.  However, IQS also requires an initial evaluation of the adjoint flux, for the weighting function.  So another input file was made for the adjoint calculation, as well as including another multi-app and transfer in the IQS input deck.
+
+\tcr{in the yak manual you may find how to incorporate nicely a piece of the input file as a table or figure here. the list of parameters and available options for each must be given. Maybe an additional appendix should be a smaple input file, with comments}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Additional Contributions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The implementation of IQS in Rattlesnake put pressure on many features of Rattlesnake and MOOSE that reveled bugs and possible improvement.  Two significant issues in Rattlesnake that were found involved the adjoint solve and the diffusion fission kernel.  When testing IQS, it was found that the adjoint flux solution was not the same as the forward flux solution in a single group test, which is obviously invalid.  Also, when investigating which action to include the IQS kernel in, it turned out that the fission diffusion kernel was placed in the neutron transport action, so this kernel was demoted to the neutron diffusion actions for clarity.  Additionally, the pressure on the save in feature in MOOSE propagated its application to boundary conditions and initial solves.  MOOSE also updated its ability to restart dense vector data and to set MooseApp executioner right after executioner is created.  Merge requests: \#5474, \#5489, \#5495, and \#5497
+
+\tcr{is this list exhaustive?}
+
+
+
+
+
+
+
 \newpage
 %------------------------------------------------------------------------------
 %
 %------------------------------------------------------------------------------
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{RESULTS} 
 \label{sect::results}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 This section describes results of an examples that tests the IQS implementation and shows its effectiveness on computation speed and accuracy.  Three examples were selected for this purpose.  The first is a homogeneous one-group problem, subjected to a heterogeneous material change (absorption cross-section change as a ramp in time for a subset of the geometry).  The second is the two-dimensional TWIGL ramp transient benchmark, described further.  The final is the LRA benchmark, which a two-dimensional, temperature feedback example.  Each example was solved with regular diffusion (brute force), IQS, and IQS P-C.  Each method was tested with backward-Euler and BDF2 for the first two examples; just Crank-Nicholson was used for third example.  The performance for each method are represented by convergence plots with constant $\Delta t$ and by the number of time steps with step doubling time adaptation.
 
-%------------------------------------------------------------------------------
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{One-Dimensional Custom Example}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The example is very simple and computes quickly, it entails a one dimensional, heterogeneous 400 cm slab with a varying absorption cross section.   Figure \ref{fig:slab} how the regions of the slab are divided and Table \ref{tab:1Dmat} shows the initial material properties.  Table \ref{tab:1Dslope} shows the ramp of the absorption cross-section of each region.
 
@@ -584,8 +653,9 @@ Test & $e_{max}$ & Error & Steps & Solves & Error & Steps & Solves & Error & Ste
 \end{center}
 \end{table}
 
-%------------------------------------------------------------------------------
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{TWIGL Benchmark}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 This benchmark problem originates from the Argonne National Lab Benchmark Problem Book.  It is a 2D, 2-group reactor core model with no reflector region shown in Figure \ref{fig:TWIGL_reg}.  Table \ref{tab:TWIGL_mat} shows the material properties of each fuel region and the ramp perturbation of Material 1.
 
@@ -682,8 +752,9 @@ Test & $e_{max}$ & Error & Steps & Solves & Error & Steps & Solves & Error & Ste
 
 \newpage
 
-%------------------------------------------------------------------------------
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{LRA Benchmark}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The LRA benchmark is a two-dimensional, two-group neutron diffusion problem with adiabatic heat-up and Doppler feedback in thermal reactor.  It is a super prompt-critical transient.  To have better understanding on the cross sections given later, we present the equations here:
 \begin{align}
@@ -814,12 +885,27 @@ Figure \ref{fig:LRA_plots} show the IQS  solution as compared with the Brute For
 
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusions}
+
+\tcr{needed}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+\pagebreak
+\newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \appendix
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Appendix: aaaa}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \tcr{putting stuff here for now}
