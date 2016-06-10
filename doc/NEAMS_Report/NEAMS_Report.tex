@@ -184,7 +184,7 @@ $v^g$					&	$=$	&	Neutron velocity in energy group $g$ \\
 $\chi_p^g$				&	$=$	&	Fission spectrum of prompt neutrons \\
 $\chi_{d,i}^g$			&	$=$	&	Fission spectrum of delayed neutrons from precursor $i$ \\
 $\nu^g$					&	$=$	&	Total number of neutrons per fission \\
-$D^g$					&	$=$	&	Diffusion coefficient \\
+$D^g$					&	$=$	&	Diffusion coefficient in energy group $g$\\
 $\lambda_i$				&	$=$	&	Decay constant of precursor $i$ \\
 $\beta_i$				&	$=$	&	Delayed neutron fraction  from precursor $i$ \\
 $\beta$			 	&	$=$	&	Total delayed neutron fraction ($\beta = \sum_{i=1}^I \beta_{i}$) \\
@@ -229,7 +229,7 @@ To derive the amplitude equation (also known as the PRKE equations), the shape/p
 \label{eq:c}
 \ee
 \end{subequations}
-where we haved define the reactivity, effective delayed-neutron fraction, and delayed-neutron precursor decay constant as follows:
+where we have defined the reactivity, effective delayed-neutron fraction, and delayed-neutron precursor decay constant as follows:
 \begin{subequations}
 \be
 \frac{\rho-\bar{\beta}}{\Lambda} = 
@@ -248,35 +248,33 @@ where we haved define the reactivity, effective delayed-neutron fraction, and de
 \label{eq:l}
 \ee 
 \end{subequations}
-The following inner product definition has been used: $\left(\phi^{*g},f\right):=\int_D\phi^{*g}(\vec{r})f(\vec{r})d^3r$.  Additionally, in order to impose uniqueness on the factorization and to derive the PRKE the following normalization condition is imposed: $\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right) = \textit{constant}$.  This condition is later used  as the convergence criteria when solving the nonlinear system of equations.
+The following inner product definition has been used: $\left(\phi^{*g},f\right):=\int_D\phi^{*g}(\vec{r})f(\vec{r})d^3r$.\\  
+Additionally, in order to impose uniqueness on the factorization and to derive the PRKE, the following normalization condition is imposed: $\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right) = \textit{constant}$.  This condition is later used  as the convergence criteria when solving the nonlinear system of equations resulting from the IQS method.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Operator Notation and Extension of IQS to Multigroup Transport Equations}
 \label{sect:transport}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\tcr{introduce operator notation, then switch to transport}
-
-
-For simplicity and intuitiveness the previous section only described IQS implementation in CFEM diffusion.   \\
-
-The derivation of IQS was done using multi-group diffusion, but the derivation with transport is very similar.  For simplicity, the transport equation is written in operator form in Equation \ref{eq:transport}.  Factorization is defined as $\Psi^g(\vec{r},\vec{\Omega},t)=p(t)\psi^g(\vec{r},\vec{\Omega},t)$ and the resulting shape equation is defined by Equation \ref{eq:tshape}.  Finally, the PRKE parameters are defined by Equations \ref{eq:trmb} and \ref{eq:tb}, where $\left(\Psi^{*g},f^g\right) = \int_{4\pi}\int_D \Psi^{*g}(\vec{r},\vec{\Omega})f^g(\vec{r},\vec{\Omega})d^3r d\Omega$.
+For simplicity, the previous section only described the IQS implementation using the neutron diffusion equation. However, deriving the IQS form for other neutron balance equations (e.g., transport, simplified transport, etc.) is very similar. To this end, we now re-write the neutron conservation equations in operator form in Equation \ref{eq:transport}.  Factorization is defined as $\Psi^g(\vec{r},\vec{\Omega},t)=p(t)\psi^g(\vec{r},\vec{\Omega},t)$ and the resulting shape equation is defined by Equation \ref{eq:tshape}.  Finally, the PRKE parameters are defined by Equations \ref{eq:trmb} and \ref{eq:tb}, where $\left(\Psi^{*g},f^g\right) = \int_{4\pi}\int_D \Psi^{*g}(\vec{r},\vec{\Omega})f^g(\vec{r},\vec{\Omega})d^3r d\Omega$.
 \be
-\frac{1}{v^g}\frac{\partial \Psi^g}{\partial d} = \left(H^g + P_p^g - L^g\right)\Psi^g + S_d^g
+\frac{1}{v^g}\frac{\partial \Psi^g}{\partial t} = \sum_{g'} \left(H^{g'\to g} + P_p^{g' \to g} \right) \Psi^{g'} - L^g\Psi^g + S_d^g
 \label{eq:transport}
 \ee
+where $\Psi^g$ is the multigroup neutron flux (angular flux in the case of transport), $H^{g'\to g}$ is the scattering operator, $P_p^{g' \to g}$ is the prompt neutron production operator, $L^g$ is the loss operator, and $S_d^g$ is the delayed neutron source operator. Using \eqt{eq:flux}, the reader may easily obtain the functional form for these operators in the case of a diffusion approximation. Next, the factorization $\Psi^g = p \, \psi^g$ is introduced, where the shape is denoted by $\psi^g$, leading to the following shape equations:
 \be
-\frac{1}{v^g}\frac{\partial \psi^g}{\partial d} = \left(H^g + P_p^g - L^g - \frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\right)\psi^g + \frac{1}{p} S_d^g
+\frac{1}{v^g}\frac{\partial \psi^g}{\partial t} = \sum_{g'} \left(H^{g' \to g} + P_p^{g' \to g}\right) \psi^{g'} - \left( L^g + \frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\right) \psi^g + \frac{1}{p} S_d^g
 \label{eq:tshape}
 \ee
 \be
-\frac{\rho-\bar{\beta}}{\Lambda}=\frac{ \sum_{g=1}^G\left(\Psi^{*g},(H^g+P_p^g-L^g)\psi^g\right)}{\sum_{g=1}^G\left(\Psi^{*g},\frac{1}{v^g}\psi^g\right)}
+\frac{\rho-\bar{\beta}}{\Lambda}=\frac{ \sum_{g=1}^G\left(\Psi^{*g},\sum_{g'}(H^{' \to g}g+P_p^{g' \to g}-L^{g'}\delta_{g'g})\psi^{g'}\right)}{\sum_{g=1}^G\left(\Psi^{*g},\frac{1}{v^g}\psi^g\right)}
 \label{eq:trmb}
 \ee
 \be
 \frac{\bar{\beta}}{\Lambda}=\sum_{i=1}^I\frac{\bar{\beta}_i}{\Lambda}=\sum_{i=1}^I\frac{\sum_{g=1}^G(\Psi^{*g}, P_{d,i}^g \psi^g)}{\sum_{g=1}^G\left(\Psi^{*g},\frac{1}{v^g}\psi^g\right)}
 \label{eq:tb}
 \ee
+where $P_{d,i}^g$ is the delayed-neutron operator for precursor group $i$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Solving the IQS System of Equations}
@@ -472,16 +470,7 @@ The input deck for IQS is very similar to the current transient diffusion input 
 
 \tcr{in the yak manual you may find how to incorporate nicely a piece of the input file as a table or figure here. the list of parameters and available options for each must be given. Maybe an additional appendix should be a smaple input file, with comments}
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Additional Contributions}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\tcr{I dont think this section is really necessary}
-
-The implementation of IQS in Rattlesnake put pressure on many features of Rattlesnake and MOOSE that reveled bugs and possible improvement.  Two significant issues in Rattlesnake that were found involved the adjoint solve and the diffusion fission kernel.  When testing IQS, it was found that the adjoint flux solution was not the same as the forward flux solution in a single group test, which is obviously invalid.  Also, when investigating which action to include the IQS kernel in, it turned out that the fission diffusion kernel was placed in the neutron transport action, so this kernel was demoted to the neutron diffusion actions for clarity.  Additionally, the pressure on the save in feature in MOOSE propagated its application to boundary conditions and initial solves.  MOOSE also updated its ability to restart dense vector data and to set MooseApp executioner right after executioner is created.  Merge requests: \#5474, \#5489, \#5495, and \#5497
-
-\tcr{is this list exhaustive?}
+\tcr{I am sending you the pretty latex example in an email}
 
 
 
@@ -499,6 +488,10 @@ The implementation of IQS in Rattlesnake put pressure on many features of Rattle
 \label{sect::results}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tcr{I think the time-adaptation results for TWIGL was be a great addition}
+
+\tcr{re-do the figures 4 and 10 as discussed}
+
 
 This section describes results of an examples that tests the IQS implementation and shows its effectiveness on computation speed and accuracy.  Three examples were selected for this purpose.  The first is a homogeneous one-group problem, subjected to a heterogeneous material change (absorption cross-section change as a ramp in time for a subset of the geometry).  The second is the two-dimensional TWIGL ramp transient benchmark, described further.  The final is the LRA benchmark, which a two-dimensional, temperature feedback example.  Each example was solved with regular diffusion (brute force), IQS, and IQS P-C.  Each method was tested with backward-Euler and BDF2 for the first two examples; just Crank-Nicholson was used for third example.  The performance for each method are represented by convergence plots with constant $\Delta t$ and by the number of time steps with step doubling time adaptation.
 
