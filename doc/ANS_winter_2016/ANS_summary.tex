@@ -1,7 +1,7 @@
 \documentclass{anstrans}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \title{Improved Quasi-Static Method with Step Doubling Time Adaptation}
-\author{Zachary M. Prince$^{*}$, Dr. Jean C. Ragusa$^{*}$, Yaqi Wang$^{\dagger}$}
+\author{Zachary M. Prince$^{*}$, Jean C. Ragusa$^{*}$, Yaqi Wang$^{\dagger}$}
 
 \institute{
 $^{*}$Department of Nuclear Engineering, Texas A\&M University, College Station, TX
@@ -15,6 +15,7 @@ $^{\dagger}$Idaho National Laboratory, Idaho Falls, ID
 %\disclaimer{Notice: this manuscript is a work of fiction. Any resemblance to actual articles, living or dead, is purely coincidental.}
 
 %%%% packages and definitions (optional)
+\usepackage{color} % allows inclusion of graphics
 \usepackage{graphicx} % allows inclusion of graphics
 \usepackage{booktabs} % nice rules (thick lines) for tables
 \usepackage{microtype} % improves typography for PDF
@@ -47,15 +48,21 @@ $^{\dagger}$Idaho National Laboratory, Idaho Falls, ID
 \newcommand{\tcr}[1]{\textcolor{red}{#1}}
 \newcommand{\norm}[1]{\left\lVert#1\right\rVert_{L^2}}
 
+
 \begin{document}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\tcr{you may have to remove yaqi due to short time for approval}
+
 \section{Introduction}
 The imminent restart of the Transient Reactor Testing Facility (TREAT) at Idaho National Laboratory (INL) has brought significant attention to the development of transient reactor modeling.  TREAT was designed to subject fuels and other reactor components to various degrees of neutron pulses, from minor transients to accident scenario.  Inherently, this task requires predicting pulse responses due to various control rod movements; which is a complicated endeavor.  Originally, this was done using an iterative process of rod movements and measuring the resulting response.  With the advances in computer modeling, the current goal, preceding the restart, is to use simulation to characterize responses before experiments take place.  However, neutron transient modeling is extremely computationally expensive due to the required implicit time-stepping.  Therefore, methods that mitigate computation time, with minimal detriment to accuracy, are highly desired.  This paper will describe the improved quasi-static method (IQS), which hopes to decrease computation time significantly from traditional "brute force" transient methods.
 
-IQS is a spatial kinetics method that involves factorizing the flux solution into time-dependent amplitude and space- and time-dependent shape \cite{Ott_1966,Dulla2008}.  The impetus of the method is the assumption that shape is weakly time-dependent, so expensive space-dependent evaluations are only required on large time steps.  While inexpensive amplitude evaluations are performed on much smaller time steps to retain accuracy.  IQS has been tested extensively on kinetics benchmarks with constant time steps.  However, to test it's viability for TREAT simulations, evaluating IQS's performance with time adaptation is required.  The rest of thispaper will brefly desribe the derivation of IQS, the time adaptation technique used, and results from two kinetic benchmarks.
+IQS is a spatial kinetics method that involves factorizing the flux solution into time-dependent amplitude and space- and time-dependent shape \cite{Ott_1966,Dulla2008}.  The impetus of the method is the assumption that shape is weakly time-dependent, so expensive space-dependent evaluations are only required on large time steps.  While inexpensive amplitude evaluations are performed on much smaller time steps to retain accuracy.  IQS has been tested extensively on kinetics benchmarks with constant time steps.  However, to test it's viability for TREAT simulations, evaluating IQS's performance with time adaptation is required.  The rest of this paper will briefly describe the derivation of IQS, the time adaptation technique used, and results from two kinetic benchmarks.
+\tcr{likely only TWIGL for now. amend as needed}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Theory}
+\tcr{this is a bit long for a summary. How about using my operator section instead. it could be shorter and sweeter. in a summary, there is no way you can give that much details}
 In this Section, we recall the equation for the IQS method, starting from the standard multi-group diffusion equations with delayed neutron precursors in operator form:
 
 \begin{align}
