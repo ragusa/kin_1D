@@ -72,15 +72,8 @@ Factorization is an important step in the derivation of the IQS method. The fact
 \be
 \Psi^g(\vec{r},\Omega,t)=p(t)\psi^g(\vec{r},\Omega,t)
 \ee
-To obtain the amplitude equations, the multigroup equations are multiplied by a weighting function, typically the initial adjoint flux ($\phi^*$), and then integrated over phase-space.  For brevity, the inner product over space will be represented with parenthetical notation:
-\be
-\left(\Psi^{*g},f^g\right) = \int_{4\pi}\int_D \Psi^{*g}(\vec{r},\vec{\Omega})f^g(\vec{r},\vec{\Omega})d^3r d^2\Omega
-\ee
-In order to impose uniqueness of the factorization, one requires the following:
-\be
-\sum_{g=1}^G\left(\Psi^{*g},\frac{1}{v^g}\psi^g\right) = \textit{constant}
-\ee
-After some manipulation, the standard point reactor kinetics equations (PRKE) for the amplitude solution are obtained:
+To obtain the amplitude equations, the multigroup equations are multiplied by a weighting function, typically the initial adjoint flux ($\phi^*$), and then integrated over phase-space.  For brevity, the inner product over space will be represented with parenthetical notation ($\left(\Psi^{*g},f^g\right) = \int_{4\pi}\int_D \Psi^{*g}(\vec{r},\vec{\Omega})f^g(\vec{r},\vec{\Omega})d^3r d^2\Omega
+$).  In order to impose uniqueness of the factorization, one requires $\sum_{g=1}^G\left(\Psi^{*g},\frac{1}{v^g}\psi^g\right)$ to be constant.  And after some manipulation, the standard point reactor kinetics equations (PRKE) for the amplitude solution are obtained:
 \be
 \frac{dp}{dt}=\left[\frac{\rho-\bar{\beta}}{\Lambda}\right]p+\sum_{i=1}^I\bar{\lambda}_i\xi_i
 \ee
@@ -146,56 +139,16 @@ e_n = \frac{\norm{\sum_{g=1}^G\int_{4\pi}\Psi^g_2 d^2\Omega - \sum_{g=1}^G\int_{
 \be
 \Delta t_{new} = \Delta t_{old} \left(\frac{e_{tol}}{e_n}\right)^{\frac{1}{\mu+1}}
 \label{eq:dt2}
-\ee
-
-To be clear, each solution is re-scaled by $p$ when calculating $e_n$.  Additionally, if the PJFNK iteration does not converge, the entire step doubling process is repeated with half the time original time step. 
+\ee 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results and Analysis}
-This section describes results of an example that tests the IQS implementation and shows its effectiveness on computation speed and accuracy.  A benchmark example was selected for this purpose.  The example is the two-dimensional TWIGL ramp transient benchmark, described further.  The example was solved with regular diffusion (brute force) and IQS P-C with backward-Euler time discretization.  The performance for each method are represented by the number of macro time steps and solves with step doubling time adaptation.
+This section describes results of the TWIGL benchmark that tests the IQS implementation and shows its effectiveness on computation speed and accuracy.  The benchmark was solved with regular diffusion (brute force) and IQS P-C with backward-Euler time discretization.  The performance for each method are represented by the number of macro time steps and solves with step doubling time adaptation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{TWIGL Benchmark}
 
-This benchmark problem originates from the Argonne National Lab Benchmark Problem Book \cite{BPB}.  It is a 2D, 2-group reactor core model with no reflector region shown in Figure \ref{fig:TWIGL_reg}.  Table \ref{tab:TWIGL_mat} shows the material properties of each fuel region and the ramp perturbation of Material 1.
-
-\begin{figure}[!htbp]
-\begin{center}
-\includegraphics[width=0.5\textwidth]{TWIGL_regions.jpg}
-\caption{TWIGL benchmark problem description}
-\label{fig:TWIGL_reg}
-\end{center}
-\end{figure}
-
-\begin{table}[htp]
-\begin{center}
-\resizebox{0.48\textwidth}{!}{
-\begin{tabular}{lllllll}
-\hline
-  &  &  &  &  &  &  $\underline{\Sigma_s (cm^{-1})} $ \\
-Material & Group & $D (cm)$ & $\Sigma_a (cm^{-1})$ & $\nu\Sigma_f (cm^{-1})$ & $\chi$ & $g \rightarrow 2$ \\
-\hline
-1 & 1 & 1.4 & 0.010 & 0.007 & 1.0 & 0.01 \\
-  & 2 & 0.4 & 0.150 & 0.200 & 0.0 & 0.00  \\
-2 & 1 & 1.4 & 0.010 & 0.007 & 1.0 & 0.01  \\
-  & 2 & 0.4 & 0.150 & 0.200 & 0.0 & 0.00  \\
-3 & 1 & 1.3 & 0.008 & 0.003 & 1.0 & 0.01  \\
-  & 2 & 0.5 & 0.050 & 0.060 & 0.0 & 0.00  \\
-\hline
-  & $\nu$ & $v_1 (cm/s)$ & $v_2 (cm/s)$ & $\beta$ & $\lambda (1/s)$ &  \\
-\hline
-  & 2.43 & 1.0E7 & 2.0E5 & 0.0075 & 0.08 & \\
-\hline
- \multicolumn{7}{l}{\footnotesize Material 1 ramp perturbation:} \\
-\multicolumn{7}{l}{\footnotesize $\Sigma_{a,2}(t)=\Sigma_{a,2}(0) \times (1-0.11667t) \quad t \leq 0.2 s$} \\
-\multicolumn{7}{l}{\footnotesize $\Sigma_{a,2}(t)=\Sigma_{a,2}(0) \times (0.97666t) \quad t > 0.2 s$} \normalsize
-\end{tabular}}
-\end{center}
-\caption{TWIGL material properties and ramp perturbation}
-\label{tab:TWIGL_mat}
-\end{table}
-
-Figure \ref{fig:TWIGL_power} shows the IQS  solution as compared with the Brute Force solution with minimal time steps.  Table \ref{tab:TWIGLdt2} shows the results for time adaptation.  The results show that IQS performs exceptionally well compared to brute force for this highly transient example.
+This benchmark problem originates from the Argonne National Lab Benchmark Problem Book.  It is a 2D, 2-group reactor core model with no reflector region, the geometry, material properties, and transient perturbation can be seen in \cite{BPB}.  Figure \ref{fig:TWIGL_power} shows the IQS  solution as compared with the Brute Force solution with minimal time steps.  Table \ref{tab:TWIGLdt2} shows the results for time adaptation.  The results show that IQS performs exceptionally well compared to brute force for this highly transient example.
 
 \begin{figure}[!htbp]
 \centering
@@ -383,7 +336,7 @@ The purpose of this paper was to show IQS's performance with step doubling time 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Acknowledgments}
 
-This work was supported by the Department of Energy and Idaho National Laboratory.  Special thanks to Mark Dehart, NEAMS, and the Moose/Rattlesnake team at INL.
+This work was supported by the Department of Energy and Idaho National Laboratory.  Special thanks to Mark Dehart, Yaqi Wang, NEAMS, and the Moose/Rattlesnake team at INL.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{ans}
