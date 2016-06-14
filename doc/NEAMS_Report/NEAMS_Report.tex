@@ -183,7 +183,7 @@ This report presents  the implementation of the Improved Quasi-Static method (IQ
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \par
-The improved quasi-static (IQS) method is a transient spatial kinetics method that involves factorizing the neutron flux into a space- and time-dependent component (the shape) and a time-dependent component (the amplitude) \cite{Ott_1966,Dulla2008}. The technique relies on the shape being less rapidly varying in time compared to the flux, hence requiring fewer shape computations or updates. The IQS method has primarily been developed in the context of the neutron diffusion approximation \cite{Ban_2012,Ferguson_1973}, but \cite{Devooght_1980} provides an extension of the technique to transport, implemented in TDTORT. The method has mostly being applied to neutron kinetics, without thermal-hydraulic feedback. In this report, we extend the IQS method in the context of transient multiphysics simulations.
+The improved quasi-static (IQS) method is a transient spatial kinetics method that involves factorizing the neutron flux into a space- and time-dependent component (the shape) and a time-dependent component (the amplitude) \cite{Ott_1966,Dulla2008}. The technique relies on the shape being less rapidly varying in time compared to the flux, hence requiring fewer shape computations or updates. The IQS method has primarily been developed in the context of the neutron diffusion approximation \cite{Ban_2012,Ferguson_1973}, but \cite{Goluoglu_2001} provides an extension of the technique to transport, implemented in TDTORT. The method has mostly being applied to neutron kinetics, without thermal-hydraulic feedback. In this report, we extend the IQS method in the context of transient multiphysics simulations.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -207,19 +207,19 @@ Extension to the transport equations will be provided subsequently, once a conci
 In the above equations,  \\
 
 \begin{tabular}{lll}
-$\phi^g$				&	$=$	&	Scalar flux in energy group $g$ \\
-$C_i$					&	$=$	&	Concentration of delayed neutron precursor $i$ \\
-$\Sigma_f^{g}$			&	$=$	&	Fission cross section in energy group $g$ \\
-$\Sigma_r^{g}$			&	$=$	&	Removal cross section in energy group $g$ \\
+$\phi^g$   			&	$=$	&	Scalar flux in energy group $g$ \\
+$C_i$					  &	$=$	&	Concentration of delayed neutron precursor $i$ \\
+$\Sigma_f^{g}$	&	$=$	&	Fission cross section in energy group $g$ \\
+$\Sigma_r^{g}$	&	$=$	&	Removal cross section in energy group $g$ \\
 $\Sigma_s^{g' \to g}$	&	$=$	&	Scattering cross section from energy group $g'$ to $g$ \\
-$v^g$					&	$=$	&	Neutron velocity in energy group $g$ \\
-$\chi_p^g$				&	$=$	&	Fission spectrum of prompt neutrons \\
-$\chi_{d,i}^g$			&	$=$	&	Fission spectrum of delayed neutrons from precursor $i$ \\
+$v^g$					  &	$=$	&	Neutron velocity in energy group $g$ \\
+$\chi_p^g$			&	$=$	&	Fission spectrum of prompt neutrons \\
+$\chi_{d,i}^g$	&	$=$	&	Fission spectrum of delayed neutrons from precursor $i$ \\
 $\nu^g$					&	$=$	&	Total number of neutrons per fission \\
-$D^g$					&	$=$	&	Diffusion coefficient in energy group $g$\\
-$\lambda_i$				&	$=$	&	Decay constant of precursor $i$ \\
+$D^g$					  &	$=$	&	Diffusion coefficient in energy group $g$\\
+$\lambda_i$			&	$=$	&	Decay constant of precursor $i$ \\
 $\beta_i$				&	$=$	&	Delayed neutron fraction  from precursor $i$ \\
-$\beta$			 	&	$=$	&	Total delayed neutron fraction ($\beta = \sum_{i=1}^I \beta_{i}$) \\
+$\beta$			 	  &	$=$	&	Total delayed neutron fraction ($\beta = \sum_{i=1}^I \beta_{i}$) \\
   & & 
 \end{tabular}
 
@@ -229,15 +229,15 @@ The factorization approach in IQS leads to a decomposition of the multigroup flu
 \be
 \phi^g(\vec{r},t)=p(t)\varphi^g(\vec{r},t)
 \ee
-The factorization is not an approximation. Reporting it in the flux and precursor equations yields, after some simple algebra, the following equations for the shape and the precursors:
+We stress that the factorization is not an approximation. Reporting it in the flux and precursor equations yields, after some simple algebra, the following equations for the shape and the precursors:
 \begin{subequations}
 \begin{align}
 \frac{1}{v^g}\frac{\partial\varphi^g}{\partial t} = &\frac{\chi_p^g}{\keff} (1-\beta)\sum_{g'=1}^G  \nu^{g'} \Sigma_f^{g'} \varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'} \nonumber \\ 
-& -  \left( -\div D^g \grad  + \Sigma_r^g + \frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\right) \varphi^g + \frac{1}{p}\sum_{i=1}^I\chi_{d,i}^g\lambda_iC_i  , \quad 1 \le g \le G 
+& -  \left( -\div D^g \grad  + \Sigma_r^g + \boxed{\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}}\right) \varphi^g + \boxed{\frac{1}{p}}\sum_{i=1}^I\chi_{d,i}^g\lambda_iC_i  , \quad 1 \le g \le G 
 \label{eq:shape2}
 \end{align}
 \be
-\frac{dC_i}{dt} = \frac{\beta_i}{\keff}p \sum_{g=1}^G\nu^{g} \Sigma_f^g \varphi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
+\frac{dC_i}{dt} = \frac{\beta_i}{\keff}\boxed{p} \sum_{g=1}^G\nu^{g} \Sigma_f^g \varphi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
 \label{eq:preq2}
 \ee
 \end{subequations}
@@ -288,25 +288,30 @@ Additionally, in order to impose uniqueness on the factorization and to derive t
 \label{sect:transport}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-For simplicity, the previous section only described the IQS implementation using the neutron diffusion equation. However, deriving the IQS form for other neutron balance equations (e.g., transport, simplified transport, etc.) is very similar. To this end, we now re-write the neutron conservation equations in operator form in \eqt{eq:transport}.  Factorization is defined as $\Psi^g(\vec{r},\vec{\Omega},t)=p(t)\psi^g(\vec{r},\vec{\Omega},t)$ and the resulting shape equation is defined by \eqt{eq:tshape}.  Finally, the PRKE parameters are defined by Equations~\ref{eq:trmb}~and~\ref{eq:tb}, where $\left(\Psi^{*g},f^g\right) = \int_{4\pi}\int_D \Psi^{*g}(\vec{r},\vec{\Omega})f^g(\vec{r},\vec{\Omega})d^3r d\Omega$.
+For simplicity, the previous section only described the IQS implementation using the neutron diffusion equation. However, deriving the IQS form for other neutron balance equations (e.g., transport, simplified transport, etc.) is very similar. To this end, we re-write the neutron conservation equations in operator form, shown in \eqt{eq:transport}. 
 \be
 \frac{1}{v^g}\frac{\partial \Psi^g}{\partial t} = \sum_{g'} \left(H^{g'\to g} + P_p^{g' \to g} \right) \Psi^{g'} - L^g\Psi^g + S_d^g
 \label{eq:transport}
 \ee
-where $\Psi^g$ is the multigroup neutron flux (angular flux in the case of transport), $H^{g'\to g}$ is the scattering operator, $P_p^{g' \to g}$ is the prompt neutron production operator, $L^g$ is the loss operator, and $S_d^g$ is the delayed neutron source operator. Using \eqt{eq:flux}, the reader may easily obtain the functional form for these operators in the case of a diffusion approximation. Next, the factorization $\Psi^g = p \, \psi^g$ is introduced, where the shape is denoted by $\psi^g$, leading to the following shape equations:
+where $\Psi^g$ is the multigroup neutron flux (angular flux in the case of transport), $H^{g'\to g}$ is the scattering operator, $P_p^{g' \to g}$ is the prompt neutron production operator, $L^g$ is the loss operator, and $S_d^g$ is the delayed neutron source operator. Using \eqt{eq:flux}, the reader may easily obtain the functional form for these operators in the case of a diffusion approximation.
+%
+%Factorization is defined as $\Psi^g(\vec{r},\vec{\Omega},t)=p(t)\psi^g(\vec{r},\vec{\Omega},t)$ and the resulting shape equation is defined by \eqt{eq:tshape}.  
+Next, the factorization $\Psi^g(\vec{r},\vec{\Omega},t)=p(t)\psi^g(\vec{r},\vec{\Omega},t)$ is introduced, where the shape is denoted by $\psi^g$, leading to the following shape equations, \eqt{eq:tshape}:
 \be
 \frac{1}{v^g}\frac{\partial \psi^g}{\partial t} = \sum_{g'} \left(H^{g' \to g} + P_p^{g' \to g}\right) \psi^{g'} - \left( L^g + \frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\right) \psi^g + \frac{1}{p} S_d^g
 \label{eq:tshape}
 \ee
+Finally, the PRKE parameters are defined by Equations~\ref{eq:trmb}~and~\ref{eq:tb}, where 
+$\left(\Psi^{*g},f^g\right) =$\\ $ \int_{4\pi}\int_D \Psi^{*g}(\vec{r},\vec{\Omega})f^g(\vec{r},\vec{\Omega})d^3r d^2\Omega$.
 \be
-\frac{\rho-\bar{\beta}}{\Lambda}=\frac{ \sum_{g=1}^G\left(\Psi^{*g},\sum_{g'}(H^{' \to g}g+P_p^{g' \to g}-L^{g'}\delta_{g'g})\psi^{g'}\right)}{\sum_{g=1}^G\left(\Psi^{*g},\frac{1}{v^g}\psi^g\right)}
+\frac{\rho-\bar{\beta}}{\Lambda}=\frac{ \sum_{g=1}^G\left(\Psi^{*g},\sum_{g'}(H^{g' \to g}g+P_p^{g' \to g}-L^{g'}\delta_{g'g})\psi^{g'}\right)}{\sum_{g=1}^G\left(\Psi^{*g},\frac{1}{v^g}\psi^g\right)}
 \label{eq:trmb}
 \ee
 \be
-\frac{\bar{\beta}}{\Lambda}=\sum_{i=1}^I\frac{\bar{\beta}_i}{\Lambda}=\sum_{i=1}^I\frac{\sum_{g=1}^G(\Psi^{*g}, P_{d,i}^g \psi^g)}{\sum_{g=1}^G\left(\Psi^{*g},\frac{1}{v^g}\psi^g\right)}
+\frac{\bar{\beta}}{\Lambda}=\sum_{i=1}^I\frac{\bar{\beta}_i}{\Lambda}=\sum_{i=1}^I\frac{\sum_{g=1}^G(\Psi^{*g}, \sum_{g'} P_{d,i}^{g' \to g} \psi^{g'})}{\sum_{g=1}^G\left(\Psi^{*g},\frac{1}{v^g}\psi^g\right)}
 \label{eq:tb}
 \ee
-where $P_{d,i}^g$ is the delayed-neutron operator for precursor group $i$.
+where $P_{d,i}^{g' \to g}$ is the delayed-neutron operator for precursor group $i$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Solving the IQS System of Equations}
