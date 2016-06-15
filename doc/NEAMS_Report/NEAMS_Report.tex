@@ -26,6 +26,7 @@
 \renewcommand{\div}{\bs{\nabla}\! \cdot \!}
 \newcommand{\grad}{\bs{\nabla}}
 \newcommand{\norm}[1]{\left\lVert#1\right\rVert_{L^2}}
+\newcommand{\rattlesnake}{Rattlesnake }
 % extra space
 \newcommand{\qq}{\quad\quad}
 % common reference commands
@@ -96,8 +97,8 @@
 % ********* Header and Footer **********
 % This is something to play with forever. I use here the advanced settings of the KOMA script
 
-\title{Improved Quasi-Static Methods in Rattlesnake}
-\subtitle{Development and Implementation of Improved Quasi-Static (IQS) methods for time-dependent neutron diffusion and neutron transport solvers in Rattlesnake}
+\title{Improved Quasi-Static Methods in \rattlesnake}
+\subtitle{Development and Implementation of Improved Quasi-Static (IQS) methods for time-dependent neutron diffusion and neutron transport solvers in \rattlesnake}
 \author{ \normalsize
   \textbf{Zachary M. Prince$^\dagger$, Jean C. Ragusa$^\dagger$, Yaqi Wang$^\star$} \\
  \normalsize $^\dagger$Department of Nuclear Engineering \\
@@ -114,7 +115,7 @@
 \pagestyle{fancy}
 \fancyhf{}
 \lhead{INL/EXT-16-38059}
-\rfoot{DRAFT}
+\rfoot{FINAL}
 \cfoot{\thepage}
 
 
@@ -151,7 +152,7 @@
 
 %################ End Preferences, Begin Document #####################
 
-\pagestyle{plain} % on headers or footers on the first page
+%\pagestyle{plain} % on headers or footers on the first page
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -172,7 +173,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-This report presents  the implementation of the Improved Quasi-Static method (IQS) in the Yak/Rattlesnake applications of the MOOSE framework.  In the IQS method, the neutron flux is factored into a time-dependent amplitude and a spatial- and weakly time-dependent shape.  The shape evaluation is very similar to a standard flux solve and is computed at large (macro) time steps. The amplitude is obtained by solving the PRKEs on a micro time scale. The PRKE parameters are regularly updated based on the shape changes.  Two versions of the IQS methodology have been implemented: (i) the standard approach, which leads to a system of nonlinear equations between the shape and the amplitude, and (ii) a predictor corrector approach that linearizes the system of equations. A time-adaptation technique has been developed to automatically select an appropriate macro time step size based on user-specified tolerances. The implementation has been verified and tested using manufactured solutions, a custom one-dimensional example, the TWIGL ramp benchmark, and the LRA benchmark.  The numerical results include error convergence plots and performance with time adaptation.  These examples prove it to be a viable and effective method for  transient neutronic simulations. More complex simulations (e.g., TREAT transients) are planned to perform coupled neutronics/heat conduction transient simulations within the MAMMOTH application.
+This report presents  the implementation of the Improved Quasi-Static method (IQS) in the \rattlesnake application of the MOOSE framework.  In the IQS method, the neutron flux is factored into a time-dependent amplitude and a spatial- and weakly time-dependent shape.  The shape evaluation is very similar to a standard flux solve and is computed at large (macro) time steps. The amplitude is obtained by solving the PRKEs on a micro time scale. The PRKE parameters are regularly updated based on the shape changes.  Two versions of the IQS methodology have been implemented: (i) the standard approach, which leads to a system of nonlinear equations between the shape and the amplitude, and (ii) a predictor corrector approach that linearizes the system of equations. A time-adaptation technique has been developed to automatically select an appropriate macro time step size based on user-specified tolerances. The implementation has been verified and tested using manufactured solutions, a custom one-dimensional example, the TWIGL ramp benchmark, and the LRA benchmark.  The numerical results include error convergence plots and performance with time adaptation.  These examples prove it to be a viable and effective method for  transient neutronic simulations. More complex simulations (e.g., TREAT transients) are planned to perform coupled neutronics/heat conduction transient simulations within the MAMMOTH application.
 
 \pagebreak
 
@@ -327,7 +328,7 @@ Solving for the shape can become expensive, especially in two or three dimension
 
 By this design, the benefits of IQS is most realized when using time adaptive techniques, one of these is described in  \sct{sect:dt2}.  As we noted earlier, shape-PRKE equations are a nonlinear system and thus need to be solved in a iterative manner.  Each macro time step can be iterated so the best shape is used to compute power at the micro time steps.  This iteration process must converge the shape such that the uniqueness condition $(\frac{d}{dt}\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)=0)$ is preserved.  
 
-The most convenient method to implement IQS in RATTLESNAKE is through Picard or fixed-point iterations. Over a given Picard iteration, the shape is evaluated first with the latest available amplitude. The updated shape is employed to compute the PRKE parameters (using a linear interpolation in time) and then the PRKEs are solved using micro time steps. This process is repeated until convergence of the normalization condition. Picard iterations can also be utilized for multiphysics simulations, where neutronics (e.g., IQS) is nonlinearly coupled to thermal-hydraulics, for instance.  Thus, inlcuding the IQS nonlinear system solve into the Picard iteration of MOOSE is a straightforward process and is described in \fig{fig:picard}.
+The most convenient method to implement IQS in \rattlesnake is through Picard or fixed-point iterations. Over a given Picard iteration, the shape is evaluated first with the latest available amplitude. The updated shape is employed to compute the PRKE parameters (using a linear interpolation in time) and then the PRKEs are solved using micro time steps. This process is repeated until convergence of the normalization condition. Picard iterations can also be utilized for multiphysics simulations, where neutronics (e.g., IQS) is nonlinearly coupled to thermal-hydraulics, for instance.  Thus, inlcuding the IQS nonlinear system solve into the Picard iteration of MOOSE is a straightforward process and is described in \fig{fig:picard}.
 
 \begin{figure}[!htpb]
 \centering
@@ -438,11 +439,11 @@ To sum up, each solution undergoes Picard iterations until convergence before th
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{RATTLESNAKE Implementation}
+\section{\rattlesnake Implementation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-RATTLESNAKE is a MOOSE-based application developed INL specific to solving radiation transport problems with multiphysics capabilities.  MOOSE is a finite-element based, multiphysics framework that gives the general architecture for the development of physics application like RATTLESNAKE.   At the heart of RATTLESNAKE is the action system, which provides a means to consolidate the MOOSE input syntax (which can be quite larger for multigroup transport simulations), so that a user does not have to define every kernel, variable, etc., used in the problem. Rather, the user inputs an equation description 
+\rattlesnake is a MOOSE-based application developed INL specific to solving radiation transport problems with multiphysics capabilities.  MOOSE is a finite-element based, multiphysics framework that gives the general architecture for the development of physics application like \rattlesnake.   At the heart of \rattlesnake is the action system, which provides a means to consolidate the MOOSE input syntax (which can be quite larger for multigroup transport simulations), so that a user does not have to define every kernel, variable, etc., used in the problem. Rather, the user inputs an equation description 
 (e.g., Diffusion, S$_n$, P$_n$, etc.) and a solution method (e.g., SAAF, LS, CFEM, DFEM, etc.), and the action system will incorporate all the necessary physics involved (kernels, boundary conditions, postprocessor, etc.).
 
  
@@ -460,14 +461,14 @@ Error_{IQS}=\left|\frac{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^{g,n}\r
 \subsection{Action System}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The IQS implementation mostly require the specific IQS executioner, described above. However, IQS additional changes are in the RATTLESNAKE action system in order to support the IQS execution.  First, changes needed to be made in order to evaluate the shape equation.  The shape equation, after some manipulation, is very similar to the time-dependent governing laws that RATTLESNAKE already solves. Using multigroup diffusion as an example again, we show the various kernels employed and highlight the new or modified kernels.
+The IQS implementation mostly require the specific IQS executioner, described above. However, IQS additional changes are in the \rattlesnake action system in order to support the IQS execution.  First, changes needed to be made in order to evaluate the shape equation.  The shape equation, after some manipulation, is very similar to the time-dependent governing laws that \rattlesnake already solves. Using multigroup diffusion as an example again, we show the various kernels employed and highlight the new or modified kernels.
 
 \begin{align}
 \frac{\partial}{\partial t}\left(\frac{\varphi^g}{v^g}\right)=&\underbrace{\frac{\chi_p^g}{\keff} \sum_{g'=1}^G (1-\beta) \nu^{g'} \Sigma_f^{g'} \varphi^{g'}}_{Flux Kernel} + \underbrace{\sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'}}_{Flux Kernel} - \underbrace{\left( -\div D^g \grad \right)\varphi^g}_{Flux Kernel} - \underbrace{\Sigma_r^g\varphi^g}_{Flux Kernel} \nonumber \\
 & - \underbrace{\frac{1}{v^g} \boxed{\overbrace{\frac{1}{p}\frac{dp}{dt}}^{From Executioner}}\varphi^g}_{IQS Kernel}+\underbrace{\frac{1}{p}\sum_{i=1}^I\chi_{d,i}^g\lambda_iC_i}_{Modified Flux Kernel}
 \end{align}
 
-To enable RATTLESNAKE to solve this equation, an IQS removal kernel was created to evaluate $\sum_{g=1}^G\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\varphi^g$ and added when the IQS executioner is called.  Also, the precursor kernel was modified to include the $\frac{1}{p}$ term. Finally, the precursor auxkernel that evaluates \eqt{eq:preq2} using the analytical integration method described in \sct{sect:prec}.
+To enable \rattlesnake to solve this equation, an IQS removal kernel was created to evaluate $\sum_{g=1}^G\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\varphi^g$ and added when the IQS executioner is called.  Also, the precursor kernel was modified to include the $\frac{1}{p}$ term. Finally, the precursor auxkernel that evaluates \eqt{eq:preq2} using the analytical integration method described in \sct{sect:prec}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{PRKE coefficients}
@@ -479,11 +480,11 @@ In order to evaluate the PRKE coefficients, defined by Equations~\ref{eq:rmb}~-~
 \subsection{Other Action Systems}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-For simplicity, IQS implementation has only been described for CFEM diffusion.  However, RATTLESNAKE has other action systems capable of transient simulation, where IQS can be implemented and be effective.  One of these action systems is DFEM diffusion, where the only major difference from CFEM is the diffusion term in Equations~\ref{eq:flux}~and~\ref{eq:shape2}.  However, in the derivation for IQS, this term is unaffected between shape and flux evaluation.  So saving the residual for this diffusion kernel in the \texttt{save\_in} variable is the only alteration to this action for IQS to function.\\
+For simplicity, IQS implementation has only been described for CFEM diffusion.  However, \rattlesnake has other action systems capable of transient simulation, where IQS can be implemented and be effective.  One of these action systems is DFEM diffusion, where the only major difference from CFEM is the diffusion term in Equations~\ref{eq:flux}~and~\ref{eq:shape2}.  However, in the derivation for IQS, this term is unaffected between shape and flux evaluation.  So saving the residual for this diffusion kernel in the \texttt{save\_in} variable is the only alteration to this action for IQS to function.\\
 
 Additional action systems involve transport, but it is evident from \sct{sect:transport} that IQS implementation in these is straightforward as well.  The main differences between a diffusion implementation and a transport implementation are outlined below:
 \begin{enumerate}
-\item The form of the operators in the shape equations is different, but RATTLESNAKE has already implemented all the kernels necessary to represent these operators.  So no change is necessary to these kernels is necessary for IQS.  Additionally, the $\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}$ is the same, so both action systems can use the same kernel.
+\item The form of the operators in the shape equations is different, but \rattlesnake has already implemented all the kernels necessary to represent these operators.  So no change is necessary to these kernels is necessary for IQS.  Additionally, the $\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}$ is the same, so both action systems can use the same kernel.
 \item The PRKE parameters also change because of the operators.  For the $(\rho-\bar{\beta})$ parameter, the same post-processor can be used with the \texttt{save\_in} functionality in MOOSE.  The post-processor for $\bar{\beta}_i$ must be re-written for transport, but takes a very similar form as diffusion.
 \end{enumerate}
 
@@ -511,7 +512,7 @@ In order to preserve the already implemented standard version of IQS, an option 
 \subsection{Input}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The input file for IQS is very similar to the current transient diffusion input file.  The IQS input has a different executioner type and parameters.  The executioner type is simply IQS and input parameters include the number of micro time steps per macro step, the IQS error tolerance, and the initial power.  The RATTLESNAKE transient action system currently requires a multi-app and transfer to compute and pass the initial $\phi$ and $\keff$, which is present in the transient input deck.  However, IQS also requires an initial evaluation of the adjoint flux, for the weighting function.  So another input file and multi-app transfer was made for the adjoint calculation.  \\
+The input file for IQS is very similar to the current transient diffusion input file.  The IQS input has a different executioner type and parameters.  The executioner type is simply IQS and input parameters include the number of micro time steps per macro step, the IQS error tolerance, and the initial power.  The \rattlesnake transient action system currently requires a multi-app and transfer to compute and pass the initial $\phi$ and $\keff$, which is present in the transient input deck.  However, IQS also requires an initial evaluation of the adjoint flux, for the weighting function.  So another input file and multi-app transfer was made for the adjoint calculation.  \\
 
 Below is the syntax for the executioner block for an IQS input file.  The \texttt{predictor\_corrector} logical determines whether to do IQS P-C or regular IQS.  The \texttt{IQS\_error\_tol} is the tolerance for the IQS error represented by \eqt{eq:eiqs} and will at most \texttt{picard\_max\_its} iterations until convergence.  The \texttt{prke\_scheme} defines the time discretization used for the PRKE solution. Where \texttt{RK} is SDIRK33, \texttt{CN} is Crank-Nicholson, and \texttt{IE} is implicit-Euler.
 \begin{lstlisting}
@@ -744,7 +745,7 @@ Material & Group & $D (cm)$ & $\Sigma_a (cm^{-1})$ & $\nu\Sigma_f (cm^{-1})$ & $
 \end{center}
 \end{table}
 
-\fig{fig:TWIGL_power} shows the IQS  solution as compared with the Brute Force solution.  These plots show that IQS is consistent in more complex, higher dimensional problems in Rattlesnake.  Finally, \fig{fig:TWIGL_conv} plots the error convergence of IQS and the Brute Force methods.  The curves show the impressive convergence of IQS for the highly transient TWIGL example.  \tbl{tab:TWIGLdt2} and \fig{fig:TWIGL_power_dt2} show the results for time adaptation.  The results show that both IQS methods perform exceptionally well compared to brute force.  It also shows that traditional IQS performed better with large $e_{tol}$, while IQS P-C was better with smaller $e_{tol}$.
+\fig{fig:TWIGL_power} shows the IQS  solution as compared with the Brute Force solution.  These plots show that IQS is consistent in more complex, higher dimensional problems in \rattlesnake.  Finally, \fig{fig:TWIGL_conv} plots the error convergence of IQS and the Brute Force methods.  The curves show the impressive convergence of IQS for the highly transient TWIGL example.  \tbl{tab:TWIGLdt2} and \fig{fig:TWIGL_power_dt2} show the results for time adaptation.  The results show that both IQS methods perform exceptionally well compared to brute force.  It also shows that traditional IQS performed better with large $e_{tol}$, while IQS P-C was better with smaller $e_{tol}$.
 
 %It is important to note the IQS shape plot is scaled differently than the Brute Force flux plot because the amplitude term is not included, but the gradients of colors is comparable.
 
@@ -923,7 +924,7 @@ The transient is initiated by changing the thermal absorption cross section as t
 \end{align}
 where $t$ is time in seconds.\\
 
-The \fig{fig:LRA_plots} plots show the IQS  solution as compared with the Brute Force solution.    These plots show that IQS is consistent with Doppler feedback problems in RATTLESNAKE.  \fig{fig:lra_conv} plots the error convergence of IQS and the Brute Force methods. \tbl{tab:LRAdt2} shows the time adaptation performance of brute force and IQS P-C.  These results show that IQS, again, performs much better than the brute force method by taking significantly fewer diffusion solves while retaining similar accuracy.
+The \fig{fig:LRA_plots} plots show the IQS  solution as compared with the Brute Force solution.    These plots show that IQS is consistent with Doppler feedback problems in \rattlesnake.  \fig{fig:lra_conv} plots the error convergence of IQS and the Brute Force methods. \tbl{tab:LRAdt2} shows the time adaptation performance of brute force and IQS P-C.  These results show that IQS, again, performs much better than the brute force method by taking significantly fewer diffusion solves while retaining similar accuracy.
 
 \begin{figure}[!htbp]
 \begin{center}
@@ -976,12 +977,12 @@ Test & $e_{tol}$ & Error & Steps & Solves & Error & Steps & Solves \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions}
 
-The purpose of this report is to briefly review the improved quasi-static method for neutronic transient simulations, to describe its implementation in RATTLESNAKE, the radiation transport application based on MOOSE, and to show its effectiveness using several test cases.  
+The purpose of this report is to briefly review the improved quasi-static method for neutronic transient simulations, to describe its implementation in \rattlesnake, the radiation transport application based on MOOSE, and to show its effectiveness using several test cases.  
 %The derivation of IQS was done with multigroup diffusion, but it was seen in \sct{sect:transport} that application to transport is relatively simple.  
-Two IQS implementations are available in RATTLESNAKE.  The first one is the traditional IQS approach, where the shape equation and PRKE are solved as a coupled nonlinear system with Picard iterations.  The second approach, IQS P-C, is a predictor-corrector linearization, where the flux is solved and then rescaled using the amplitude obtained through the PRKE
+Two IQS implementations are available in \rattlesnake.  The first one is the traditional IQS approach, where the shape equation and PRKE are solved as a coupled nonlinear system with Picard iterations.  The second approach, IQS P-C, is a predictor-corrector linearization, where the flux is solved and then rescaled using the amplitude obtained through the PRKE
 (Point Reactor Kinetic Equations).  IQS P-C is a simpler method and is computationally much less expensive to perform. \\
 
-IQS's implementation in RATTLESNAKE involves a new kernel, an auxiliary kernel, a new executioner derived from the current transient, four postprocessors, as well as alterations to the action system.  The new kernel implements the $\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}$ term in the shape equation.  The auxiliary kernel alters how the precursors are solved, the method is outlined by \sct{sect:prec}.  The executioner is where the PRKE are evaluated after shape solves are performed.  The postprocessors are used to evaluate the parameters for the PRKE and a user object is used to pass them to the executioner.  IQS's implementation the action system made sure that all the correct kernels and postprocessors are executed when the IQS executioner is specified in the input. \\
+IQS's implementation in \rattlesnake involves a new kernel, an auxiliary kernel, a new executioner derived from the current transient, four postprocessors, as well as alterations to the action system.  The new kernel implements the $\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}$ term in the shape equation.  The auxiliary kernel alters how the precursors are solved, the method is outlined by \sct{sect:prec}.  The executioner is where the PRKE are evaluated after shape solves are performed.  The postprocessors are used to evaluate the parameters for the PRKE and a user object is used to pass them to the executioner.  IQS's implementation the action system made sure that all the correct kernels and postprocessors are executed when the IQS executioner is specified in the input. \\
 
 The IQS implementations have been verified and comparing against the traditional ``brute force'' temporal discretization of the governing laws. Error convergence plots and time adaptation performance are provided.  Three examples were used including a custom one-dimensional example, the TWIGL benchmark, and LRA benchmark.  The one-dimensional example shows large shape changes in the flux and proves consistency of the shape evaluation. IQS shows proper error convergence for first and second order time discretization. IQS P-C shows marginal improvement with time adaptation, but traditional IQS shows poor performance.  The TWIGL benchmark shows the effectiveness of the PRKE in IQS because there is very little shape change through the transient.  IQS shows very satisfactory performance with both constant time steps and time adaptation.  The LRA benchmark tests IQS when utilized in the context of a multiphysics simulation.  Again, IQS shows good performance by requiring half the time steps as brute force for a given error.
 
@@ -1061,7 +1062,7 @@ The IQS implementations have been verified and comparing against the traditional
 %%\label{eq:c}
 %\ee
 %
-%Equations (\ref{eq:p}) and (\ref{eq:c}) are a formulation of the point reactor kinetics equation (PRKE), but the parameters (Equations (\ref{eq:rmb})-(\ref{eq:l})) are dependent on the shape.  If the assumption is made that the shape is time-independent, the shape is computed once at the first time step and used for the PRKE parameter evaluation at all other steps.  However, if the shape is dependent on time, the shape needs to be computed in transient using equation (\ref{eq:shape}) and (\ref{eq:prec}) in order retain accuracy.  Equations (\ref{eq:shape2}) and (\ref{eq:preq2}) shows the usual form of the shape and precursor equations with amplitude put on the right hand side.  Equation (\ref{eq:shape2}) is very similar to the multigroup flux equation (\ref{eq:flux}), except the removal cross-section term is augmented by a $\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}$ term and the precursor contribution has a $\frac{1}{p}$ multiplier.  Equation (\ref{eq:preq2}) is very similar to the normal precursor equation (\ref{eq:precursor}), except the fission source term is multiplied by $p$.  These differences are crucial for IQS implementation in Rattlesnake.
+%Equations (\ref{eq:p}) and (\ref{eq:c}) are a formulation of the point reactor kinetics equation (PRKE), but the parameters (Equations (\ref{eq:rmb})-(\ref{eq:l})) are dependent on the shape.  If the assumption is made that the shape is time-independent, the shape is computed once at the first time step and used for the PRKE parameter evaluation at all other steps.  However, if the shape is dependent on time, the shape needs to be computed in transient using equation (\ref{eq:shape}) and (\ref{eq:prec}) in order retain accuracy.  Equations (\ref{eq:shape2}) and (\ref{eq:preq2}) shows the usual form of the shape and precursor equations with amplitude put on the right hand side.  Equation (\ref{eq:shape2}) is very similar to the multigroup flux equation (\ref{eq:flux}), except the removal cross-section term is augmented by a $\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}$ term and the precursor contribution has a $\frac{1}{p}$ multiplier.  Equation (\ref{eq:preq2}) is very similar to the normal precursor equation (\ref{eq:precursor}), except the fission source term is multiplied by $p$.  These differences are crucial for IQS implementation in \rattlesnake.
 %
 %\begin{align}
 %\frac{1}{v^g}\frac{\partial\varphi^g}{\partial t} = &\frac{\chi_p^g}{\keff} (1-\beta)\sum_{g'=1}^G  \nu^{g'} \Sigma_f^{g'} \varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'} \nonumber \\ 
