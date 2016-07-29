@@ -15,6 +15,11 @@ dat.rod_mov.t_beg_2=1.0; dat.rod_mov.t_end_2=2.7;
 dat.beta_tot=600e-5;
 dat.lambda=0.1;
 dat.invvel=1e-3;
+dat.nu=2.43;
+
+% Temperature parameters
+dat.alpha = 0.;
+dat.T0 = 300;
 
 % assign function pointers to the various physical coeffcients
 switch problem_ID
@@ -118,16 +123,20 @@ switch problem_ID
     case 11
         % have material identifiers: 20 regions. 2 materials. 1 rod movement
         n_regions = 20; % assumption: each region has the same width
-        region_width=400/n_regions;
+        region_width=200/n_regions;
         dat.width = region_width * n_regions;
         
+        dat.kappa = 3.204e-11;
+        dat.alpha = 3.83e-11;
+        
         imat = ones(n_regions,1);
-        imat(5) = 2;
+        imat(3)  = 2;
+        imat(18) = 2;
         
         b=dat.beta_tot;
         iv=dat.invvel;
         dat.cdiff{1}   = create_material_prop('constant_in_time',1        ,[],'constant_in_space',0);
-        dat.siga{1}    = create_material_prop('constant_in_time',1.1      ,[],'constant_in_space',0);
+        dat.siga{1}    = create_buckled_material_prop('constant_in_time',1.1,[],'constant_in_space',0,3.034e-3,dat.T0);
         dat.nusigf{1}  = create_material_prop('constant_in_time',1.1      ,[],'constant_in_space',0);
         dat.nusigf_p{1}= create_material_prop('constant_in_time',1.1*(1-b),[],'constant_in_space',0);
         dat.nusigf_d{1}= create_material_prop('constant_in_time',1.1*b    ,[],'constant_in_space',0);
@@ -142,8 +151,8 @@ switch problem_ID
             dat.inv_vel{id}  = dat.inv_vel{1} ;
             dat.ext_src{id}  = dat.ext_src{1}    ;
         end
-        times = [dat.rod_mov.t_beg_1 dat.rod_mov.t_beg_2];
-        dat.siga{2} = create_material_prop('ramp_in_time',[1.1 1.08],times,'constant_in_space',0);
+        times = [0 2];
+        dat.siga{2} = create_buckled_material_prop('ramp_in_time',[1.1 0.97],times,'constant_in_space',0,3.034e-3,300);
         
     otherwise
         error('unknown problem ID ',problem_ID);
@@ -228,7 +237,7 @@ npar.add_ones_on_diagonal=~npar.add_zero_on_diagonal;
 
 % IQS options
 npar.solve_prke_compute_rho_each_time = false;
-npar.prke_solve = 'matlab' ;
+npar.prke_solve = 'none' ;
 npar.int_order = 3;
 % npar.prke_solve = 'no' ;
 npar.max_iter_iqs = 6;
@@ -236,15 +245,15 @@ npar.tol_iqs      = 1e-11;
 npar.iqs_prke_interpolation_method=2;
 
 if ~strcmpi(npar.prke_solve,'matlab')
-    npar.n_micro=10;
-    npar.freq_react=1;
+    npar.n_micro=100;
+    npar.freq_react=10;
 end
 
 % movie options
 dat.max_y_val_movie = 2.;
 
 % time integration
-time_integration=3;
+time_integration=1;
 switch time_integration
     case 1
         nstages=1;

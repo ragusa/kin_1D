@@ -14,6 +14,9 @@ switch method_name
         curr_leg = 'space-time-ANALY';
     
     case 'solve_TD_diffusion_elim_prec'
+        curr_leg = 'space-time-elim';    
+    
+    case 'solve_buckled_TD_diffusion_elim_prec'
         curr_leg = 'space-time-elim';
     
     case 'solve_IQS_diffusion_an_prec'
@@ -21,11 +24,17 @@ switch method_name
     
     case 'solve_IQS_diffusion_elim_prec'
         curr_leg = 'IQS-elim';
+
+    case 'solve_buckled_IQS_diffusion_elim_prec'
+        curr_leg = 'IQS-elim';
     
     case 'solve_IQS_PC_diffusion_an_prec'
         curr_leg = 'IQS-PC-an';
     
     case 'solve_IQS_PC_diffusion_elim_prec'
+        curr_leg = 'IQS-PC-elim';
+    
+    case 'solve_buckled_IQS_PC_diffusion_elim_prec'
         curr_leg = 'IQS-PC-elim';
     
     case 'solve_IQS_diffusion_td_prec'
@@ -58,16 +67,16 @@ if isempty(a)
 else
     leg=char(char(a),curr_leg);
 end
-plot(t,p,'o-');
+plot(t,log10(p),'o-');
 
 % if IQS
-nVarargs = length(varargin);
-if nVarargs ==2
-    t_iqs_fine = varargin{1};
-    p_iqs_fine = varargin{2};
-    plot(t_iqs_fine,p_iqs_fine,'c.-');
-    leg = char(leg, char(strcat(curr_leg, ' fine')) );
-end
+% nVarargs = length(varargin);
+% if nVarargs ==2
+%     t_iqs_fine = varargin{1};
+%     p_iqs_fine = varargin{2};
+%     plot(t_iqs_fine,log10(p_iqs_fine),'c.-');
+%     leg = char(leg, char(strcat(curr_leg, ' fine')) );
+% end
 
 legend(leg,'Location','Best');
 

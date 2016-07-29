@@ -25,6 +25,8 @@ npar.K0 = K0;
 
 % total power
 dat.Ptot = compute_power(dat.nusigf,curr_time,phi);
+power = dat.Ptot*dat.kappa;
+dat.Pnorm = 0.01/power;
 
 if ~npar.set_bc_last % 0=neumann, 1=robin, 2=dirichlet
     % add precursors BC values

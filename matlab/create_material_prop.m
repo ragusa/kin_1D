@@ -36,5 +36,7 @@ else
     error('unknown spatial dependence');
 end
 
+aux.fT = @(T) 0.*T+1;
+
 return
 end
