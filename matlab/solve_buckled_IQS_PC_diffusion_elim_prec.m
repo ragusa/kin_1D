@@ -38,8 +38,10 @@ for iter = 1: max_iter_iqs
     
     % solve for amplitude function
     if strcmpi(npar.prke_solve,'matlab')
-        [X,w,t,y] =  solve_prke_ode(X_beg,dt_macro,time_end,shape_beg,shape_end);
+        [X,t,y,T] =  solve_buckled_prke_ode(X_beg,dt_macro,time_end,shape_beg,shape_end,Told);
 %         [X,dpdt,t,y] =  solve_prke_ode_events(X_beg,dt_macro,time_end,shape_beg,shape_end);
+    elseif strcmpi(npar.prke_solve,'dt2')
+        [X,dpdt,t,y,T] =  solve_prke_dt2_buckled(X_beg,dt_macro,time_end,shape_beg,shape_end,Told);
     else
         [X,dpdt,t,y,T] =  solve_prke_iqs_buckled(X_beg,dt_macro,time_end,shape_beg,shape_end,Told,npar.n_micro,npar.freq_react);
     end

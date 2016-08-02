@@ -237,16 +237,17 @@ npar.add_ones_on_diagonal=~npar.add_zero_on_diagonal;
 
 % IQS options
 npar.solve_prke_compute_rho_each_time = false;
-npar.prke_solve = 'none' ;
+npar.prke_solve = 'matlab' ;
 npar.int_order = 3;
 % npar.prke_solve = 'no' ;
 npar.max_iter_iqs = 6;
 npar.tol_iqs      = 1e-11;
 npar.iqs_prke_interpolation_method=2;
 
+npar.n_react = 5;
 if ~strcmpi(npar.prke_solve,'matlab')
     npar.n_micro=100;
-    npar.freq_react=10;
+    npar.freq_react=npar.n_micro/npar.n_react;
 end
 
 % movie options
