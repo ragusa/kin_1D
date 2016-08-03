@@ -4,15 +4,15 @@ global dat
 
 [~,n] = size(phi);
 if n ~= length(t)
-    error('phi and time must be same length')
+    error('there must be at least 2 times')
 end
 
 fissrc = zeros(size(phi));
 for i=1:n
-    NF = assemble_mass(dat.nusigf,t(i));
-    fissrc(:,i) = NF*phi(:,i)*dat.Pnorm;
+    nf = evaluate_material_prop(dat.nusigf{1},t(i),0);
+    fissrc(:,i) = nf*phi(:,i)*dat.Pnorm;
 end
-dt = t(2)-t(1);
+dt = t(end)-t(1);
 
 switch n
     case 1

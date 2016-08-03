@@ -12,10 +12,10 @@ t1 = t(1);
 t2 = t(end);
 dt = t2-t1;
 
-NF = assemble_mass(dat.nusigf,t1);
-fissrc_old = NF*phi(:,1);
-NF = assemble_mass(dat.nusigf,t2);
-fissrc_new = NF*phi(:,2);
+nf =  evaluate_material_prop(dat.nusigf{1},t1,0);
+fissrc_old = nf*phi(:,1);
+nf =  evaluate_material_prop(dat.nusigf{1},t2,0);
+fissrc_new = nf*phi(:,2);
 
 pp = interp1(t,p,'linear','pp');
 A1 = @(t) (t2-t)/dt.*ppval(pp,t);

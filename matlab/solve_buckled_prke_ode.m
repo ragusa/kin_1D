@@ -1,4 +1,4 @@
-function [X,t,pow,T] =  solve_buckled_prke_ode(X,dt_macro,time_end,shape_beg,shape_end,Told)
+function [X,t,pow,T] =  solve_buckled_prke_ode(X,dt_macro,time_end,shape_beg,shape_end,Told,n_react)
 
 % make the problem-data a global variable
 global dat npar
@@ -6,7 +6,6 @@ global dat npar
 % create a list of times when reactivity will be recomputed for this macro
 % time step
 time_beg = time_end - dt_macro;
-n_react = npar.n_react;
 times_react_update = time_beg + linspace(0,n_react,n_react+1) * dt_macro/n_react;
 
 % tolerances for odesolvers

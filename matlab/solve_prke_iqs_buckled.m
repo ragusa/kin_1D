@@ -1,16 +1,16 @@
-function [X,dpdt,t,y,T] =  solve_prke_iqs_buckled(X,dt_macro,time_end,shape_beg,shape_end,Told,n_micro,freq_react)
+function [X,dpdt,t,y,T] =  solve_prke_iqs_buckled(X,dt_macro,time_end,shape_beg,shape_end,Told,n_react)
 
 % make the problem-data a global variable
 global dat npar
 
+% number of reactivity updates during one macro time step
+n_micro = npar.n_micro;
+freq_react = n_micro/n_react;
+if abs(floor(n_react)-n_react) > 1e-10
+    error('n_micro / n_react must be an integer');
+end
 % time step for prke solve
 dt = dt_macro/n_micro;
-
-% number of reactivity updates during one macro time step
-n_react = n_micro / freq_react;
-if abs(floor(n_react)-n_react) > 1e-10
-    error('n_micro / freq_react must be an integer');
-end
 % create a list of times when reactivity will be recomputed for this macro
 % time step
 time_beg = time_end - dt_macro;

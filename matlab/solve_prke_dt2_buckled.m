@@ -1,11 +1,10 @@
-function [X,dpdt,t,y,T] =  solve_prke_dt2_buckled(X,dt_macro,time_end,shape_beg,shape_end,Told)
+function [X,dpdt,t,y,T] =  solve_prke_dt2_buckled(X,dt_macro,time_end,shape_beg,shape_end,Told,n_react)
 
 % make the problem-data a global variable
 global dat npar
 rk = compute_SDIRKparams(3);
 
 % number of reactivity updates during one macro time step
-n_react = npar.n_react;
 if abs(floor(n_react)-n_react) > 1e-10
     error('n_micro / freq_react must be an integer');
 end
@@ -17,8 +16,8 @@ times_react_update = time_beg + linspace(0,n_react,n_react+1) * dt_macro/n_react
 % storage for t and y (for post-processing)
 told = time_beg;
 yold = X(1);
-etol = 1e-6;
-etol_dt2 = 1e-12;
+etol = 1e-10;
+etol_dt2 = 1e-10;
 dt_max = 10;
 
 % loop over micro time steps
@@ -68,7 +67,7 @@ for i=1:n_react
                 X_half = SDIRK33_solve(X_half,A,t(end),dt/2,rk);
                 X_full = SDIRK33_solve(X,A,t(end),dt,rk);
                 err_dt2 = abs(X_half(1)-X_full(1))/X_half(1);
-                dt = dt*(etol_dt2/err_dt2);
+                dt = dt*(etol_dt2/err_dt2)^(1/4);
                 if dt/dt_old > dt_max, dt=dt_old*dt_max; end
                 dt;
             end
@@ -84,7 +83,7 @@ for i=1:n_react
     end
     told = [told t]; t=[];
     yold = [yold y]; y=[];
-    fprintf('  number of temperature iterations = %d \n',mp_iter);
+%     fprintf('  number of temperature iterations = %d \n',mp_iter);
 end
 % fprintf('theta = %g, power= %g \n',theta,X(1));
 t = told';

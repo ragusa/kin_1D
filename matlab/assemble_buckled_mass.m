@@ -35,7 +35,8 @@ for iel=1:npar.nel
     % 2/dx is the 1d jacobian
     % old: s=fct_ptr(curr_time,x)*Jac;
     imat=npar.elem_to_mat(iel);
-    s=evaluate_buckled_material_prop(fct_ptr{imat},curr_time,x,T(iel))*Jac;
+    Txq = b*T(gn(iel,:));
+    s=evaluate_buckled_material_prop(fct_ptr{imat},curr_time,x,Txq)*Jac;
     
     % assemble
     for i=1:porder+1
