@@ -37,8 +37,8 @@ u0=u;
 T0 = ones(size(phi0))*300;
 
 % time steping data
-% t_end = 1.4;
-t_end = 3;
+t_end = 1.4;
+% t_end = 3;
 % t_end = 0.1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -47,12 +47,13 @@ t_end = 3;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % amplitude_norm_ref = reference_solution( t_end, u0);
 % amplitude_norm_ref = buckled_reference_solution( t_end, [u0; T0]);
-% amplitude_norm_ref = buckled_time_marching_BF( t_end/2000, 2000, u0, T0, @solve_buckled_TD_diffusion_elim_prec);
+amplitude_norm_ref = buckled_time_marching_BF( t_end/20000, 20000, u0, T0, @solve_buckled_TD_diffusion_elim_prec);
 
-nn=1;
-ntimes = 2.^(0:nn-1)*100;
+nn=8;
+ntimes = 2.^(0:nn-1)*10;
 dt = t_end./ntimes;
-n_micro = [10];
+prke_solve = {'matlab'};
+n_micro = [10000];
 n_react = [5];
 
 % Interpolation type of shape for IQS prke parameters
@@ -163,16 +164,16 @@ for iconv=1:length(ntimes)
     %%% IQS IQS IQS with elimination of the  precursors
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'iqs_elim_prec')
-        for nm=1:length(n_micro)
+        for ps=1:length(prke_solve)
             for nr=1:length(n_react)
-                npar.n_micro = n_micro(nm);
                 npar.freq_react = npar.n_micro / n_react(nr);
                 npar.n_react = n_react(nr);
+                npar.prke_solve = prke_solve{ps};
                 display('iqs_elim_prec')
                 FUNHANDLE = @solve_buckled_IQS_diffusion_elim_prec;
                 [a,p] = buckled_time_marching_IQS( dt(iconv), ntimes(iconv), u0, T0, FUNHANDLE);
-                iqs_elim_prec.ampl(nm,nr,iconv)=a;
-                iqs_elim_prec.power_prke_iqs(nm,nr,iconv)=p;
+                iqs_elim_prec.ampl(ps,nr,iconv)=a;
+                iqs_elim_prec.power_prke_iqs(ps,nr,iconv)=p;
             end
         end
     end
@@ -190,16 +191,16 @@ for iconv=1:length(ntimes)
     %%% IQS version inspired from the PC-IQS method, with elimination of precursors
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if should_I_run_this(list_runs,'iqsPC_elim_prec')
-        for nm=1:length(n_micro)
+        for ps=1:length(prke_solve)
             for nr=1:length(n_react)
-                npar.n_micro = n_micro(nm);
                 npar.freq_react = npar.n_micro / n_react(nr);
                 npar.n_react = n_react(nr);
+                npar.prke_solve = prke_solve{ps};
                 display('iqsPC_elim_prec')
                 FUNHANDLE = @solve_buckled_IQS_PC_diffusion_elim_prec;
                 [a,p] = buckled_time_marching_IQS( dt(iconv), ntimes(iconv), u0, T0, FUNHANDLE);
-                iqsPC_elim_prec.ampl(nm,nr,iconv)=a;
-                iqsPC_elim_prec.power_prke_iqs(nm,nr,iconv)=p;
+                iqsPC_elim_prec.ampl(ps,nr,iconv)=a;
+                iqsPC_elim_prec.power_prke_iqs(ps,nr,iconv)=p;
             end
         end
     end
@@ -314,18 +315,18 @@ if should_I_run_this(list_runs,'iqs_an_prec')
     legend(leg,'Location','Best');
 end
 if should_I_run_this(list_runs,'iqs_elim_prec')
-    for nm=1:length(n_micro)
+    for ps=1:length(prke_solve)
         for nr=1:length(n_react)
-            error_(1:nn)  = abs( iqs_elim_prec.ampl(nm,nr,:) - amplitude_norm_ref ) / amplitude_norm_ref;
+            error_(1:nn)  = abs( iqs_elim_prec.ampl(ps,nr,:) - amplitude_norm_ref ) / amplitude_norm_ref;
 %             error_f = abs( iqs_elim_prec.power_prke_iqs - amplitude_norm_ref );
-            curr_leg = ['IQS-elim, # T updates = ' num2str(n_react(nr))];
+            curr_leg = ['IQS-elim, # T updates = ' num2str(n_react(nr)) ', ' prke_solve{ps}];
             plot(log10(dt),log10(error_),'+-');
             a=get(legend(gca),'String');
             p = polyfit(log10(dt),log10(error_),1);
             if isempty(a)
-                leg=char(strcat(curr_leg,' slope = ',num2str(p(1))));
+                leg=char(strcat(curr_leg,', slope = ',num2str(p(1))));
             else
-                leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
+                leg=char(char(a),strcat(curr_leg,', slope = ',num2str(p(1))));
             end
     %     plot(log10(dt),log10(error_f));
     %     a=get(legend(gca),'String');
@@ -352,18 +353,18 @@ if should_I_run_this(list_runs,'iqsPC_an_prec')
     legend(leg,'Location','Best');
 end
 if should_I_run_this(list_runs,'iqsPC_elim_prec')
-    for nm=1:length(n_micro)
+    for ps=1:length(prke_solve)
         for nr=1:length(n_react)
-            error_(1:nn)  = abs( iqsPC_elim_prec.ampl(nm,nr,:) - amplitude_norm_ref ) / amplitude_norm_ref;
+            error_(1:nn)  = abs( iqsPC_elim_prec.ampl(ps,nr,:) - amplitude_norm_ref ) / amplitude_norm_ref;
 %             error_f = abs( iqsPC_elim_prec.power_prke_iqs - amplitude_norm_ref );
-            curr_leg = ['IQS-PC-elim, # T updates = ' num2str(n_react(nr))];
+            curr_leg = ['IQS-PC-elim, # T updates = ' num2str(n_react(nr)) ', ' prke_solve{ps}];
             plot(log10(dt),log10(error_),'+-');
             a=get(legend(gca),'String');
             p = polyfit(log10(dt),log10(error_),1);
             if isempty(a)
-                leg=char(strcat(curr_leg,' slope = ',num2str(p(1))));
+                leg=char(strcat(curr_leg,', slope = ',num2str(p(1))));
             else
-                leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
+                leg=char(char(a),strcat(curr_leg,', slope = ',num2str(p(1))));
             end
 %             plot(log10(dt),log10(error_f));
 %             a=get(legend(gca),'String');
@@ -412,32 +413,36 @@ figure(101)
 hold on
 if should_I_run_this(list_runs,'iqsPC_elim_prec')
     for iconv=1:nn
-        error_ = zeros(size(n_react));
-        error_(1:length(n_react)) =  abs( iqsPC_elim_prec.ampl(end,:,iconv) - amplitude_norm_ref ) / amplitude_norm_ref;
-        plot(n_react,log10(error_),'+-');
-        curr_leg = ['IQS-PC-elim, dt = ' num2str(dt(iconv))];
-        a=get(legend(gca),'String');
-        if isempty(a)
-            leg=char(strcat(curr_leg));
-        else
-            leg=char(char(a),strcat(curr_leg));
+        for ps=1:length(prke_solve)
+            error_ = zeros(size(n_react));
+            error_(1:length(n_react)) =  abs( iqsPC_elim_prec.ampl(ps,:,iconv) - amplitude_norm_ref ) / amplitude_norm_ref;
+            plot(n_react,log10(error_),'+-');
+            curr_leg = ['IQS-PC-elim, dt = ' num2str(dt(iconv)) ', ' prke_solve{ps}];
+            a=get(legend(gca),'String');
+            if isempty(a)
+                leg=char(strcat(curr_leg));
+            else
+                leg=char(char(a),strcat(curr_leg));
+            end
+            legend(leg,'Location','Best');
         end
-        legend(leg,'Location','Best');
     end
 end
 
 if should_I_run_this(list_runs,'iqs_elim_prec')
     for iconv=1:nn
-        error_(1:length(n_react)) =  abs( iqs_elim_prec.ampl(end,:,iconv) - amplitude_norm_ref ) / amplitude_norm_ref;
-        plot(n_react,log10(error_),'+-');
-        curr_leg = ['IQS-elim, dt = ' num2str(dt(iconv))];
-        a=get(legend(gca),'String');
-        if isempty(a)
-            leg=char(strcat(curr_leg));
-        else
-            leg=char(char(a),strcat(curr_leg));
+        for ps=1:length(prke_solve)
+            error_(1:length(n_react)) =  abs( iqs_elim_prec.ampl(ps,:,iconv) - amplitude_norm_ref ) / amplitude_norm_ref;
+            plot(n_react,log10(error_),'+-');
+            curr_leg = ['IQS-elim, dt = ' num2str(dt(iconv)) ', ' prke_solve{ps}];
+            a=get(legend(gca),'String');
+            if isempty(a)
+                leg=char(strcat(curr_leg));
+            else
+                leg=char(char(a),strcat(curr_leg));
+            end
+            legend(leg,'Location','Best');
         end
-        legend(leg,'Location','Best');
     end
 end
 

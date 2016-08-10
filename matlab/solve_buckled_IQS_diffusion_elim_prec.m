@@ -9,6 +9,7 @@ C_old = u_shape(npar.n+1:end);
 
 max_iter_iqs = npar.max_iter_iqs;
 tol_iqs      = npar.tol_iqs;
+n_react = npar.n_react;
 
 npar.theta_old=[];
 % save values at beginning of macro time step: they are needed in the IQS iteration
@@ -31,13 +32,13 @@ NFId_old = assemble_mass(dat.nusigf_d,time_beg) / npar.keff;
 
 for iter = 1: max_iter_iqs
     
-    % solve for amplitude function over the entire macro-step
+    % solve for amplitude function
     if strcmpi(npar.prke_solve,'matlab')
-        [X,t,y,T] =  solve_buckled_prke_ode(X_beg,dt_macro,time_end,shape_beg,shape_end,Told);
+        [X,t,y,T] =  solve_buckled_prke_ode(X_beg,dt_macro,time_end,shape_beg,shape_end,Told,n_react);
     elseif strcmpi(npar.prke_solve,'dt2')
-        [X,dpdt,t,y,T] =  solve_prke_dt2_buckled(X_beg,dt_macro,time_end,shape_beg,shape_end,Told);
+        [X,dpdt,t,y,T] =  solve_prke_dt2_buckled(X_beg,dt_macro,time_end,shape_beg,shape_end,Told,n_react);
     else
-        [X,dpdt,t,y,T] =  solve_prke_iqs_buckled(X_beg,dt_macro,time_end,shape_beg,shape_end,Told,npar.n_micro,npar.freq_react);
+        [X,dpdt,t,y,T] =  solve_prke_iqs_buckled(X_beg,dt_macro,time_end,shape_beg,shape_end,Told,n_react);
     end
     
     % interpolating polynomial

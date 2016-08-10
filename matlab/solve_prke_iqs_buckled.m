@@ -16,10 +16,12 @@ dt = dt_macro/n_micro;
 time_beg = time_end - dt_macro;
 times_react_update = time_beg + linspace(0,n_react,n_react+1) * dt_macro/n_react;
 
+[rho_MGT(1),beff_MGT(1)]=compute_buckled_prke_parameters(time_beg,shape_beg,Told);
+
 % storage for t and y (for post-processing)
 t(1) = time_beg;
 y(1) = X(1);
-etol = 1e-12;
+etol = 1e-8;
 
 % loop over micro time steps
 for i=1:n_react

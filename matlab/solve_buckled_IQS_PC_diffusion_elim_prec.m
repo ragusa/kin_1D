@@ -23,6 +23,7 @@ z = (npar.phi_adj)'*npar.IV*u(1:npar.n)/npar.K0;
 shape_beg=u(1:npar.n)/z; dat.ode.shape_beg = shape_beg;
 
 n_react = npar.n_react;
+% etol_nre = 1e-5;
 
 for iter = 1: max_iter_iqs
     
@@ -46,6 +47,29 @@ for iter = 1: max_iter_iqs
     else
         [X,dpdt,t,y,T] =  solve_prke_iqs_buckled(X_beg,dt_macro,time_end,shape_beg,shape_end,Told,n_react);
     end
+%     T_norm = compute_L2norm(zeros(size(T)),T);
+%     err_nre = etol_nre+1;
+%     while err_nre > etol_nre
+%         T_full = T;
+%         T_full_norm = T_norm;
+%         n_react = n_react*2
+%         if strcmpi(npar.prke_solve,'matlab')
+%             [X,t,y,T] =  solve_buckled_prke_ode(X_beg,dt_macro,time_end,shape_beg,shape_end,Told,n_react);
+%         elseif strcmpi(npar.prke_solve,'dt2')
+%             [X,dpdt,t,y,T] =  solve_prke_dt2_buckled(X_beg,dt_macro,time_end,shape_beg,shape_end,Told,n_react);
+%         else
+%             [X,dpdt,t,y,T] =  solve_prke_iqs_buckled(X_beg,dt_macro,time_end,shape_beg,shape_end,Told,n_react);
+%         end
+%         err_norm = compute_L2norm(T,T_full);
+%         T_norm = compute_L2norm(zeros(size(T)),T);
+%         err_nre = (err_norm/max([T_norm T_full_norm]))/n_react
+%     end
+%     if n_react/2 > npar.n_react
+%         npar.n_react = n_react/2;
+%     elseif n_react/2 <= npar.n_react && npar.n_react > 1
+%         npar.n_react = n_react/4;
+%     end
+        
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % assemble IQS
     

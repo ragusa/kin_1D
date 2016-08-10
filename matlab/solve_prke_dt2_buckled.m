@@ -13,10 +13,12 @@ end
 time_beg = time_end - dt_macro;
 times_react_update = time_beg + linspace(0,n_react,n_react+1) * dt_macro/n_react;
 
+[rho_MGT(1),beff_MGT(1)]=compute_buckled_prke_parameters(time_beg,shape_beg,Told);
+
 % storage for t and y (for post-processing)
 told = time_beg;
 yold = X(1);
-etol = 1e-10;
+etol = 1e-8;
 etol_dt2 = 1e-10;
 dt_max = 10;
 

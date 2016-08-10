@@ -24,7 +24,8 @@ end
 % precursor concentrations are not the FEM expansion values but int b_i C
 L=dat.lambda*speye(n);
 % Temperature operator
-LT = dat.alpha*NFI*dat.Pnorm;
+nf = evaluate_material_prop(dat.nusigf{1},curr_time,0);
+LT = dat.alpha*nf*dat.Pnorm*speye(n);
 
 % prec-prec matrix
 Ldiag=L;

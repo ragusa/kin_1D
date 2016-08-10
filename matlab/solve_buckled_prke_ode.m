@@ -13,7 +13,7 @@ rtol = 3e-14; abso = 3e-14;
 atol  = abso*ones(length(X),1);
 options = odeset('RelTol',rtol,'AbsTol',atol,'InitialStep',1e-10);
 
-etol = 1e-6;
+etol = 1e-8;
 [dat.ode.rho_MGT_beg,dat.ode.beff_MGT_beg]=compute_buckled_prke_parameters(time_beg,shape_beg,Told);
 told = time_beg;
 yold = X(1);
