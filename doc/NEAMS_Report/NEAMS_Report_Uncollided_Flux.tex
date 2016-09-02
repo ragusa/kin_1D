@@ -1,0 +1,374 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[12pt]{scrartcl} 
+%########################### Preferences #################################
+
+\usepackage{vmargin}
+\usepackage{color}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amstext}
+\usepackage{amsbsy}
+%\usepackage{mathbbol}
+\usepackage{graphicx} 
+\usepackage{verbatim}
+\usepackage{csvsimple} 
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{multirow}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage[numbers,sort&compress]{natbib}[2010/09/13]
+
+%  new definitions
+\renewcommand{\div}{\vec{\nabla}\! \cdot \!}
+\newcommand{\grad}{\vec{\nabla}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert_{L^2}}
+\newcommand{\rattlesnake}{Rattlesnake }
+% extra space
+\newcommand{\qq}{\quad\quad}
+% common reference commands`
+\newcommand{\eqt}[1]{Equation~\ref{#1}}                     % equation
+\newcommand{\fig}[1]{Figure~\ref{#1}}                      % figure
+\newcommand{\tbl}[1]{Table~\ref{#1}}                     % table
+\newcommand{\sct}[1]{Section~\ref{#1}}                   % section
+\newcommand{\app}[1]{Appendix~\ref{#1}}                   % appendix
+
+\newcommand{\bs}[1]{\mathbf{#1}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\keff}{k_\textit{eff}}
+
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\vn}{\vec{n}}
+\newcommand{\vel}{\vec{\mathrm{v}}}
+\newcommand{\adj}{\Phi^\dagger_0}
+\newcommand{\tcr}[1]{\textcolor{red}{#1}}
+\newcommand{\tcb}[1]{\textcolor{blue}{#1}}
+
+% tikz stuff
+\usetikzlibrary{shapes,arrows,positioning}
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+\tikzstyle{greenblock}=[rectangle, rounded corners, draw, align=center, top color=white, bottom color=green!20, ultra thick, minimum width=60mm, minimum height=15mm,]
+\tikzstyle{blueblock}=[rectangle, rounded corners, draw, align=center, top color=white, bottom color=blue!20, ultra thick, minimum width=60mm, minimum height=15mm]
+\tikzstyle{reddiamond}=[diamond, draw, align=center, top color=white, bottom color=red!20, ultra thick, minimum width=60mm, aspect=2]
+\newcommand{\tikzback}[5]{
+ \begin{pgfonlayer}{background}
+  \path (#1.west |- #2.north)+(-0.5,0.75) node (a1) {};
+  \path (#3.east |- #4.south)+(+0.5,-0.25) node (a2) {};
+  \path[fill=yellow!10,rounded corners, draw=black!100, dashed] (a1) rectangle (a2);
+   \path (#3.east |- #2.north)+(0,1.25)--(#1.west |- #2.north) node[midway] (#5-n) {};
+   \path (#3.east |- #2.south)+(0,-0.35)--(#1.west |- #2.south) node[midway] (#5-s) {};
+   \path (#1.west |- #2.north)+(-0.75,0)--(#1.west |- #4.south) node[midway] (#5-w) {};
+ \end{pgfonlayer}}
+ 
+% input stuff
+\lstset{%
+%  language=C++,
+  showstringspaces=false,
+% basicstyle=\scriptsize\ttfamily,
+  basicstyle=\footnotesize\ttfamily,
+  commentstyle=\color{inl@green},
+%  keywordstyle=\bfseries,
+%  escapeinside=$$
+%  framesep=0pt,
+%  rulesep=0pt,
+  frame=single
+}
+% Make nice big tildes inside lstlistings instead of
+% tiny ones.
+\lstset{
+    literate={~} {$\sim$}{1}
+}
+
+% ********* Caption Layout ************
+%\usepackage{ccaption} % allows special formating of the captions
+%\captionnamefont{\bf\footnotesize\sffamily} % defines the font of the caption name (e.g. Figure: or Table:)
+%\captiontitlefont{\footnotesize\sffamily} % defines the font of the caption text (same as above, but not bold)
+%\setlength{\abovecaptionskip}{0mm} %lowers the distance of captions to the figure
+\setlength\parindent{0pt}
+\setlength{\oddsidemargin}{1in}
+\setlength{\evensidemargin}{1in}
+\setlength{\textwidth}{6.5in}
+% ********* Header and Footer **********
+% This is something to play with forever. I use here the advanced settings of the KOMA script
+
+\title{Uncollided Flux Techniques for Discrete-Ordinate Radiation Transport Solutions in \rattlesnake}
+\subtitle{Uncollided Flux Treatment \rattlesnake}
+\author{ \normalsize
+  \textbf{Jean C. Ragusa$^\dagger$, Derek Gaston$^\star$, Mark D. DeHart$^\star$} \\
+ \normalsize $^\dagger$Texas A\&M University, College Station, TX, USA\\
+ \normalsize $^\star$Idaho National Laboratory, Idaho Falls, ID, USA\\
+ \normalsize \href{jean.ragusa@tamu.edu}{jean.ragusa@tamu.edu}, \href{derek.gaston@inl.gov}{derek.gaston@inl.gov}, \href{mark.dehart@inl.gov}{mark.dehart@inl.gov}
+}
+
+\hypersetup{
+  colorlinks=true,
+  urlcolor=blue,
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{INL/EXT-16-xxxxx}
+\rfoot{DRAFT}
+\cfoot{\thepage}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% boxes
+\usepackage{color}
+\definecolor{myblue}{rgb}{.8, .8, 1}
+\usepackage{empheq}
+
+\newlength\mytemplen
+\newsavebox\mytempbox
+
+\makeatletter
+\newcommand\mybluebox{%
+    \@ifnextchar[%]
+       {\@mybluebox}%
+       {\@mybluebox[0pt]}}
+
+\def\@mybluebox[#1]{%
+    \@ifnextchar[%]
+       {\@@mybluebox[#1]}%
+       {\@@mybluebox[#1][0pt]}}
+
+\def\@@mybluebox[#1][#2]#3{
+    \sbox\mytempbox{#3}%
+    \mytemplen\ht\mytempbox
+    \advance\mytemplen #1\relax
+    \ht\mytempbox\mytemplen
+    \mytemplen\dp\mytempbox
+    \advance\mytemplen #2\relax
+    \dp\mytempbox\mytemplen
+    \colorbox{myblue}{\hspace{1em}\usebox{\mytempbox}\hspace{1em}}}
+
+\makeatother
+
+%################ End Preferences, Begin Document #####################
+
+%\pagestyle{plain} % on headers or footers on the first page
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% set relative directory for figures. can be changed at any time later with \renewcommand
+\newcommand{\FiguresDir}{./figs}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\maketitle
+\tableofcontents
+\pagenumbering{arabic}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph*{Abstract}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+This report reviews uncollided flux techniques (first and last collision methods) to be implemented in 
+the Rattlesnake $S_N$ code in order to mitigate ray effects in modeling the TREAT reactor+hodoscope system. Angular
+discretization techniques ($S_N$ and $P_N$) for the transport equation are notoriously poor at capturing effectively
+streaming effects. 
+
+\pagebreak
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\par
+This report reviews uncollided flux techniques (first and last collision methods) to be implemented in 
+the Rattlesnake $S_N$ code in order to mitigate ray effects in modeling the TREAT reactor+hodoscope system. Angular
+discretization techniques ($S_N$ and $P_N$) for the transport equation are notoriously poor at capturing accurately
+streaming effects. The uncollided component of the angular flux solution is the most anisotropic part and it can be
+difficult for discrete-ordinate methods to accurately represent it; this phenomena is well-known and termed ``ray effects''.
+However, it has long been recognized that an analytical or semi-analytical treatment of the uncollided flux, coupled with a discrete-ordinate treatment of the collided flux, can yield dramatic improvements in accuracy and computational efficiency. In this report, we present an algorithm for semi-analytical calculation of the uncollided flux. The algorithm seeks to compute
+\begin{enumerate}
+\item The existing uncollided flux at each point in a collect of point on the surface of the problem domain, with the angular flux reported for each ``source point''. The direction is fro the source point to the surface point. The source points are chosen to be spatial quadrature points that integrate the source volume.
+\item Spatial and angular distributions of the uncollided flux in every cell in the problem. These provide all of the information necessary to form the first-collision source in each cell.
+\end{enumerate}
+The proposed algorithm is tailored for parallel efficiency given a spatial domain decomposition.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Basic Approach}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+For simplicity, we describe the uncollided flux technique using a single-speed description. Generalization to multigroup is straightforward.
+We recall the one-group transport equation below:
+\begin{equation}
+\label{eq:transport_eq}
+\vec{\Omega} \cdot \grad \Psi(\vec{r},\vec{\Omega}) + \sigma_t(\vec{r}) \Psi(\vec{r},\vec{\Omega}) = 
+\sum_\ell \frac{2\ell+1}{4\pi}\sigma_{s,\ell}(\vec{r}) \sum_{m=-\ell}^{\ell} \Phi_{\ell,m}(\vec{r})Y_{\ell,m}(\vec{\Omega}) 
++ q(\vec{r},\vec{\Omega}) \,,
+\end{equation}
+where $\Psi(\vec{r},\vec{\Omega})$ is the angular flux at position $\vec{r}$ and in direction $\vec{\Omega}$, $Y_{\ell,m}(\vec{\Omega}) $ is the spherical harmonic function of degree $\ell$ and order $m$, $\Phi_{\ell,m}$ is the flux moment of degree $\ell$ and order $m$
+\[
+ \Phi_{\ell,m}(\vec{r}) = \int_{4\pi} d\Omega  \Psi(\vec{r},\vec{\Omega}) Y_{\ell,m}(\vec{\Omega}) \,.
+\]
+It helps to introduce an operator notation for brevity:
+\begin{equation}
+\label{eq:transport_eq_operator}
+L\Psi = H\Psi +q \,.
+\end{equation}
+where $L$ is the streaming and total interaction operator and $H$ the scattering operator. 
+Typically, the transport equation is solved iteratively (index $k$)
+\begin{equation}
+L\Psi^{(k+1)} = H\Psi^{(k)} +q \,.
+\end{equation}
+
+Let us now introduce a decomposition of the angular flux into collided and uncollided components:
+\[
+\Psi = \Psi^u + \Psi^c
+\]
+Then, \eqt{eq:transport_eq_operator} can be re-cast as
+\begin{subequations}
+\begin{equation}
+\label{eq:_transport_eq_uncoll}
+L^{RT}\Psi^u = q 
+\end{equation}
+\begin{equation}
+\label{eq:_transport_eq_coll}
+L^{S_N}\Psi^c = H\Psi^c + H\Psi^u 
+\end{equation}
+\end{subequations}
+where we have emphasized how the transport operator $L$ will be solved in each case. The subscript $RT$ denotes ray-tracing
+while  $S_N$ stands for discrete-ordinate techniques.
+
+\subsubsection{Uncollided Flux Equation}
+%---------------------------------------
+The uncollided flux equation (\eqt{eq:_transport_eq_uncoll})
+\[
+L^{RT}\Psi^u = q \quad \text{or} \quad 
+\vec{\Omega} \cdot \grad \Psi^u(\vec{r},\vec{\Omega}) + \sigma_t(\vec{r}) \Psi^u(\vec{r},\vec{\Omega}) = 
+ q(\vec{r},\vec{\Omega}) \,,
+\]
+can be re-written, along a given direction $\vec{\Omega}$, as
+\begin{equation}
+\label{eq:transport_eq_attenuation}
+\frac{d\Psi^u(\vec{r},\vec{\Omega})}{ds} + \sigma_t(\vec{r}) \Psi^u(\vec{r},\vec{\Omega}) = 
+ q(\vec{r},\vec{\Omega}) \,,
+\end{equation}
+where $\vec{r} = \vec{r}_0+s\vec{\Omega}$ and $\vec{r}_0$ is an origin point (i.e., a source point). 
+\eqt{eq:transport_eq_attenuation} can be solved analytically for simple geometries or semi-analytically 
+using ray-tracing, for more complicated geometries.
+
+\subsubsection{Collided Flux Equation}
+%---------------------------------------
+
+Once \eqt{eq:transport_eq_attenuation} has been solved, the uncollided flux solution $\Psi^u$ 
+is thus available throughout the domain and the first collision source $q^{1st}$ can be computed as follows:
+\[
+q^{1st}(\vec{r},\vec{\Omega}) = H \Psi^u = \sum_\ell \frac{2\ell+1}{4\pi}\sigma_{s,\ell}(\vec{r}) \sum_{m=-\ell}^{\ell} \Phi^u_{\ell,m}(\vec{r})Y_{\ell,m}(\vec{\Omega}) 
+\]
+where $\Phi^u$ denote the flux moments computed from the uncollided angular flux $\Psi^u$. 
+Then, one simply needs to solve \eqt{eq:_transport_eq_coll}, the equation for the collided component $\Psi^c$:
+\begin{equation}
+\label{eq:transport_eq_collided}
+L^{S_N}\Psi^c = H\Psi^c + H\Psi^u = L^{S_N}\Psi^c = H\Psi^c + q^{1st} \,.
+\end{equation}
+Note that \eqt{eq:transport_eq_collided} is similar in nature to \eqt{eq:transport_eq}. An iterative technique (Source Iteration) is employed:
+\[
+L^{S_N}\Psi^{c,(k+1)} = H\Psi^{c,(k)} + q^{1st} \,.
+\]
+\eqt{eq:transport_eq_collided} gives the collided component of the angular flux. Standard discrete-ordinates methods are used to solve \eqt{eq:transport_eq_collided}.
+
+
+\subsubsection{From First-collision Source Treatment to Last-collision Source Treatment}
+%---------------------------------------
+
+
+The above uncollided flux treatment addresses ray effect issues in the uncollided flux solution. However, ray effects can also occur in the collision flux solution, for instance, when there is a large distance from a small scatter source to a detector (e.g., neutrons streaming in a duct). TREAT's fuel motion monitoring systems clearly falls into this category. In a manner analogous to the uncollided flux treatment, a last collided flux treatment can be employed to remove ray effects in a detector response. The last collision source treatment is simply expressed as the original transport equation, where the first-collided source due to the uncollided angular flux and the collided source (obtained from a discrete ordinate solution) 
+are known (they come from the ray-tracing and the discrete-ordinate solution, previously described):
+\begin{equation}
+\label{eq_transport_last}
+L^{RT}\Psi^{last} = H\Psi^c + H\Psi^u + q = q^{last}\,,
+\end{equation}
+That is, instead of using $\Psi^c + \Psi^u$ as the final angular flux at the detector locations, we perform one
+more ray-tracing using the total source $q^{last}$ and then employ $\Psi^{last}$ as the final answer.
+%given a first-collided and a multiple collided source (and the external source), one ray-traces the angular flux solution, from any point in the domain to the detector surface.
+Note, we can also solve for the last collision angular flux $\Psi^{c,last}$ as follows
+\begin{equation}
+\label{eq_transport_last_coll}
+L^{RT}\Psi^{c,last} = H\Psi^c + H\Psi^u  = q^{c,last}\,.
+\end{equation}
+\eqt{eq_transport_last_coll} is simply obtained by subtracting \eqt{eq_transport_last} and \eqt{eq:_transport_eq_uncoll}. Then
+\[
+\Psi^{last} = \Psi^{c,last}  + \Psi^u \,.
+\]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Parallel Aspects of the Traditional Uncollided Flux Treatment}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Most uncollided-flux algorithms track directly form each source point to a set of a few points in each cell 
+of the domain. The source volume assigned to each source point is effectively treated as vanishingly small, so that 
+the angular flux at any other spatial point is treated as a $\delta$-function in the direction $\vec{\Omega}$ subtended 
+by the two points. 
+This traditional algorithm does not scale well given a spatial domain decomposition: the process (or processor) that owns
+a source point must execute $\mathcal{O}(N)$ work given $N$ spatial cells. If the process that owns the  source point
+has knowledge of the entire domain, its works grows proportionally to $N$. When sources are localized (as this is the case very the experimental vehicle in TREAT or the detectors in the hodoscope n the case of the last-collision source treatment), 
+then many processes not owning any source points stay idle. A simple workaround would be for processes not owning source points to ray-trace once a ray enters their subdomains (this would be mandatory is the mesh is truly parallel and not reproduced on any one processor). However, there are two deficiencies with this approach:
+\begin{enumerate}
+\item The algorithm is partially sequential. Processes not owning a source point stay idle until a ray has reached them.
+\item As one moves further away from the source point, the ray density decreases, which can cause inaccuracies.
+\end{enumerate}
+\tcr{if time, I add a figure to illustrate this}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{SQUID: A MOOSE-based Ray-Tracing Application}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Overview}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tcr{a brief overview of Squid. What it is used for today (MOC, others?). many some scalability results.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Enhancements Required for the Uncollided Flux Treatment}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tcr{check}
+Current, SQUID ray-traces through a domain (mesh) and computes the angular flux attenuation using a given direction $\vec{\Omega}$, a starting point $\vec{r}_0$, and a termination distance $D:
+\[
+\Psi^u(\vec{r}_0+s\vec{\Omega},\vec{\Omega}) = 
+\Psi^u(\vec{r}_0,\vec{\Omega}) 
+\]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Finite-element Evaluation of the First-collided Scattering Source}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\clearpage
+%\pagebreak
+%\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\bibliographystyle{abbrvnat}
+%\bibliography{references_IQS}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\appendix
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
