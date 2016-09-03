@@ -1,0 +1,82 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt]{scrartcl} 
+%########################### Preferences #################################
+
+\usepackage{vmargin}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage[numbers,sort&compress]{natbib}[2010/09/13]
+
+
+% ********* Caption Layout ************
+%\usepackage{ccaption} % allows special formating of the captions
+%\captionnamefont{\bf\footnotesize\sffamily} % defines the font of the caption name (e.g. Figure: or Table:)
+%\captiontitlefont{\footnotesize\sffamily} % defines the font of the caption text (same as above, but not bold)
+%\setlength{\abovecaptionskip}{0mm} %lowers the distance of captions to the figure
+\setlength\parindent{0pt}
+\setlength{\oddsidemargin}{1in}
+\setlength{\evensidemargin}{1in}
+\setlength{\textwidth}{6.5in}
+% ********* Header and Footer **********
+% This is something to play with forever. I use here the advanced settings of the KOMA script
+
+\title{\vspace{-30mm}\Large Improved Quasi-Static Methods in Rattlesnake}
+\subtitle{\large August 2016 Status Report}
+\author{ \normalsize \textbf{Zachary M. Prince, Jean C. Ragusa, Yaqi Wang, Mark D. DeHart}}
+
+%\author{ \normalsize
+%  \textbf{Zachary M. Prince$^\dagger$, Jean C. Ragusa$^\dagger$, Yaqi Wang$^\star$, Mark D. DeHart$^\star$} \\
+% \normalsize $^\dagger$Department of Nuclear Engineering \\
+% \normalsize Texas A\&M University, College Station, TX, USA\\
+% \normalsize $^\star$Idaho National Laboratory\\
+% \normalsize \href{mailto:zachmprince@tamu.edu}{zachmprince@tamu.edu}, \href{jean.ragusa@tamu.edu}{jean.ragusa@tamu.edu}, \href{yaqi.wang@inl.gov}{yaqi.wang@inl.gov}, \href{mark.dehart@inl.gov}{mark.dehart@inl.gov}
+%}
+
+%\hypersetup{
+%  colorlinks=true,
+%  urlcolor=blue,
+%}
+
+%\pagestyle{fancy}
+%\fancyhf{}
+%\lhead{INL/EXT-16-38059}
+%\rfoot{FINAL}
+%\cfoot{\thepage}
+
+%################ End Preferences, Begin Document #####################
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\maketitle
+\pagenumbering{arabic}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{\large Development for August 2016}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In August 2016, the major development of IQS in Rattlesnake was to improve its capability for multi-physics simulations.  Benchmark testing shows IQS has impressive performance for purely neutronics simulations, including the TWIGL and C5G7 transient benchmarks.  However, TREAT simulation requires accurate treatment of temperature feedback in the fuel, improvements to this aspect of IQS's capability is essential. The LRA benchmark is an adequate substitute to a full core TREAT model for testing purposes; the benchmark includes similar temperature feedback is much quicker, computationally, to run.  Previous reports have IQS's preliminary performance with the LRA benchmark, which show a marginal improvement over a full diffusion simulation.  Therefore, the primary goal for August was to improve this performance.
+\\
+
+Several techniques were employed in an effort to improve IQS's performance with temperature feedback, testing with the LRA benchmark. The first technique was to employ an analytical time integration for the temperature evaluation.  For this benchmark, Rattlesnake uses its auxiliary system to evaluate temperature using auxkernels.  Since IQS has much more information about power for a given time step, due to multitude of PRKE evaluations per diffusion solve, a new auxkernel was created more accurately describe the temperature change over a given time step.  This analytical integration is very similar to the one applied to the delayed neutron precursor evaluation.  The second technique employed was to compute temperature at a smaller time scale than the shape/flux.  In theory, this means that the PRKE parameters, which are highly dependent on temperature, are updated more frequently.  Better approximations to the PRKE parameters leads to a more accurate amplitude evaluation, thus a more accurate temperature and shape/flux profile.  Since there is an obvious coupling between PRKE and temperature evaluations, the final technique was to apply pseudo-Picard iterations between temperature and amplitude.  Compared to a diffusion evaluation, these iterations take very little computation time.  This technique improves both the amplitude and temperature solution and reduced the required iterations of the shape/flux, significantly reducing computation time.  These three techniques were all applied to the IQS executioner and tested with the LRA benchmark.  The results showed that the application improved the performance of IQS by about 800\%.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{\large Future Development for September 2016}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The next step for IQS development in Rattlesnake is to expand its capability to SAAF-SN.  SAAF-SN is Rattlesnake's most robust transport solver. After investigation of the SAAF-SN application, its implementation in IQS is more complex than previously predicted. Due to the time dependence of the test function, a new derivation of IQS had to be drafted.  After this derivation, it is apparent that a new suite of post-processors and user-object need to be created.
+\\
+
+Another interest is to integrate IQS into the PJFNK iteration process of MOOSE. This involves creating a master user-object that includes the evaluation of the PRKE and its parameters.  This implementation is more in line with MOOSE architecture and make more developer sense. However, the \texttt{save$\_$in} capability can no longer be utilized; so each PRKE parameter will need to be evaluated explicitly instead of using specific residual contributions.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
