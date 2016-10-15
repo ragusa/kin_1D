@@ -15,6 +15,7 @@ Department of Nuclear Engineering, Texas A\&M University, College Station, TX
 \usepackage{booktabs} % nice rules (thick lines) for tables
 \usepackage{microtype} % improves typography for PDF
 \usepackage{subcaption}
+\usepackage{tikz}
 
 \newcommand{\SN}{S$_N$}
 \renewcommand{\vec}[1]{\bm{#1}} %vector is bold italic
@@ -47,12 +48,16 @@ Department of Nuclear Engineering, Texas A\&M University, College Station, TX
 \begin{document}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
-The purpose of this summary is to introduce several techniques in dealing with temperature feedback for quasi-static neutron diffusion calculations.  Temperature is tightly coupled with neutron flux when simulating a nuclear reactor, thus it is a very important quantity to evaluate accurately and efficiently.  The improved quasi-static method (IQS) is an effective technique in simulating flux in reactors and the effect of multiphysics with IQS is worth exploring..
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-IQS is a transient spatial kinetics method that involves factorizing neutron flux into a space- and time-dependent component (shape) and a time-dependent component (amplitude) \cite{Ott_1966,Dulla2008}. The technique relies on the shape being less rapidly varying in time compared to the flux, hence requiring fewer shape computations or updates. IQS has mostly been applied to neutron kinetics, without thermal-hydraulic feedback. This summary discusses the application of temperature feedback with IQS and analyzes performance with benchmark problems
+The purpose of this summary is to introduce several techniques in dealing with multiphysics feedback for quasi-static neutron diffusion calculations.  Other physical variables, including temperature, are tightly coupled with neutron flux when simulating a nuclear reactor, thus are very important quantities to evaluate accurately and efficiently.  The improved quasi-static method (IQS) is an effective technique in simulating flux in reactors and the effect of multiphysics with IQS is worth exploring.
+
+IQS is a transient spatial kinetics method that involves factorizing neutron flux into a space- and time-dependent component (shape) and a time-dependent component (amplitude) \cite{Ott_1966,Dulla2008}. The technique relies on the shape being less rapidly varying in time compared to the flux, hence requiring fewer shape computations or updates. IQS has mostly been applied to neutron kinetics, without thermal-hydraulic feedback. This summary discusses the application of multiphysics feedback with IQS and analyzes performance with temperature feedback benchmark problems
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Theory}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 In this Section, we recall the equation for the IQS method, starting from the standard multi-group transport equations with delayed neutron precursors in operator form:
 
 \be
@@ -68,19 +73,21 @@ Where $H^{g'\to g}$ is the scattering operator, $P_p^{g' \to g}$ is the prompt f
 
 Factorization is an important step in the derivation of the IQS method. The factorization approach leads to a decomposition of the multigroup flux into the product of a time-dependent amplitude ($p$) and a space-/time-dependent multigroup shape ($\psi$):
 \be
-\phi^g(\vec{r},\Omega,t)=p(t)\varphi^g(\vec{r},\Omega,t)
+\phi^g(\vec{r},t)=p(t)\varphi^g(\vec{r},t)
 \ee
 After implementing the factorization, the shape diffusion equations result:
 \be
-\frac{1}{v^g}\frac{\partial \varphi^g}{\partial t} = \sum_{g'=1}^G \left(H^{g'\to g} + P_p^{g' \to g} \right) \phi^{g'} - L^g\phi^g + S_{d}^g
+\frac{1}{v^g}\frac{\partial \varphi^g}{\partial t} = \sum_{g'=1}^G \left(H^{g'\to g} + P_p^{g' \to g} \right) \varphi^{g'} - \left(L^g - \boxed{\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}}\right)\varphi^g + \boxed{\frac{1}{p}}S_{d}^g
 \label{eq:flux}
 \ee 
 \be
-\frac{dC_i}{dt} = \sum_{g=1}^G P_{d,i}^g \phi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
+\frac{dC_i}{dt} = \boxed{p}\sum_{g=1}^G P_{d,i}^g \varphi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
 \label{eq:precursor}
 \ee
 
-To obtain the amplitude equations, the multigroup equations are multiplied by a weighting function, typically the initial adjoint flux ($\phi^{*g}$), and then integrated over phase-space.  For brevity, the inner product over space will be represented with parenthetical notation ($\left(\phi^{*g},f^g\right) = \int_D \phi^{*g}(\vec{r},\vec{\Omega})f^g(\vec{r},\vec{\Omega})d^3r\Omega
+We note that the time-dependent shape equation is similar to the time-dependent flux.  The main differences is that there is a nonlinear coupling with amplitude contained in the addition of the boxed terms.
+
+To obtain the amplitude equations, the multigroup shape equations are multiplied by a weighting function, typically the initial adjoint flux ($\phi^{*g}$), and then integrated over the domain.  For brevity, the inner product over space will be represented with parenthetical notation ($\left(\phi^{*g},f^g\right) = \int_D \phi^{*g}(\vec{r})f^g(\vec{r})d^3r
 $). In order to impose uniqueness of the factorization, one requires $\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)$ to be constant.  And after some manipulation, the standard point reactor kinetics equations (PRKE) for the amplitude solution are obtained:
 \be
 \frac{dp}{dt}=\left[\frac{\rho-\bar{\beta}}{\Lambda}\right]p+\sum_{i=1}^I\bar{\lambda}_i\xi_i
@@ -123,9 +130,77 @@ The PRKE parameters are then computed with this shape using Equations \ref{eq:rm
 \ee
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Temperature Feedback}
+\subsection{IQS Solution Process with Multiphysics}
 
-In nuclear reactors, multiple physics affect the profile of the neutron flux.  The most simple example of mulitphysics reactor simulations is adiabatic heat up with Doppler feedback. The principle of Doppler feedback is that fission in a fuel causes the material to increase temperature and induces a change in the neutronics properties.  The material heat up is described by \eqt{eq:temp}; where $\rho$ is the material density, $c_p$ is the specific heat, $T$ is temperature, and $\kappa_f$ is the energy released per fission \cite{ANL_BPB}. The change in temperature of the material mainly affects the thermal macroscopic absorption cross section described by \eqt{eq:dopp} \cite{ANL_BPB}.
+Other physical quantities, such as temperature, are affected by reaction rates and subsequently affect the operators of the flux equations.  For IQS, this feedback affects both the shape equation and the parameters of the PRKE; thus, it is an additional nonlinear component to the already coupled shape-amplitude equations.  Each of these components have different temporal dependencies; so it is beneficial for efficiency to evaluate them on different time scales.  Amplitude is much more time dependent than shape, and shape is much more computationally expensive to evaluate.  So amplitude is evaluated on a much smaller time scale than shape, while it may be appropriate so solve quantities, such as temperature, on middle time scale.  Figure~\ref{fig:time} shows a solution process for temperature feedback.
+
+\begin{figure}[htbp!]
+\centering
+\begin{tikzpicture}[scale=1]
+\tikzset{font={\footnotesize}}
+%Shape
+\draw[] (0,2) -- (6,2) ;
+\foreach \x in  {0,6}
+\draw[shift={(\x,2)},color=black] (0pt,6pt) -- (0pt,-6pt);
+\draw[shift={(0,2)},color=black] (0pt,0pt) -- (0pt,-6pt) node[below] {$t_n$};
+\draw[shift={(6,2)},color=black] (0pt,0pt) -- (0pt,-6pt) node[below] {$t_{n+1}$};
+\node(shape) at (-.25,2) {$\varphi:$};
+
+%Temp/Params
+\draw[] (0,1) -- (6,1) ;
+\foreach \x in  {0,6}
+\draw[shift={(\x,1)},color=black] (0pt,6pt) -- (0pt,-6pt);
+\foreach \x in  {2,4}
+\draw[shift={(\x,1)},color=black] (0pt,4pt) -- (0pt,-4pt);
+\draw[shift={(0,1)},color=black] (0pt,0pt) -- (0pt,-6pt) node[below] {$t_n$};
+\draw[shift={(6,1)},color=black] (0pt,0pt) -- (0pt,-6pt) node[below] {$t_{n+1}$};
+\node(temp) at (-.75,1) {$T \rightarrow \rho$:};
+
+% PRKE
+\draw[] (0,0) -- (6,0) ;
+\foreach \x in  {0,6}
+\draw[shift={(\x,0)},color=black] (0pt,6pt) -- (0pt,-6pt);
+\foreach \x in  {0,2,4,6}
+\draw[shift={(\x,0)},color=black] (0pt,4pt) -- (0pt,-4pt);
+\foreach \x in  {0,0.2,0.4,0.6,0.8,1,1.2,1.4,1.6,1.8,2,2.2,2.4,2.6,2.8,3,3.2,3.4,3.6,3.8,4,4.2,4.4,4.6,4.8,5,5.2,5.4,5.6,5.8,6}
+\draw[shift={(\x,0)},color=black] (0pt,2pt) -- (0pt,-2pt);
+\draw[shift={(0,0)},color=black] (0pt,0pt) -- (0pt,-6pt) node[below] {$t_n$};
+\draw[shift={(6,0)},color=black] (0pt,0pt) -- (0pt,-6pt) node[below] {$t_{n+1}$};
+\node(prke) at (-.5,0) {$p, \frac{dp}{dt}:$};
+
+\draw (0,0) edge[out=45,in=135,->,thick] node[above,sloped] {Step 2} (2,0);
+\draw (2,0) edge[out=45,in=135,->,thick] node[above,sloped] {Step 4} (4,0);
+\draw (4,0) edge[out=45,in=135,->,thick] node[above,sloped] {Step 6} (6,0);
+\draw (0,1) edge[out=45,in=135,->,thick] node[above,sloped] {Step 1} (2,1);
+\draw (2,1) edge[out=45,in=135,->,thick] node[above,sloped] {Step 3} (4,1);
+\draw (4,1) edge[out=45,in=135,->,thick] node[above,sloped] {Step 5} (6,1);
+\draw (0,2) edge[out=15,in=165,->,thick] node[above,sloped] {Step 7} (6,2);
+
+\draw (0,2) edge[out=-135,in=135,->,thick] node[below,sloped] {$\varphi$} (0,1);
+\draw (2,1) edge[out=-135,in=135,->,thick] node[below,sloped] {$\rho$} (2,0);
+\draw (2,0) edge[out=45,in=-45,->,thick] node[below,sloped] {$p$} (2,1);
+\draw (4,1) edge[out=-135,in=135,->,thick] node[below,sloped] {$\rho$} (4,0);
+\draw (4,0) edge[out=45,in=-45,->,thick] node[below,sloped] {$p$} (4,1);
+\draw (6,1) edge[out=-135,in=135,->,thick] node[below,sloped] {$\rho$} (6,0);
+\draw (6,0) edge[out=45,in=0,->,thick] node[below,sloped] {$p, \frac{dp}{dt}$} (6,2);
+
+\end{tikzpicture}
+\caption{Time scales and process of IQS}
+\label{fig:time}
+\end{figure}
+
+The top time scale represents a shape diffusion evaluation on a macro step, the middle as an arbitrary three steps within the macro step where temperature and the PRKE parameters are evaluated, and the bottom one represents the PRKE evaluation on micro steps.  The shape is linearly interpolated within the macro step for the temperature and PRKE parameter evaluation, and the parameters are interpolated within the temperature step for the PRKE evaluation.  Since there is a nonlinear coupling between all these components, each temperature step is iterated until amplitude has converged and the macro step is iterated until shape has converged.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Results and Analysis}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+To test the multiple time scale implementation of IQS, the LRA benchmark was chosen for reference. The LRA benchmark is a two-dimensional, two-group neutron diffusion problem with adiabatic heat-up and Doppler feedback in thermal reactor \cite{ANL_BPB}.  It is a super prompt-critical transient. Three different evaluation techniques were applied: full discretization of the flux equation (Brute force), IQS, and IQS-PC. Crank-Nicholson time discretization scheme was used for the diffusion evaluation of each technique.  The performance of IQS and the temperature updates was measured by its improvement in accuracy at peak power over the Brute force technique.  The results show the effectiveness of multiple temperature updates along the macro step.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{LRA Temperature Feedback}
+
+The heat up is described by \eqt{eq:temp} and the feedback is described by \eqt{eq:dopp}.
 
 \be
 \rho c_p \frac{\partial T(\vec{r},t)}{\partial t} = \kappa_f \sum^G_{g=1}\Sigma_f^g \phi^g(\vec{r},t)
@@ -137,113 +212,69 @@ In nuclear reactors, multiple physics affect the profile of the neutron flux.  T
 \label{eq:dopp}
 \ee
 
-For IQS, this temperature feedback affects both the shape equation and the reactivity of the PRKE; thus, it is an additional nonlinear component to the already coupled shape-amplitude equations.
+In the temperature evaluation, a typical implicit solver would simply use the interpolated flux at end of the temperature time step for the right hand side of the equation.  However, IQS has much more information about the profile of the flux along the time step because of the micro-step amplitude evaluation.  Therefore, it is possible to solve for temperature using a quasi-analytical approach, shown by \eqt{eq:temp_an}.
+
+\be
+T^{n+1} = T^n + \frac{\kappa_f}{\rho c_p} \left(a_2 \varphi^{n+1} + a_1 \varphi^{n}\right)
+\label{eq:temp_an}
+\ee
+Where $n$ corresponds to the beginning of the temperature step.  $a_1$ and $a_2$ are integration coefficients defined by \eqt{eq:a1} and \eqt{eq:a2}.
+\be
+a_1 = \int_{t_n}^{t_{n+1}}\left(\frac{t_{n+1}-t'}{\Delta t}\right)p(t')dt'
+\label{eq:a1}
+\ee
+\be
+a_2 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)p(t')dt'
+\label{eq:a2}
+\ee
+
+Any interpolation of the amplitude along the micro steps is possible for the integration, this application uses piece-wise linear.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Results and Analysis}
-The results were interesting, so interesting in fact that we have decided to
-present them here.
+\subsection{LRA Convergence Results}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Subsection Goes Here}
-The user must manually capitalize initial letters of a subsection heading.
+\fig{fig:lra_profile} shows the baseline power and temperature profile for the LRA benchmark.  The relative difference in the magnitude of the peak power ($t\approx1.44 s$) from the baseline was used for error comparison.  \fig{fig:lra_bad} is an error convergence plot comparing the three techniques where temperature is evaluated only on the macro step (1 temperature update).  \fig{fig:conv} is an error convergence plot comparing the three techniques where temperature is evaluated 5 times within a macro step (5 temperature updates).  Finally, \fig{fig:mp} shows the affect of various temperature updates.  The dotted lines correspond to brute force at different flux step sizes, while the IQS macro step size is kept constant.
 
-For those who like equations in their papers, \LaTeX\ is a good choice. Here is
-an equation for the Marshak diffusion boundary condition:
-\begin{equation} \label{eq:marshak}
-  4 J^- = \phi + 2 D \vec{n} \vd \grad \phi \,.
-\end{equation}
-If we so choose, we can effortlessly reference the equation later.
-
-Another paragraph starts with Eq.~\eqref{eq:marshak} and sets $J^-$ to zero, a
-vacuum boundary condition:
-\begin{equation*}
-  0 = \phi + \frac{2}{3} \frac{1}{\sigma} \vec{n} \vd \grad \phi \,.
-\end{equation*}
-The extrapolation distance is $2/3$. A more detailed asymptotic analysis yields
-an extrapolation distance of about $0.71045$.
-
-Figure~\ref{fig:voltage} shows how a plot might conceivably look in your
-document. Always place figures after they are referenced so as not to throw
-off the reader. You can use symbols and different line styles to help
-differentiate your results, especially if they are printed in black and white.
-Note how Fig.~\ref{fig:voltage} uses dashed lines \verb|--| for the exact
-solution, solid lines \verb|-| for the new method's solutions, and dotted lines
-\verb|:| for existing inaccurate methods.
-\begin{figure}[ht] % replace 't' with 'b' to force it to be on the bottom
-  \centering
-  \includegraphics{example_figure}
-  \caption{Captions are flush with the left.}
-  \label{fig:voltage}
+\begin{figure}[htbp!]
+\includegraphics[width=\linewidth]{lra_profile.png}
+\caption{LRA baseline temperature and power profile}
+\label{fig:lra_profile}
 \end{figure}
 
-Later on, we can include a table, even one that spans two columns such as
-Table~\ref{tab:widetable}.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{table*}[htb]
-  \centering
-\begin{tabular}{llllllllll}\toprule
-      & $\phi_T(0)$      & $\phi_T(10)$      & $\phi_T(20)$      &
-      $\phi_D(0)$      & $\phi_D(10)$      & $\phi_D(20)$      & $\rho$      &
-      $\varepsilon$      & $N_\text{it}$
-\\ \midrule
-$c=0.999$  & 0.9038 & 20.63 & 31.24 & 0.9087 & 20.63 & 31.23 & 0.2192 & $10^{-7}$ & 15
-\\
-$c=0.990$  & 0.3675 & 13.04 & 24.7 & 0.3696 & 13.04 & 24.69 & 0.2184 & $10^{-7}$ & 15
-\\
-$c=0.900$  & 0.009909 & 4.776 & 17.64 & 0.009984 & 4.786 & 17.63 & 0.2118 & $10^{-7}$ & 14
-\\
-$c=0.500$  & $6.069\times 10^{-5}$ & 2.212 & 15.53 & 6.213$\times 10^{-5}$ & 2.239 & 15.53 & 0.2068 & $10^{-7}$ & 13
-\\
-\bottomrule
-\end{tabular}
-  \caption{This is an example of a really wide table which might not normally
-  fit in the document.}
-  \label{tab:widetable}
-\end{table*}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Notice how the table reference uses a Roman numeral
-for its numbering scheme, whereas the figure reference uses an Arabic numeral.
-For one-column tables, use the \verb|table| environment; two-column tables use
-\verb|table*|. The same applies to figures.
+\begin{figure}[!htpb]
+\includegraphics[width=\linewidth]{lra_bad.jpg}
+\caption{LRA convergence plots with only one temperature updated each macro step}
+\label{fig:lra_bad}
+\end{figure}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Another Subsection}
-Excessive sectioning in a three-page document is discouraged, but here are more
-subsections to demonstrate compliance with the ANS formatting guidelines.
+\begin{figure}[htbp!]
+\centering
+\includegraphics[width=\linewidth]{lra_mp_convergence.png}
+\caption{Error convergence plot with 5 temperature updates per macro step}
+\label{fig:conv}
+\end{figure}
 
-\subsubsection{Third-level Heading}
-This subsubsection shows compliance with the ANS-specified standard. This level
-of heading should be used rarely.
+\begin{figure}[htbp!]
+\centering
+\includegraphics[width=\linewidth]{lra_mp.png}
+\caption{Error plot with various temperature updates per macro step}
+\label{fig:mp}
+\end{figure}
 
-\subsubsection{Another Such Heading}
-And, if you really think you need a third-level heading, you should make sure
-that your subsection needs at least two of them.
+The convergence plots show that updating temperature and the PRKE parameters within a macro step has a significant affect on the performance of IQS.  With only one update, IQS was only slightly better than brute force, brute force required about 1.5X more time steps than IQS for the same error.  While 5 temperature updates showed a much more significant IQS performcance, brute force required about 4X more time steps than IQS for the same error.  \fig{fig:mp} shows that there is an exponential convergence of error for the number of temperature updates.  This convergence makes sense because temperature can only be so accurate before the error in shape is dominating.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions}
 
-The included ANS style file and this clear example file are a panacea for
-the hours of headache that invariably results from formatting a document in
-Microsoft Word.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\appendix
-\section{Appendix}
-
-Numbering in the appendix is different:
-\begin{equation} \label{eq:appendix}
-  2 + 2 = 5\,.
-\end{equation}
-and another equation:
-\begin{equation} \label{eq:appendix2}
-  a + b = c\,.
-\end{equation}
+%\appendix
+%\section{Appendix}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Acknowledgments}
-This material is based upon work supported a Department of Energy Nuclear
-Energy University Programs Graduate Fellowship.
+This work was supported by the Department of Energy, Idaho National Laboratory, and the Integrated University Program Fellowship.  Special thanks to Mark Dehart, Yaqi Wang, NEAMS, and the Moose/Rattlesnake team at INL.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{ans}
