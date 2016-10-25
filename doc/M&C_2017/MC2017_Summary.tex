@@ -51,21 +51,15 @@ Department of Nuclear Engineering, Texas A\&M University, College Station, TX
 \section{Introduction}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The purpose of this summary is to introduce several techniques in dealing with multiphysics feedback for transient neutron diffusion calculations.  
-In dynamic simulation, the neutron temporal distribution in a nuclear core can be strongly influenced by non-neutronics variables, e.g., temperature.
-The improved quasi-static method (IQS) is an effective technique for simulating the temporal behavior of the neutron flux in reactors. Here, we present a study
-combining the IQS method with multiphysics solution techniques for coupled transient calculations.
+The purpose of this summary is to introduce several techniques in dealing with multi-physics feedback for transient neutron diffusion calculations.  In dynamic simulation, the neutron temporal distribution in a nuclear core can be strongly influenced by non-neutronics variables, e.g., temperature.The improved quasi-static method (IQS) is an effective technique for simulating the temporal behavior of the neutron flux in reactors. Here, we present a study combining the IQS method with multi-physics solution techniques for coupled transient calculations.
 
-IQS is a transient spatial kinetics method that involves factorizing the neutron flux into a space- and time-dependent component (shape) and a time-dependent component 
-(amplitude) \cite{Ott_1966,Dulla2008}. The technique relies on the shape being less rapidly varying in time compared to the flux, hence requiring fewer shape 
-computations or updates. IQS has \tcr{mostly} been applied to neutron kinetics, without thermal-hydraulic feedback. This summary discusses the application of 
-multiphysics feedback with IQS and analyzes performance with temperature feedback benchmark problems
+IQS is a transient spatial kinetics method that involves factorizing the neutron flux into a space- and time-dependent component (shape) and a time-dependent component (amplitude) \cite{Ott_1966,Dulla2008}. The technique relies on the shape being less rapidly varying in time compared to the flux, hence requiring fewer shape computations or updates. IQS has largely been applied to neutron kinetics, without thermal-hydraulic feedback. This summary discusses the application of multi-physics feedback with IQS and analyzes performance with temperature feedback benchmark problems
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Theory}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-In this Section, we recall the equation for the IQS method, starting from the standard multi-group \tcr{transport} equations with delayed neutron precursors in operator form:
+In this Section, we recall the equation for the IQS method, starting from the standard multi-group diffusion equations with delayed neutron precursors in operator form:
 
 \be
 \frac{1}{v^g}\frac{\partial \phi^g}{\partial t} = \sum_{g'=1}^G \left(H^{g'\to g} + P_p^{g' \to g} \right) \phi^{g'} - L^g\phi^g + S_{d}^g
@@ -80,7 +74,7 @@ Where $H^{g'\to g}$ is the scattering operator, $P_p^{g' \to g}$ is the prompt f
 $S_{d}^g$ is the delay source, and $P_{d,i}^g$ is the delayed-neutron fission operator.
 
 The flux factorization approach leads to a decomposition of the multigroup flux into the product of a time-dependent amplitude ($p$) and a space-/time-dependent 
-multigroup shape ($\psi$): \tcr{your notation is not consistent. psi. phi?}
+multigroup shape ($\varphi$):
 \be
 \phi^g(\vec{r},t)=p(t)\varphi^g(\vec{r},t)
 \ee
@@ -218,14 +212,7 @@ these components, each temperature step is iterated until amplitude has converge
 \section{Results and Analysis}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-To test the multiple time scale implementation of IQS, the LRA benchmark was chosen for reference. 
-The LRA benchmark is a two-dimensional, two-group neutron diffusion problem with adiabatic heat-up and 
-Doppler feedback in thermal reactor \cite{ANL_BPB}.  It is a super prompt-critical transient. 
-Three different evaluation techniques were applied: temporal discretization of the flux equation (Brute force), 
-IQS, and IQS-PC. Crank-Nicholson time discretization scheme was used for the diffusion evaluation of each technique.  
-The performance of IQS and the temperature updates was measured by its improvement in accuracy at peak power 
-over the Brute force technique.  The results show the effectiveness of multiple temperature updates along the macro step.
-\tcr{you comment on results too early}
+To test the multiple time scale implementation of IQS, the LRA benchmark was chosen for reference. The LRA benchmark is a two-dimensional, two-group neutron diffusion problem with adiabatic heat-up and Doppler feedback in thermal reactor \cite{ANL_BPB}.  It is a super prompt-critical transient. Three different evaluation techniques were applied: temporal discretization of the flux equation (Brute force), IQS, and IQS-PC. Crank-Nicholson time discretization scheme was used for the diffusion evaluation of each technique.  The performance of IQS and the temperature updates was measured by its improvement in accuracy at peak power over the Brute force technique.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{LRA Temperature Feedback}
@@ -263,13 +250,7 @@ Any interpolation of the amplitude along the micro steps is possible for the int
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{LRA Convergence Results}
 
-\fig{fig:lra_profile} shows the baseline power and temperature profile for the LRA benchmark.  
-The relative difference in the magnitude of the peak power ($t\approx1.44 s$) from the baseline 
-was used for error comparison.  \fig{fig:lra_bad} is an error convergence plot comparing the 
-three techniques where temperature is evaluated only on the macro step (1 temperature update).  
-\fig{fig:conv} is an error convergence plot comparing the three techniques where temperature is evaluated 
-5 times within a macro step (5 temperature updates).  Finally, \fig{fig:mp} shows the affect of various temperature updates.  
-The dotted lines correspond to brute force at different flux step sizes, while the IQS macro step size is kept constant.
+\fig{fig:lra_profile} shows the baseline power and temperature profile for the LRA benchmark.  The relative difference in the magnitude of the peak power ($t\approx1.44 s$) from the baseline was used for error comparison.  \fig{fig:lra_bad} is an error convergence plot comparing the three techniques where temperature is evaluated only on the macro step (1 temperature update).  \fig{fig:conv} is an error convergence plot comparing the three techniques where temperature is evaluated 5 times within a macro step (5 temperature updates).  Finally, \fig{fig:mp} shows the affect of various temperature updates. The dotted lines correspond to brute force at different flux step sizes, while the IQS macro step size is kept constant.
 
 \begin{figure}[htbp!]
 \includegraphics[width=\linewidth]{lra_profile.png}
@@ -297,17 +278,14 @@ The dotted lines correspond to brute force at different flux step sizes, while t
 \label{fig:mp}
 \end{figure}
 
-The convergence plots show that updating temperature and the PRKE parameters within a macro step has 
-a significant affect on the performance of IQS.  With only one update, IQS was only slightly better than brute force, 
-brute force required about 1.5x more time steps than IQS for the same error.  While 5 temperature updates showed 
-a much more significant IQS performance, brute force required about 4x more time steps than IQS for the same error.  
-\fig{fig:mp} shows that there is an \tcr{exponential} convergence of error for the number of temperature updates.  
-This convergence makes sense because temperature can only be so accurate before the error in shape is dominating.
+The convergence plots show that updating temperature and the PRKE parameters within a macro step has a significant affect on the performance of IQS.  With only one update, IQS was only slightly better than brute force, brute force required about 1.5x more time steps than IQS for the same error.  While 5 temperature updates showed a much more significant IQS performance, brute force required about 4x more time steps than IQS for the same error.  \fig{fig:mp} shows that error has a convergent behavior for the number of temperature updates.  This convergence makes sense because temperature can only be so accurate before the error in shape is dominating.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions}
 
+IQS is a powerful tool for reactor simulation, it has the capability of greatly reducing computation time while retaining accuracy of relevant quantities.  The goal of this summary is to showcase IQS's performance with multi-physics simulation, as well as techniques to improve its performance.  The technique focused on incorporating a new time scale in IQS for feedback quantities and PRKE parameters.  The results when IQS is applied to the temperature feedback model of the LRA benchmark showed that incorporating a middle time scale for temperature had significant impact on IQS performance.
 
+A full report of this topic will include applying step doubling time adaptation to the LRA benchmark and analyzing IQS performance.  It is also intended to include IQS application to a full core TREAT model to analyze performance with a more complex problem.  It is also possible to include IQS application to the Godiva model as to analyze performance with a structural feedback problem \cite{CritSafetyHandbook}. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\appendix
@@ -320,6 +298,6 @@ We thank Mark Dehart, Yaqi Wang, the NEAMS program, and INL's Moose/Rattlesnake 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{ans}
-\bibliography{bibliography}
+\bibliography{references_IQS}
 \end{document}
 
