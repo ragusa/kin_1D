@@ -115,9 +115,7 @@ Where the functional coefficients are calculated using the space-/time-dependent
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{IQS Predictor-Corrector (IQS P-C)}
 
-To avoid performing the IQS non-linear solve, a predictor-corrector of IQS has been derived in \cite{Dulla2008}. 
-One first solves the neutron flux (represented by Equations \ref{eq:flux} and \ref{eq:precursor}) to obtain a predicted flux.  
-The predicted flux is then converted to a shape through a rescaling argument :
+To avoid performing the IQS non-linear solve, a predictor-corrector version of IQS has been derived in \cite{Dulla2008}. One first solves the neutron flux (represented by Equations \ref{eq:flux} and \ref{eq:precursor}) to obtain a predicted flux. The predicted flux is then converted to a shape through a rescaling argument :
 \be
 \varphi^g_{n+1} = \underbrace{\phi^g_{n+1}}_{\text{predicted}} \frac{K_0}{K_{n+1}}
 \label{eq:rescale}
@@ -130,8 +128,7 @@ K_{n+1} =\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\phi^g_{n+1}\right)
 K_{0} =\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g_{n+1}\right)=\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\phi^g_{0}\right)
 \ee
 
-The PRKE parameters are then computed with this shape using Equations \eqref{eq:rmb}-\eqref{eq:l} and interpolated over the macro step
-for the solution of the PRKE equations.  With the newly computed amplitude, the shape is rescaled and the corrected flux is evaluated:
+The PRKE parameters are then computed with this shape using Equations \eqref{eq:rmb}-\eqref{eq:l} and interpolated over the macro step for the solution of the PRKE equations.  With the newly computed amplitude, the shape is rescaled and the corrected flux is evaluated:
 \be
 \underbrace{\phi^g_{n+1}}_{\text{corrected}} = p_{n+1} \times \varphi^g_{n+1} \,.
 \ee
@@ -201,18 +198,13 @@ physics components (temperature). Figure~\ref{fig:time} shows a such a solution 
 \label{fig:time}
 \end{figure}
 
-The top time scale represents a shape diffusion evaluation on a macro step, the middle as an arbitrary 
-three steps within the macro step where temperature and the PRKE parameters are evaluated, and the 
-bottom one represents the PRKE evaluation on micro steps.  The shape is linearly interpolated within 
-the macro step for the temperature and PRKE parameter evaluation, and the parameters are interpolated 
-within the temperature step for the PRKE evaluation.  Since there is a nonlinear coupling between all 
-these components, each temperature step is iterated until amplitude has converged and the macro step is iterated until shape has converged.
+The top time scale represents a shape diffusion evaluation on a macro step, the middle has an arbitrary three steps within the macro step where temperature and the PRKE parameters are evaluated, and the bottom one represents the PRKE evaluation on micro steps.  The shape is linearly interpolated within the macro step for the temperature and PRKE parameter evaluation, and the parameters are interpolated within the temperature step for the PRKE evaluation.  Since there is a nonlinear coupling between all these components, each temperature step is iterated until amplitude has converged and the macro step is iterated until shape has converged.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results and Analysis}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-To test the multiple time scale implementation of IQS, the LRA benchmark was chosen for reference. The LRA benchmark is a two-dimensional, two-group neutron diffusion problem with adiabatic heat-up and Doppler feedback in thermal reactor \cite{ANL_BPB}.  It is a super prompt-critical transient. Three different evaluation techniques were applied: temporal discretization of the flux equation (Brute force), IQS, and IQS-PC. Crank-Nicholson time discretization scheme was used for the diffusion evaluation of each technique.  The performance of IQS and the temperature updates was measured by its improvement in accuracy at peak power over the Brute force technique.
+To test the multiple time scale implementation of IQS, the LRA benchmark was chosen for reference. The LRA benchmark is a two-dimensional, two-group neutron diffusion problem with adiabatic heat-up and Doppler feedback in thermal reactor \cite{ANL_BPB}.  It is a super prompt-critical transient. Three different evaluation techniques were applied: implicit discretization of the flux equation (Brute force), IQS, and IQS-PC. Crank-Nicholson time discretization scheme was used for the diffusion evaluation of each technique.  Third order Runge–Kutta discretization with step doubling adaptation was used for the PRKE evaluation.  The performance of IQS and the temperature updates were measured by its improvement in accuracy at peak power over the Brute force technique.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{LRA Temperature Feedback}
@@ -229,7 +221,7 @@ The heat up is described by \eqt{eq:temp} and the feedback is described by \eqt{
 \label{eq:dopp}
 \ee
 
-In the temperature evaluation, a typical implicit solver would simply use the interpolated flux at end of the temperature time step for the right hand side of the equation.  However, IQS has much more information about the profile of the flux along the time step because of the micro-step amplitude evaluation.  Therefore, it is possible to solve for temperature using a quasi-analytical approach, shown by \eqt{eq:temp_an}.
+In the temperature evaluation, a typical implicit solver would simply use the interpolated flux at end of the temperature time step for the right hand side of the equation.  However, IQS has much more information about the profile of the flux along the time step because of the micro-step amplitude evaluation.  Therefore, it is possible to solve for temperature using a semi-analytical approach, shown by \eqt{eq:temp_an}.
 
 \be
 T^{n+1} = T^n + \frac{\kappa_f}{\rho c_p} \left(a_2 \varphi^{n+1} + a_1 \varphi^{n}\right)
@@ -250,7 +242,7 @@ Any interpolation of the amplitude along the micro steps is possible for the int
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{LRA Convergence Results}
 
-\fig{fig:lra_profile} shows the baseline power and temperature profile for the LRA benchmark.  The relative difference in the magnitude of the peak power ($t\approx1.44 s$) from the baseline was used for error comparison.  \fig{fig:lra_bad} is an error convergence plot comparing the three techniques where temperature is evaluated only on the macro step (1 temperature update).  \fig{fig:conv} is an error convergence plot comparing the three techniques where temperature is evaluated 5 times within a macro step (5 temperature updates).  Finally, \fig{fig:mp} shows the affect of various temperature updates. The dotted lines correspond to brute force at different flux step sizes, while the IQS macro step size is kept constant.
+\fig{fig:lra_profile} shows the baseline power and temperature profile for the LRA benchmark.  The relative difference in the magnitude of the peak power ($t\approx1.44 s$) from the baseline was used for error comparison.  \fig{fig:lra_bad} is an error convergence plot comparing the three techniques where temperature is evaluated only on the macro step (1 temperature update).  \fig{fig:conv} is an error convergence plot comparing the three techniques where temperature is evaluated 5 times within a macro step (5 temperature updates).  Finally, \fig{fig:mp} shows the affect of various temperature updates. The dashed lines correspond to brute force at different flux step sizes, while the IQS macro step size is kept constant.
 
 \begin{figure}[htbp!]
 \includegraphics[width=\linewidth]{lra_profile.png}
@@ -260,7 +252,7 @@ Any interpolation of the amplitude along the micro steps is possible for the int
 
 \begin{figure}[!htpb]
 \includegraphics[width=\linewidth]{lra_bad.jpg}
-\caption{LRA convergence plots with only one temperature updated each macro step}
+\caption{LRA convergence plots with only one temperature update each macro step}
 \label{fig:lra_bad}
 \end{figure}
 
@@ -278,7 +270,7 @@ Any interpolation of the amplitude along the micro steps is possible for the int
 \label{fig:mp}
 \end{figure}
 
-The convergence plots show that updating temperature and the PRKE parameters within a macro step has a significant affect on the performance of IQS.  With only one update, IQS was only slightly better than brute force, brute force required about 1.5x more time steps than IQS for the same error.  While 5 temperature updates showed a much more significant IQS performance, brute force required about 4x more time steps than IQS for the same error.  \fig{fig:mp} shows that error has a convergent behavior for the number of temperature updates.  This convergence makes sense because temperature can only be so accurate before the error in shape is dominating.
+The convergence plots show that updating temperature and the PRKE parameters within a macro step has a significant affect on the performance of IQS.  With only one update, IQS was only slightly better than brute force, brute force required about 150\% more time steps than IQS for the same error.  While 5 temperature updates showed a much more significant IQS performance, brute force required about 400\% more time steps than IQS for the same error.  \fig{fig:mp} shows that error has a convergent behavior for the number of temperature updates.  This convergence makes sense because temperature can only be so accurate before the error in shape is dominating.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions}
@@ -293,8 +285,7 @@ The full paper version will include time adaptive simulations for multiphysics d
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Acknowledgments}
-This work was supported by the Department of Energy, Idaho National Laboratory, and the Integrated University Program Fellowship.  
-We thank Mark Dehart, Yaqi Wang, the NEAMS program, and INL's Moose/Rattlesnake team for their support.
+This work was supported by the Department of Energy, Idaho National Laboratory, and the Integrated University Program Fellowship.  We thank Mark Dehart, Yaqi Wang, the NEAMS program, and INL's Moose/Rattlesnake team for their support.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{ans}
