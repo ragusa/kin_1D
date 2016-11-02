@@ -292,6 +292,18 @@
 \renewcommand{\S}{\mathbf{\Sigma}}
 \newcommand{\M}{\mathbf{M}}
 \renewcommand{\D}{\mathbf{D}}
+
+% tikz stuff
+\usetikzlibrary{shapes,arrows,positioning}
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+\tikzstyle{redblock}=[rectangle, draw, align=center, top color=red!25, bottom color=red!75,  minimum width=10mm, minimum height=10mm,]
+\tikzstyle{blueblock}=[rectangle,draw, align=center, top color=blue!25, bottom color=blue!75,  minimum width=10mm, minimum height=10mm]
+\tikzstyle{purpleblock}=[rectangle,  draw, align=center, top color=purple!25, bottom color=purple!75, minimum width=10mm, minimum height=10mm]
+\tikzstyle{orangeblock}=[rectangle, draw, align=center, top color=orange!25, bottom color=orange!75,  minimum width=10mm, minimum height=10mm]
+\tikzstyle{greendiamond}=[diamond, draw, align=center, top color=green!25, bottom color=green!75,  minimum width=8mm, aspect=2]
+
 %=================================================================================================
 
 %============================================================
@@ -338,7 +350,7 @@
 
 %-------------------------------------------------------------------
 \begin{frame}
-\vspace{-1.5cm}
+%\vspace{-1.5cm}
 	\begin{figure}[t]
 		\centering
 			\includegraphics[width=.45\textwidth]{figures/Treat_core_view.png}
@@ -408,7 +420,7 @@ Note that $\tcr{p(t)}$ and $\tcb{\varphi^g(\vec{r},t)}$ are not unique.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{IQS equations}
+\subsection{IQS Equations}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %-------------------------------------------------------------------
@@ -692,6 +704,69 @@ e_n = \frac{\norm{y_{\Delta t/2} - y_{\Delta t}}}{\text{max}\left(\norm{y_{\Delt
 \begin{frame}{Solution Process}
 
 \begin{block}{Solution Process with IQS}
+\begin{figure}[htpb!]
+\centering
+\begin{tikzpicture}[scale=1.5]
+\draw[] (0,2) -- (6,2) ;
+\foreach \x in  {0,3,6}
+\draw[shift={(\x,2)},color=black] (0pt,6pt) -- (0pt,-6pt);
+\draw[shift={(0,2)},color=black] (0pt,0pt) -- (0pt,-6pt) node[below] {$t_n$};
+\draw[shift={(3,2)},color=black] (0pt,0pt) -- (0pt,-6pt) node[below] {$t_{n+1/2}$};
+\draw[shift={(6,2)},color=black] (0pt,0pt) -- (0pt,-6pt) node[below] {$t_{n+1}$};
+\draw (0,2) edge[out=45,in=135,->,thick,blue] node[above,sloped] {\tcb{Step 1}} (6,2);
+\draw (0,2) edge[out=25,in=155,->,thick,red] node[above,sloped] {\tcr{Step 2}} (3,2);
+\draw (3,2) edge[out=25,in=155,->,thick,red] node[above,sloped] {\tcr{Step 3}} (6,2);
+\node[anchor=west](shape) at (6.1,2.5) {$\tcb{\varphi_{\Delta t}^g}$};
+\node[anchor=west](shape) at (6.1,2) {$\tcr{\varphi_{\Delta t/2}^g}$};
+
+\end{tikzpicture}
+\end{figure}
+\be
+e_n =\frac{\norm{\sum_{g=1}^G \left(\tcr{\varphi^g_{\Delta t/2}} - \tcb{\varphi^g_{\Delta t}} \right)}}{\max\left(\norm{\sum_{g=1}^G\tcr{\varphi^g_{\Delta t/2}}},\norm{\sum_{g=1}^G\tcb{\varphi^g_{\Delta t}}}\right)} 
+\qq  \qq 
+\Delta t_{new} = S_f \Delta t \left[\frac{e_{tol}}{e_n}\right]^{1/(p+1)}   
+\ee
+
+\end{block}
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Solution Process}
+\begin{block}{Programming Visualization}
+\begin{figure}[!htpb]
+\centering
+\begin{tikzpicture}[every node/.style = {font=\small},scale=0.5]
+
+\node[blueblock](p1) at (-6,3) {Step 1} ;
+\node[redblock](p2) at (-8,0) {Step 2} ;
+\node[redblock](p3) at (-4,0) {Step 3} ;
+\node[purpleblock](p4) at (0,0) {Compute \\ $e_n$};
+\node[purpleblock](p5) at (4,0) {Compute  \\ $\Delta t_{new}$};
+\node[greendiamond](p6) at (8,0) {$e_n < e_{tol}$};
+\node[orangeblock](p7) at (0,-3) {Restore \\ Solutions};
+
+\draw[->,thick](p1.east) -| (p4.north);
+\draw[->,thick](p2.east) -- (p3.west);
+\draw[->,thick](p3.east) -- (p4.west);
+\draw[->,thick](p4.east) -- (p5.west);
+\draw[->,thick](p5.east) -- (p6.west);
+\draw[->,thick](p6.south) |- node[right] {no} (p7.east);
+\draw[->,thick](p6.east) -- node[above] {yes} (11,0);
+\draw[->,thick](p7.west) -| (-10,0) -- (p2.west);
+\draw[->,thick](p7.west) -| (-10,0) |- (p1.west);
+
+\end{tikzpicture}
+\end{figure}
+Each Step undergoes:
+\bi
+\item Shape evaluation
+\item PRKE evaluations
+\item Multiphysics evaluations
+\item Iterations for convergence of amplitude, shape, and multiphysics
+\ei
+
+
 
 \end{block}
 
@@ -705,6 +780,126 @@ e_n = \frac{\norm{y_{\Delta t/2} - y_{\Delta t}}}{\text{max}\left(\norm{y_{\Delt
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\subsection{TWIGL}
+
+%-------------------------------------------------------------------
+\begin{frame}{TWIGL Benchmark}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/TWIGL_regions.jpg}
+\end{figure}
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{TWIGL Results}
+
+\begin{columns}
+
+\column{.7\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/TWIGL_power_plot.png}
+\end{figure}
+
+\column{.4\textwidth}
+\begin{table}
+\begin{center}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\multicolumn{5}{|c|}{Brute Force}\\
+\hline
+Test & $e_{max}$ & Error & Steps & Solves \\
+\hline
+1 &	0.05    &	0.00012677 &	9    &	29 \\
+2 &	0.01    &	3.5555e-05 &	11   &	35 \\
+3 &	0.005   &	4.0364e-05 &	11   &	31  \\
+4 &	0.001   &	0.00294822 &	33   &	122  \\
+5 &	0.0005  &	0.00099778 &	39   &	131  \\
+6 &	0.0001  &	0.00019510 &	78   &	236  \\
+7 &	5.0e-05 &	0.00018372 &	112  &	342  \\
+8 &	1.0e-05 &	8.0564e-05 &	263  &	794 \\
+\hline
+
+\end{tabular}}
+\end{center}
+\end{table}
+
+\begin{table}
+\begin{center}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\multicolumn{5}{|c|}{IQS P-C} \\
+\hline
+Test & $e_{max}$ & Error & Steps & Solves \\
+\hline
+1 &	0.05    &	0.03380433 &	4  &	9   \\
+2 &	0.01    &	0.00263068 &	5  &	12  \\
+3 &	0.005   &	0.00160486 &	6  &	21  \\
+4 &	0.001   &	1.7527e-05 &	10 &	35  \\
+5 &	0.0005  &	1.4185e-05 &	16 &	74  \\
+6 &	0.0001  &	6.2903e-06 &	19 &	78  \\
+7 &	5.0e-05 &	1.5247e-06 &	24 &	92  \\
+8 &	1.0e-05  &	9.8321e-07 &	48 &	210 \\
+\hline
+\end{tabular}}
+\end{center}
+\end{table}
+
+\end{columns}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+\subsection{LRA}
+
+
+%-------------------------------------------------------------------
+\begin{frame}{LRA Benchmark}
+
+\begin{figure}[h]
+\includegraphics[height=0.8\textheight]{figures/lra_geom.png}
+\end{figure}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{LRA Results}
+
+\begin{columns}
+
+\column{.58\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/LRA_DT2.png}
+\end{figure}
+
+\column{.58\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/LRA_DT2_peak.png}
+\end{figure}
+
+\end{columns}
+
+\begin{table}
+\begin{center}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|l|l|l|}
+\hline
+ & \multicolumn{3}{|c|}{Brute Force} & \multicolumn{3}{|c|}{IQS P-C} \\
+\hline
+Event & Power (W/cm$^3$) & Error & Steps & Power (W/cm$^3$) & Error & Steps \\
+\hline
+Max Power & 5567.3 & 0.019454 & 423 & 5568.3 & 0.019274 & 47 \\
+End (3 s) & 109.66 & 2.3650e-4 & 603 & 109.65 & 3.0622e-4 & 97 \\
+\hline
+\end{tabular}}
+\end{center}
+\end{table}
+
+\end{frame}
+%-------------------------------------------------------------------
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -716,14 +911,25 @@ e_n = \frac{\norm{y_{\Delta t/2} - y_{\Delta t}}}{\text{max}\left(\norm{y_{\Delt
 \begin{frame}{Conclusion and Outlook}
 
 \begin{block}{Completed}
-
+\bi
+\item Application and verification of step doubling IQS for pure neutronics
+\item Application of step doubling IQS with simple temperature feedback
+\ei
 \end{block}
 
 \begin{block}{In progress}
-
+\bi 
+\item Verification of IQS with temperature feedback
+\item Exploration of IQS techniques for multiphysics feedback
+\item Application of step doubling IQS for full core TREAT model
+\ei
 \end{block}
-\begin{block}{Next Steps}
 
+\begin{block}{Next Steps}
+\bi 
+\item Implementation of IQS into Newton iteration process
+\item IQS application to SAAF-S$_N$ and transport benchmarks
+\ei
 \end{block}
 
 \end{frame}
@@ -733,8 +939,9 @@ e_n = \frac{\norm{y_{\Delta t/2} - y_{\Delta t}}}{\text{max}\left(\norm{y_{\Delt
 \begin{frame}{Questions ?}
 
 
-\begin{block}{Thanks}
+\begin{block}{Thank you}
 \begin{itemize}
+\item Yaqi Wang (INL, Rattlesnake lead)
 \item Mark DeHart (INL, TREAT M\&S lead)
 \item NEAMS
 \end{itemize}
