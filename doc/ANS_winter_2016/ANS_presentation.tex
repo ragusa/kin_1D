@@ -46,6 +46,7 @@
 \usepackage{cancel}
 
 \usepackage{tikz}
+\usepackage{colortbl}
 %\usepackage{booktabs}
 
 %-----------------------------------------------------------
@@ -283,10 +284,12 @@
 \newcommand{\divv}[1]{\vec{\nabla}^{#1}\! \cdot \!}
 \newcommand{\gradd}[1]{\vec{\nabla}^{#1}}
 
+\definecolor{britishracinggreen}{rgb}{0.0, 0.26, 0.15}
 \newcommand{\tcr}[1]{\textcolor{red}{#1}}
 \newcommand{\tcb}[1]{\textcolor{blue}{#1}}
 \newcommand{\tcm}[1]{\textcolor{magenta}{#1}}
 \newcommand{\tcp}[1]{\textcolor{violet}{#1}}
+\newcommand{\tcg}[1]{\textcolor{britishracinggreen}{#1}}
 
 \renewcommand{\L}{\mathbf{L}}
 \renewcommand{\S}{\mathbf{\Sigma}}
@@ -321,7 +324,7 @@
 	\usebeamerfont{author in head/foot}\insertshortauthor%~~(\insertshortinstitute)
 \end{beamercolorbox}%
 \begin{beamercolorbox}[wd=.25\paperwidth,ht=3.25ex,dp=1ex,center]{section in head/foot}%
-	\usebeamerfont{section in head/foot} IQS PHYSOR 2016 % \insertshorttitle
+	\usebeamerfont{section in head/foot} IQS ANS 2016 % \insertshorttitle
 \end{beamercolorbox}%
 \begin{beamercolorbox}[wd=.25\paperwidth,ht=3.25ex,dp=1ex,left]{section in head/foot}%
 	\usebeamerfont{section in head/foot}\insertshortdate{}\hspace*{2em}
@@ -335,7 +338,7 @@
 \urldef{\ragusa}\url{jean.ragusa@tamu.edu}
 \urldef{\prince}\url{zachmprince@tamu.edu}
 
-\title{Improved Quasi-Static Method in Rattlesnake}
+\title{Improved Quasi-Static Method with Step Doubling Adaptation}
 
 \author{Zachary M. Prince, Jean C. Ragusa}
 \institute{Department of Nuclear Engineering, Texas A\&M University, College Station, TX}
@@ -442,7 +445,7 @@ Implementing factorization and solving for $\tcb{\varphi^g}$:
 
 \begin{block}{Differences with original transport equation}
 \ben
-\item An additional removal term based on $\tcr{\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}} \tcb{\psi^g}$
+\item An additional removal term based on $\tcr{\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}} \tcb{\varphi^g}$
 \item Delayed neutron source term scaled by $\tcr{\frac{1}{p}}$
 \item The delayed fission source in the precursor equation scaled by \tcr{p}
 \een
@@ -571,7 +574,6 @@ Because solving for the \tcb{shape} can be expensive, especially in two or three
 \label{fig:IQS}
 \end{figure}
 
-\tcm{Currently, in MOOSE, we employ the available Picard iteration functionality to resolve the nonlinearities. Later, nonlinearities will also be resolved using Newton iteration.}
 \end{block}
 \end{frame}
 %-------------------------------------------------------------------
@@ -619,7 +621,7 @@ IQS P-C linearizes the system and avoids iterations on the \tcb{shape}:
 \item Evaluate multigroup diffusion equation to get predicted flux $\phi_{n+1}^{g,\tcr{pred}}$
 \item Scale predicted flux to obtain \tcb{shape}:
 \[
-\tcb{\varphi^{g}_{n+1}} = \phi_{n+1}^{g,\tcr{pred}} \frac{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g_{n+1}\right)}{\sum_{g=1}^G \left(\phi^{*g},\frac{1}{v^g}\phi_{n+1}^{g,\tcr{pred}}\right)} = \phi_{n+1}^{g,\tcr{pred}} \frac{\tcp{K_0}}{\tcp{K_{n+1}}}
+\tcb{\varphi^{g}_{n+1}} = \phi_{n+1}^{g,\tcr{pred}} \frac{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\phi ^g_{0}\right)}{\sum_{g=1}^G \left(\phi^{*g},\frac{1}{v^g}\phi_{n+1}^{g,\tcr{pred}}\right)} = \phi_{n+1}^{g,\tcr{pred}} \frac{\tcp{K_0}}{\tcp{K_{n+1}}}
 \]
 \item Compute PRKE parameters at $t_{n+1}$
 \item Evaluate PRKE along micro step using interpolated parameters to obtain $\tcr{p_{n+1}}$
@@ -631,27 +633,28 @@ IQS P-C linearizes the system and avoids iterations on the \tcb{shape}:
 
  Advantage: No IQS nonlinear iteration is necessary \\
  Disadvantage: Assumes $\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g_{n+1}\right)$ is inherently constant \\
-\vspace{2mm}
-\small \tcm{Note: The PRKE parameters can be computed using flux since the amplitude is in the numerator and denominator of each one. So Step 2 is unnecessary if the corrected flux is solved with}:
-\[
-\phi_{n+1}^{g,\tcr{corr}} = \phi_{n+1}^{g,\tcr{pred}} \times \frac{\tcp{K_0}}{\tcp{K_{n+1}}} \tcr{p_{n+1}}
-\]
-\normalsize
-%\end{block}
 
 \end{frame}
 %-------------------------------------------------------------------
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Step Doubling}
+\section{Time Adaptation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%-------------------------------------------------------------------
+\begin{frame}{Time Adaptation}
+
+\tableofcontents[currentsection]
+
+\end{frame}
+%-------------------------------------------------------------------
 
 \subsection{Theory}
 
 %-------------------------------------------------------------------
-\begin{frame}{Theory}
+\begin{frame}{Time Adaptation Theory}
 
 \begin{block}{Motivation}
 \begin{itemize}
@@ -664,7 +667,7 @@ IQS P-C linearizes the system and avoids iterations on the \tcb{shape}:
 \begin{block}{Local Truncation Error}
 We can estimate the local truncation error of the latest solve with a Taylor series expansion:
 \be
-\norm{LTE_n} = \Delta t_n^{p+1} \norm{\frac{y^{p+1}_{n-1}}{(p+1)!} + \Delta t_n \frac{y^{p+2}_{n-1}}{(p+2)!} + ...}
+\norm{LTE_n} = \Delta t_n^{p+1} \norm{\frac{\phi^{(p+1)}_{n}}{(p+1)!} + \Delta t_n \frac{\phi^{(p+2)}_{n}}{(p+2)!} + ...}
 \ee
 Where $p$ is the time discretization method's order and $y_n$ is the solution at time $ = t_n$. $\Delta t_n$ was the latest solves time step and $\Delta t_{n+1}$ is the next solves time step that has a desired error $\norm{LTE_{n+1}}$.  It can be
 
@@ -675,23 +678,23 @@ Where $p$ is the time discretization method's order and $y_n$ is the solution at
 
 
 %-------------------------------------------------------------------
-\begin{frame}{Theory}
+\begin{frame}{Step Doubling Theory}
 
 \begin{block}{New Step Size}
 Using the definitions of the local errors:
 \be
-\Delta t_{n+1}^{p+1} \simeq \Delta t_{n}^{p+1} \theta \frac{\norm{LTE_{n+1}}}{\norm{LTE_{n}}}
+\Delta t_{n+1}^{p+1} \simeq \Delta t_{n}^{p+1} \tcm{\theta} \frac{\tcg{\norm{LTE_{n+1}}}}{\tcm{\norm{LTE_{n}}}}
 \ee
-Where $\theta \equiv 1 + O(\Delta t_n)$. $\norm{LTE_{n+1}}$ is some user defined relative error tolerance ($e_{tol}$) and $\delta_n \equiv \frac{\theta}{\norm{LTE_{n}}}$ is a method's approximation to the last step's local error ($e_n$).  Therefore in practice:
+Where $\tcm{\theta} \equiv 1 + O(\Delta t_n)$. $\tcg{\norm{LTE_{n+1}}}$ is some user defined relative error tolerance (\tcg{$e_{tol}$}) and \tcm{$e_n \equiv \frac{\theta}{\norm{LTE_{n}}}$} is a method's approximation to the last step's local error.  Therefore in practice:
 \be
-\Delta t_{new} = \Delta t_{old} \left[\frac{e_{tol}}{e_n}\right]^{1/(p+1)}
+\Delta t_{new} = \Delta t_{old} \left[\frac{\tcg{e_{tol}}}{\tcm{e_n}}\right]^{1/(p+1)}
 \ee
 \end{block}
 
 \begin{block}{Step Doubling}
-Step doubling approximates the local error ($\delta_n$) by taking the difference in the local error of a solution with $\Delta t$ ($y_{\Delta t}$) and $\Delta t/2$ ($y_{\Delta t/2}$):
+Step doubling approximates the local error ($\tcg{e_n}$) by taking the difference in the local error of a solution with $\Delta t$ ($\phi_{\Delta t}$) and $\Delta t/2$ ($\phi_{\Delta t/2}$):
 \be
-e_n = \frac{\norm{y_{\Delta t/2} - y_{\Delta t}}}{\text{max}\left(\norm{y_{\Delta t/2}},\norm{y_{\Delta t}}\right)}
+e_n = \frac{\norm{\phi_{\Delta t/2} - \phi_{\Delta t}}}{\text{max}\left(\norm{\phi_{\Delta t/2}},\norm{]\phi_{\Delta t}}\right)}
 \ee
 \end{block}
 
@@ -701,7 +704,7 @@ e_n = \frac{\norm{y_{\Delta t/2} - y_{\Delta t}}}{\text{max}\left(\norm{y_{\Delt
 \subsection{Solution Process}
 
 %-------------------------------------------------------------------
-\begin{frame}{Solution Process}
+\begin{frame}{Step Doubling Solution Process}
 
 \begin{block}{Solution Process with IQS}
 \begin{figure}[htpb!]
@@ -732,7 +735,7 @@ e_n =\frac{\norm{\sum_{g=1}^G \left(\tcr{\varphi^g_{\Delta t/2}} - \tcb{\varphi^
 %-------------------------------------------------------------------
 
 %-------------------------------------------------------------------
-\begin{frame}{Solution Process}
+\begin{frame}{Step Doubling Solution Process}
 \begin{block}{Programming Visualization}
 \begin{figure}[!htpb]
 \centering
@@ -780,13 +783,33 @@ Each Step undergoes:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+%-------------------------------------------------------------------
+\begin{frame}{Results}
+
+\tableofcontents[currentsection]
+
+\end{frame}
+%-------------------------------------------------------------------
+
+
 \subsection{TWIGL}
 
 %-------------------------------------------------------------------
 \begin{frame}{TWIGL Benchmark}
+\begin{columns}
+
+\column{0.5\textwidth}
 \begin{figure}
-\includegraphics[width=\linewidth]{figures/TWIGL_regions.jpg}
+\includegraphics[width=\linewidth]{figures/twigl_geom.PNG}
 \end{figure}
+
+\column{0.5\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/ndiff_ramp_flux.jpg}
+\end{figure}
+
+\end{columns}
 \end{frame}
 %-------------------------------------------------------------------
 
@@ -808,14 +831,16 @@ Each Step undergoes:
 \hline
 \multicolumn{5}{|c|}{Brute Force}\\
 \hline
-Test & $e_{max}$ & Error & Steps & Solves \\
+Test & $e_{tol}$ & Error & Steps & Solves \\
 \hline
 1 &	0.05    &	0.00012677 &	9    &	29 \\
 2 &	0.01    &	3.5555e-05 &	11   &	35 \\
 3 &	0.005   &	4.0364e-05 &	11   &	31  \\
 4 &	0.001   &	0.00294822 &	33   &	122  \\
 5 &	0.0005  &	0.00099778 &	39   &	131  \\
-6 &	0.0001  &	0.00019510 &	78   &	236  \\
+\hline
+\rowcolor{yellow} 6 &	0.0001  &	0.00019510 &	78   &	236  \\
+\hline
 7 &	5.0e-05 &	0.00018372 &	112  &	342  \\
 8 &	1.0e-05 &	8.0564e-05 &	263  &	794 \\
 \hline
@@ -831,12 +856,14 @@ Test & $e_{max}$ & Error & Steps & Solves \\
 \hline
 \multicolumn{5}{|c|}{IQS P-C} \\
 \hline
-Test & $e_{max}$ & Error & Steps & Solves \\
+Test & $e_{tol}$ & Error & Steps & Solves \\
 \hline
 1 &	0.05    &	0.03380433 &	4  &	9   \\
 2 &	0.01    &	0.00263068 &	5  &	12  \\
 3 &	0.005   &	0.00160486 &	6  &	21  \\
-4 &	0.001   &	1.7527e-05 &	10 &	35  \\
+\hline
+\rowcolor{yellow} 4 &	0.001   &	1.7527e-05 &	10 &	35  \\
+\hline
 5 &	0.0005  &	1.4185e-05 &	16 &	74  \\
 6 &	0.0001  &	6.2903e-06 &	19 &	78  \\
 7 &	5.0e-05 &	1.5247e-06 &	24 &	92  \\
@@ -856,11 +883,19 @@ Test & $e_{max}$ & Error & Steps & Solves \\
 
 %-------------------------------------------------------------------
 \begin{frame}{LRA Benchmark}
+\begin{columns}
 
-\begin{figure}[h]
-\includegraphics[height=0.8\textheight]{figures/lra_geom.png}
+\column{0.6\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/lra_geom.png}
 \end{figure}
 
+\column{0.6\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/lra_profile.png}
+\end{figure}
+
+\end{columns}
 \end{frame}
 %-------------------------------------------------------------------
 
@@ -869,12 +904,12 @@ Test & $e_{max}$ & Error & Steps & Solves \\
 
 \begin{columns}
 
-\column{.58\textwidth}
+\column{.6\textwidth}
 \begin{figure}
 \includegraphics[width=\linewidth]{figures/LRA_DT2.png}
 \end{figure}
 
-\column{.58\textwidth}
+\column{.6\textwidth}
 \begin{figure}
 \includegraphics[width=\linewidth]{figures/LRA_DT2_peak.png}
 \end{figure}
@@ -900,12 +935,56 @@ End (3 s) & 109.66 & 2.3650e-4 & 603 & 109.65 & 3.0622e-4 & 97 \\
 \end{frame}
 %-------------------------------------------------------------------
 
+\subsection{TREAT}
+
+%-------------------------------------------------------------------
+\begin{frame}{TREAT: Transient-15}
+
+%\begin{block}
+\begin{figure}[h]
+\centering
+\includegraphics[height=0.9\textheight]{figures/Tran15_core2.png}
+\end{figure}
+%\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{TREAT Results}
+
+\begin{columns}
+
+\column{.6\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/Tran15_DT2.png}
+\end{figure}
+
+\column{.6\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/Tran15_DT2_peak.png}
+\end{figure}
+
+\end{columns}
+
+\end{frame}
+%-------------------------------------------------------------------
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Wrap-up}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%-------------------------------------------------------------------
+\begin{frame}{Wrap-up}
+
+\tableofcontents[currentsection]
+
+\end{frame}
+%-------------------------------------------------------------------
+
 
 %-------------------------------------------------------------------
 \begin{frame}{Conclusion and Outlook}
@@ -946,6 +1025,10 @@ End (3 s) & 109.66 & 2.3650e-4 & 603 & 109.65 & 3.0622e-4 & 97 \\
 \item NEAMS
 \end{itemize}
 \end{block}
+
+\begin{figure}
+\includegraphics[height=0.6\textheight]{figures/pizza.jpg}
+\end{figure}
 
 \end{frame}
 %-------------------------------------------------------------------
