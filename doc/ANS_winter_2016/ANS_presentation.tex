@@ -480,7 +480,6 @@ In order to impose uniqueness of the factorization, one requires:
 \[
 \tcp{K_0} = \sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)= constant
 \]
-\tcm{This condition will be the criteria for solution convergence}
 \end{block}
 
 
@@ -579,37 +578,37 @@ Because solving for the \tcb{shape} can be expensive, especially in two or three
 %-------------------------------------------------------------------
 
 %-------------------------------------------------------------------
-\begin{frame}{Convergence criteria}
-
-
-\begin{block}{Ideally}
-The normalization constant should not change over time !
-\[
-\tcp{K_0} = \sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g_0\right)= constant
-\]
-\[
-\text{Thus, we employ }\quad
-\left| \frac{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g_{n+1}\right)}{\tcp{K_0}}-1\right| 
-= \left| \frac{\tcp{K_{n+1}}}{{\tcp{K_0}}}-1\right|  < tol
-\]
-\end{block}
-
-\begin{block}{Note that we have seen in practice ... }
-\[
-\frac{ \| \varphi^{g,\tcr{\ell+1}}_{n+1} - \varphi^{g,\tcr{\ell}}_{n+1} \|}{\| \varphi^{g,\tcr{\ell+1}}_{n+1} \|} < tol 
-\quad \text{or even} \quad
-\frac{ \| \varphi^{g,\tcr{\ell+1}}_{n+1} - \varphi^{g,\tcr{0}}_{n+1} \|}{\| \varphi^{g,\tcr{0}}_{n+1} \|} < tol 
-\]
-where $\tcr{\ell}$ is the IQS iteration index over a given macro time step $[t_n,t_{n+1}]$\\
-\smallskip
-These empirical criteria must be followed by a renormalization before starting the next time step $[t_{n+1},t_{n+2}]$
-\[
- \varphi^{g,\tcr{converged}}_{n+1} \times \frac{\tcp{K_{n+1}^{\tcr{converged}}}}{\tcp{K_0}} \rightarrow \varphi^{g}_{n+1}
-\]
-\end{block}
-
-
-\end{frame}
+%\begin{frame}{Convergence criteria}
+%
+%
+%\begin{block}{Ideally}
+%The normalization constant should not change over time !
+%\[
+%\tcp{K_0} = \sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g_0\right)= constant
+%\]
+%\[
+%\text{Thus, we employ }\quad
+%\left| \frac{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g_{n+1}\right)}{\tcp{K_0}}-1\right| 
+%= \left| \frac{\tcp{K_{n+1}}}{{\tcp{K_0}}}-1\right|  < tol
+%\]
+%\end{block}
+%
+%\begin{block}{Note that we have seen in practice ... }
+%\[
+%\frac{ \| \varphi^{g,\tcr{\ell+1}}_{n+1} - \varphi^{g,\tcr{\ell}}_{n+1} \|}{\| \varphi^{g,\tcr{\ell+1}}_{n+1} \|} < tol 
+%\quad \text{or even} \quad
+%\frac{ \| \varphi^{g,\tcr{\ell+1}}_{n+1} - \varphi^{g,\tcr{0}}_{n+1} \|}{\| \varphi^{g,\tcr{0}}_{n+1} \|} < tol 
+%\]
+%where $\tcr{\ell}$ is the IQS iteration index over a given macro time step $[t_n,t_{n+1}]$\\
+%\smallskip
+%These empirical criteria must be followed by a renormalization before starting the next time step $[t_{n+1},t_{n+2}]$
+%\[
+% \varphi^{g,\tcr{converged}}_{n+1} \times \frac{\tcp{K_{n+1}^{\tcr{converged}}}}{\tcp{K_0}} \rightarrow \varphi^{g}_{n+1}
+%\]
+%\end{block}
+%
+%
+%\end{frame}
 %-------------------------------------------------------------------
 
 %-------------------------------------------------------------------
@@ -669,7 +668,7 @@ We can estimate the local truncation error of the latest solve with a Taylor ser
 \be
 \norm{LTE_n} = \Delta t_n^{p+1} \norm{\frac{\phi^{(p+1)}_{n}}{(p+1)!} + \Delta t_n \frac{\phi^{(p+2)}_{n}}{(p+2)!} + ...}
 \ee
-Where $p$ is the time discretization method's order and $y_n$ is the solution at time $ = t_n$. $\Delta t_n$ was the latest solves time step and $\Delta t_{n+1}$ is the next solves time step that has a desired error $\norm{LTE_{n+1}}$.  It can be
+Where $p$ is the time discretization method's order and $\phi_n$ is the solution at time $ = t_n$. $\Delta t_n$ was the latest solves time step and $\Delta t_{n+1}$ is the next solves time step that has a desired error $\norm{LTE_{n+1}}$.  It can be
 
 \end{block}
 
@@ -694,14 +693,14 @@ Where $\tcm{\theta} \equiv 1 + O(\Delta t_n)$. $\tcg{\norm{LTE_{n+1}}}$ is some 
 \begin{block}{Step Doubling}
 Step doubling approximates the local error ($\tcg{e_n}$) by taking the difference in the local error of a solution with $\Delta t$ ($\phi_{\Delta t}$) and $\Delta t/2$ ($\phi_{\Delta t/2}$):
 \be
-e_n = \frac{\norm{\phi_{\Delta t/2} - \phi_{\Delta t}}}{\text{max}\left(\norm{\phi_{\Delta t/2}},\norm{]\phi_{\Delta t}}\right)}
+e_n = \frac{\norm{\phi_{\Delta t/2} - \phi_{\Delta t}}}{\text{max}\left(\norm{\phi_{\Delta t/2}},\norm{\phi_{\Delta t}}\right)}
 \ee
 \end{block}
 
 \end{frame}
 %-------------------------------------------------------------------
 
-\subsection{Solution Process}
+\subsection{Step Doubling Process}
 
 %-------------------------------------------------------------------
 \begin{frame}{Step Doubling Solution Process}
@@ -719,13 +718,13 @@ e_n = \frac{\norm{\phi_{\Delta t/2} - \phi_{\Delta t}}}{\text{max}\left(\norm{\p
 \draw (0,2) edge[out=45,in=135,->,thick,blue] node[above,sloped] {\tcb{Step 1}} (6,2);
 \draw (0,2) edge[out=25,in=155,->,thick,red] node[above,sloped] {\tcr{Step 2}} (3,2);
 \draw (3,2) edge[out=25,in=155,->,thick,red] node[above,sloped] {\tcr{Step 3}} (6,2);
-\node[anchor=west](shape) at (6.1,2.5) {$\tcb{\varphi_{\Delta t}^g}$};
-\node[anchor=west](shape) at (6.1,2) {$\tcr{\varphi_{\Delta t/2}^g}$};
+\node[anchor=west](shape) at (6.1,2.5) {$\tcb{\phi_{\Delta t}^g}$};
+\node[anchor=west](shape) at (6.1,2) {$\tcr{\phi_{\Delta t/2}^g}$};
 
 \end{tikzpicture}
 \end{figure}
 \be
-e_n =\frac{\norm{\sum_{g=1}^G \left(\tcr{\varphi^g_{\Delta t/2}} - \tcb{\varphi^g_{\Delta t}} \right)}}{\max\left(\norm{\sum_{g=1}^G\tcr{\varphi^g_{\Delta t/2}}},\norm{\sum_{g=1}^G\tcb{\varphi^g_{\Delta t}}}\right)} 
+e_n =\frac{\norm{\sum_{g=1}^G \left(\tcr{\phi^g_{\Delta t/2}} - \tcb{\phi^g_{\Delta t}} \right)}}{\max\left(\norm{\sum_{g=1}^G\tcr{\phi^g_{\Delta t/2}}},\norm{\sum_{g=1}^G\tcb{\phi^g_{\Delta t}}}\right)} 
 \qq  \qq 
 \Delta t_{new} = S_f \Delta t \left[\frac{e_{tol}}{e_n}\right]^{1/(p+1)}   
 \ee
@@ -821,6 +820,7 @@ Each Step undergoes:
 \column{.7\textwidth}
 \begin{figure}
 \includegraphics[width=\linewidth]{figures/TWIGL_power_plot.png}
+\caption{TWIGL Power Profile}
 \end{figure}
 
 \column{.4\textwidth}
@@ -907,11 +907,13 @@ Test & $e_{tol}$ & Error & Steps & Solves \\
 \column{.6\textwidth}
 \begin{figure}
 \includegraphics[width=\linewidth]{figures/LRA_DT2.png}
+\caption{LRA Power Profile}
 \end{figure}
 
 \column{.6\textwidth}
 \begin{figure}
 \includegraphics[width=\linewidth]{figures/LRA_DT2_peak.png}
+\caption{LRA Peak Power Profile}
 \end{figure}
 
 \end{columns}
@@ -958,11 +960,13 @@ End (3 s) & 109.66 & 2.3650e-4 & 603 & 109.65 & 3.0622e-4 & 97 \\
 \column{.6\textwidth}
 \begin{figure}
 \includegraphics[width=\linewidth]{figures/Tran15_DT2.png}
+\caption{TREAT Power Profile}
 \end{figure}
 
 \column{.6\textwidth}
 \begin{figure}
 \includegraphics[width=\linewidth]{figures/Tran15_DT2_peak.png}
+\caption{TREAT Peak Power Profile}
 \end{figure}
 
 \end{columns}
@@ -1025,10 +1029,6 @@ End (3 s) & 109.66 & 2.3650e-4 & 603 & 109.65 & 3.0622e-4 & 97 \\
 \item NEAMS
 \end{itemize}
 \end{block}
-
-\begin{figure}
-\includegraphics[height=0.6\textheight]{figures/pizza.jpg}
-\end{figure}
 
 \end{frame}
 %-------------------------------------------------------------------
