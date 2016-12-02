@@ -6,6 +6,11 @@ A = PetscBinaryRead(fd);
 fd = PetscOpenFile('D');
 D = PetscBinaryRead(fd);
 
+fd = PetscOpenFile('S');
+S = PetscBinaryRead(fd);
+
+fd = PetscOpenFile('F');
+F = PetscBinaryRead(fd);
 
 % % condest(A)
 % % condest(D)
@@ -56,6 +61,36 @@ for g=1:G
 end
 subplot(1,4,4); spy(AA-DD,5);
 
+SS = spalloc(N,N,nnz(S));
+row_id=0;
+for g=1:G
+    for i=1:n
+        ia=k(i)+(g-1);
+        row=[];
+        for gg=1:G
+            ja=k+(gg-1);
+            row = [row S(ia,ja)];
+        end
+        row_id=row_id+1;
+        SS(row_id,:)=row;
+    end
+end
+
+FF = spalloc(N,N,nnz(F));
+row_id=0;
+for g=1:G
+    for i=1:n
+        ia=k(i)+(g-1);
+        row=[];
+        for gg=1:G
+            ja=k+(gg-1);
+            row = [row F(ia,ja)];
+        end
+        row_id=row_id+1;
+        FF(row_id,:)=row;
+    end
+end
+
 Sparsity = spones(AA);
 sss=Sparsity(1:n,1:n);
 % xs = eye(G,G);
@@ -76,6 +111,18 @@ subplot(2,3,3); spy(A-D,5); title('full minus block diag')
 subplot(2,3,4); spy(AA,5); title('full system re-ordered')
 subplot(2,3,5); spy(DD,5); title('block diag precondtioner re-ordered')
 subplot(2,3,6); spy(AA-DD,5); title('full minus block diag re-ordered')
+
+figure(69)
+subplot(3,3,1); spy(AA,5); title('Full system')
+subplot(3,3,2); spy(DD,5); title('Block Diag')
+subplot(3,3,3); spy(AA-DD,5); title('full minus block diag')
+subplot(3,3,4); spy(AA,5); title('Full system')
+subplot(3,3,5); spy(SS,5); title('Diag with Scattering')
+subplot(3,3,6); spy(AA-SS,5); title('full minus diag+scat')
+subplot(3,3,7); spy(AA,5); title('Full system')
+subplot(3,3,8); spy(FF,5); title('Block Diag with Fission')
+subplot(3,3,9); spy(AA-FF,5); title('full minus diag+fiss')
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
