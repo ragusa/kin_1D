@@ -106,11 +106,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Transient modeling of nuclear reactors has been a chronically foreboding task due to its computationally expensive nature.  However, recent developments in nuclear testing, including the revitalization of the Transient Reactor Testing (TREAT) Facility at Idaho National laboratory (INL), have brought significant attention to the development of transient reactor modeling.  Transient computational methods currently in \tcr{laboratory frameworks--people may not understand what you mean here} have proven to be overbearingly computationally expensive for complex, real-world scenarios.  Therefore, more efficient and faster methods for computational \tcr{frameworks} are highly desired.  The Department of Energy (DOE) has especially sought to develop in the MOOSE framework.  \\
+Transient modeling of nuclear reactors has been a chronically foreboding task due to its computationally expensive nature.  However, recent developments in nuclear testing, including the revitalization of the Transient Reactor Testing (TREAT) Facility at Idaho National laboratory (INL), have brought significant attention to the development of transient reactor modeling.  Transient computational methods currently in use at national laboratories, including INL, have proven to be overbearingly computationally expensive for complex, real-world scenarios.  Therefore, implementation of more efficient and faster methods is highly desired.  The Department of Energy (DOE) has especially sought to develop in the MOOSE framework.  \\
 
 MOOSE is a multiphysics framework being developed at INL that presents the architecture for physics-based applications \cite{moose}.  Rattlesnake is a large application in MOOSE that involves deterministic radiation transport physics.  Rattlesnake is able to solve steady-state, transient, and k-eigenvalue neutron transport and diffusion problems using finite element method (FEM) \cite{wang2013}. \\
 
-The difficulty in transient reactor modeling is due to the neutron transport equation, which describes the flux of neutrons. The difficulty in solving or evaluating the equation comes from the dimensionality of the phase-space and the fact that the time discretization has to be implicit, which  leads to kinear system solves.  The equation has seven independent variables: space ($\vec{r}$), energy ($E$), direction ($\vec{\Omega}$), and time ($t$) \cite{duderstadt1976nuclear}.  Nuclear reactor simulations often utilize the neutron diffusion approximation, which carefully eliminates the dependence on direction.  For the purposes of this research, neutron diffusion will be discussed exclusively.  \tcr{Additionally, simulations can often neglect temporal dependence due to the steady-state nature of reactors--???}.  However, simulations for facilities such as TREAT, must retain time dependence in order to obtain relevant information. \\
+The difficulty in transient reactor modeling is due to the neutron transport equation, which describes the flux of neutrons. The difficulty in solving or evaluating the equation comes from the dimensionality of the phase-space and the fact that the time discretization has to be implicit, which  leads to kinear system solves.  The equation has seven independent variables: space ($\vec{r}$), energy ($E$), direction ($\vec{\Omega}$), and time ($t$) \cite{duderstadt1976nuclear}.  Nuclear reactor simulations often utilize the neutron diffusion approximation, which carefully eliminates the dependence on direction.  For the purposes of this research, neutron diffusion will be discussed exclusively. \\
 
 For computational purposes, the neutron diffusion equation is discretized in space, energy, and time.  There are several viable discretization schemes for each of these variables, but FEM for space and multigroup method for energy were used for the development of this research. Since the purpose of this research involves temporal dependence, discretization in time was kept general.  The time dependent neutron diffusion equation with delayed neutron precursors can be seen in Equations~\ref{eq:flux}~and~\ref{eq:precursor}.
 
@@ -145,7 +145,7 @@ $\beta$			 	  &	$=$	&	Total delayed neutron fraction ($\beta = \sum_{i=1}^I \bet
   & & 
 \end{tabular}
 
-Most reactor computation frameworks, including Rattlesnake, discretize the time variable directly with these equations using a multitude of schemes (Implicit Euler, Crank-Nicholson, Runge-Kutta, etc.).  In this paper, this method of discretizing Equations~\ref{eq:flux}~and~\ref{eq:precursor} is considered \tcr{brute-force--I wonder if we should come up with a better terminology...} method.  This research intends to improve upon this method by instead implementing the improved quasi-static method (IQS). \\
+Most reactor computation frameworks, including Rattlesnake, discretize the time variable directly with these equations using a multitude of schemes (Implicit Euler, Crank-Nicholson, Runge-Kutta, etc.).  In this paper, this method of discretizing Equations~\ref{eq:flux}~and~\ref{eq:precursor} is considered implicit discretization.  This research intends to improve upon this method by instead implementing the improved quasi-static method (IQS). \\
 
 IQS is a spatial kinetics method that involves factorizing the flux solution into space- and time-dependent components \cite{Ott_1966,Dulla2008}.  These components are the flux's amplitude and its shape. Amplitude is only time-dependent, while the shape is both space- and time-dependent.  However, the impetus of the method is the assumption that the shape is only weakly dependent on time; therefore, the shape may not require an update at the same frequency as the amplitude function, but only on larger macro-time steps. The proposal for this research contains three sections: \sct{sect:back} explains the current theory of IQS and its implementation, \sct{sect:research} describes the proposed research in IQS, and \sct{sect:results} shows preliminary results of the proposed research.
 
@@ -186,8 +186,7 @@ We note that the time-dependent shape equation is similar to the time-dependent 
 \item An equation is needed to obtain the amplitude $p$.
 \end{enumerate}
 
-To derive the amplitude equation, the shape/precursors equations are weighted by a space-dependent function and integrated over the phase-space. The weight function is typically the adjoint flux $\phi^{*g}$, which can be proven to minimize truncation error \cite{duderstadt1976nuclear}.  \tcr{Check Cristian Rabitti's PhD work. There is more to it. He used a new adjoint at each time step I believe. It is interesting to read}
-The final expressions are given below:
+To derive the amplitude equation, the shape/precursors equations are weighted by a space-dependent function and integrated over the phase-space. The weight function is typically the adjoint flux $\phi^{*g}$, which can be proven to minimize truncation error \cite{duderstadt1976nuclear}. The final expressions are given below:
 \begin{subequations}
 \be
 \frac{dp}{dt}=\left[\frac{\rho-\bar{\beta}}{\Lambda}\right]p+\sum_{i=1}^I\bar{\lambda}_i\xi_i
@@ -313,7 +312,7 @@ A vital part of the verification and validation for IQS is analyzing error conve
 \subsection{Application of Time Adaptation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-IQS aims at reducing the time discretization error in the flux solution by splitting the flux into an amplitude (that is highly resolved with at a micro time scale) and a shape (whose time-dependence is weaker than that of the flux itself). Thus, by construction, the IQS approach may employ larger time-step sizes for comparable temporal error. Further enhancements can be gained by using time adaptation (or time step control) in order to increase or reduce the macro time step size for the shape evaluation, depending on error estimates. A step-doubling technique is chosen as the time adaptation technique. The step doubling technique involves estimating the local error for a certain time step by taking the difference between a solution with one full step ($\varphi^g_{\Delta t}$) and a solution with two half steps ($\varphi^g_{\Delta t/2}$). Note: $\varphi$ is changed to $\phi$ for brute-force and IQS P-C. \\
+IQS aims at reducing the time discretization error in the flux solution by splitting the flux into an amplitude (that is highly resolved with at a micro time scale) and a shape (whose time-dependence is weaker than that of the flux itself). Thus, by construction, the IQS approach may employ larger time-step sizes for comparable temporal error. Further enhancements can be gained by using time adaptation (or time step control) in order to increase or reduce the macro time step size for the shape evaluation, depending on error estimates. A step-doubling technique is chosen as the time adaptation technique. The step doubling technique involves estimating the local error for a certain time step by taking the difference between a solution with one full step ($\varphi^g_{\Delta t}$) and a solution with two half steps ($\varphi^g_{\Delta t/2}$). Note: $\varphi$ is changed to $\phi$ for implicit discretization and IQS P-C. \\
 
 The relative error is computed as follows:
 \be
@@ -327,7 +326,7 @@ If the error is smaller than the user-specified tolerance, $e_{tol}$, the time s
 \ee
 Where $q$ is the convergence order of the time integration scheme being used and $S\simeq 0.8$ is a safety factor. If the error is larger than the user-specified tolerance, the time step is rejected. A new time step size is estimated using  \eqt{eq:edt2} as well. \\
 
-To investigate IQS's performance with step-doubling time adaptation, the adaptation will be applied to brute force method, traditional IQS, and IQS P-C.  Each of these methods will be applied to several diffusion problems; the number of time steps taken and the resulting error will be used to compare the methods.
+To investigate IQS's performance with step-doubling time adaptation, the adaptation will be applied to implicit discretization method, traditional IQS, and IQS P-C.  Each of these methods will be applied to several diffusion problems; the number of time steps taken and the resulting error will be used to compare the methods.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Application of Temperature Feedback}
@@ -407,7 +406,7 @@ The couplings between temperature, amplitude, and shape are all nonlinear, so it
 \subsection{Implementation into Rattlesnake/MOOSE Framework}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-A one-dimensional, single group FEM prototype will be created for IQS in order to test validation for simple problems. However, testing complex, real-world problems is most easily performed by implementing IQS in a FEM framework.  The Rattlesnake radiation transport framework is a excellent option for performing these problems.  Rattlesnake already contains a neutron diffusion method for continuous-FEM equivalent to the brute-force method.  Additionally, Rattlesnake is well documented and well organized, so implementing IQS may be relatively straightforward. With this implementation, benchmark testing such as 16-A1 \cite{ANL_BPB}, TWIGL, LRA, C5G7-2D, etc. can be performed, as well as a full core simulation of the TREAT reactor.
+A one-dimensional, single group FEM prototype will be created for IQS in order to test validation for simple problems. However, testing complex, real-world problems is most easily performed by implementing IQS in a FEM framework.  The Rattlesnake radiation transport framework is a excellent option for performing these problems.  Rattlesnake already contains a neutron diffusion method for continuous-FEM equivalent to the implicit discretization method.  Additionally, Rattlesnake is well documented and well organized, so implementing IQS may be relatively straightforward. With this implementation, benchmark testing such as 16-A1 \cite{ANL_BPB}, TWIGL, LRA, C5G7-2D, etc. can be performed, as well as a full core simulation of the TREAT reactor.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -466,7 +465,7 @@ Region & Material Property & 0.0 s & 0.1 s & 0.6 s & 1.0 s & 1.7 s \\
 
 
 
-\fig{fig:power} shows the power at each macro time step as compared to the traditional brute force (full flux time discretization) method.  The strong correlation between the two curves shows that IQS is consistent with a proven method for a highly transient example. \fig{fig:conv} shows the error convergence for brute force and IQS methods.  This plot shows that IQS has consistent convergence slope for first and second order time schemes and that IQS has a better error constant for the convergence.  \tbl{tab:1Ddt2} shows the results for time adaptation.  These results show that traditional IQS does not perform well with step doubling time adaptation and IQS P-C performs moderately better than brute force.  The IQS performance in this example are not exceptional because it is not an easy problem.  As seen in \fig{fig:1D_shape}, the shape undergoes significant change through the transient, which requires many shape evaluations to retain accuracy.
+\fig{fig:power} shows the power at each macro time step as compared to the traditional brute force (full flux implicit discretization) method.  The strong correlation between the two curves shows that IQS is consistent with a proven method for a highly transient example. \fig{fig:conv} shows the error convergence for implicit discretization and IQS methods.  This plot shows that IQS has consistent convergence slope for first and second order time schemes and that IQS has a better error constant for the convergence.  \tbl{tab:1Ddt2} shows the results for time adaptation.  These results show that traditional IQS does not perform well with step doubling time adaptation and IQS P-C performs moderately better than implicit discretization.  The IQS performance in this example are not exceptional because it is not an easy problem.  As seen in \fig{fig:1D_shape}, the shape undergoes significant change through the transient, which requires many shape evaluations to retain accuracy.
 
 \begin{figure}[!htbp]
 \centering
@@ -490,7 +489,7 @@ Region & Material Property & 0.0 s & 0.1 s & 0.6 s & 1.0 s & 1.7 s \\
 \resizebox{\textwidth}{!}{
 \begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|}
 \hline
-  &  & \multicolumn{3}{|c|}{Brute Force} & \multicolumn{3}{|c|}{IQS} & \multicolumn{3}{|c|}{IQS P-C} \\
+  &  & \multicolumn{3}{|c|}{Implicit Discretization} & \multicolumn{3}{|c|}{IQS} & \multicolumn{3}{|c|}{IQS P-C} \\
 \hline
 Test & $e_{tol}$ & Error & Steps & Solves & Error & Steps & Solves & Error & Steps & Solves \\
 \hline
@@ -526,13 +525,11 @@ Test & $e_{tol}$ & Error & Steps & Solves & Error & Steps & Solves & Error & Ste
 \begin{enumerate}[topsep=0pt,itemsep=-1ex,partopsep=1ex,parsep=1ex]
 \item Investigate iteration convergence for previously implemented iterative schemes and newly conceived one described in \sct{sect:inv_iter}.
 \item Validate and verify IQS method with several low and high order time discretization schemes.
-\item Implement step doubling time adaptation with IQS and analyze its performance compared to brute-force.
+\item Implement step doubling time adaptation with IQS and analyze its performance compared to implicit discretization.
 \item Apply temperature feedback with IQS and analyze its performance with multiphysics benchmarks.
 \item Implement IQS into the Rattlesnake framework at INL.
 \item Perform testing with IQS to benchmarks including TWIGL, LRA, and C5G7-2D.
 \end{enumerate}
-
-\tcr{for a paper, can we think of testing Embeded RK instead of/in addition to step-doubling?}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Possible Extensions}
