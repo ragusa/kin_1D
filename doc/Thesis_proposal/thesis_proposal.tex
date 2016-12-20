@@ -261,8 +261,7 @@ As we noted in \sct{sect:theory}, shape-PRKE equations are a nonlinear system an
 
 The major difference between the methods of these authors is the convergence criteria used.  Sissaoui and Koclas \cite{Sissaoui_1995, Koclas_1996} use fixed point iteration where the criteria is the simply the normalized difference between the last two computed shapes.  Monier in \cite{Monier_diss} also does fixed point iterations with the same criteria, except the solution is scaled by $\frac{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g(t_{n})\right)}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g(t_{n+1})\right)}$ after each iteration.  Devooght in \cite{Devooght_1984} does a Newton-SOR iteration where the residual of the shape function evaluation is the convergence criteria and next iteration's solution is computed using Newton-Raphson method.\\
 
-These techniques are by no means an exhaustive list of the possible iteration techniques for IQS. Dulla et al. in \cite{Dulla2008} does an in depth analysis of the fixed point iteration technique most similar to Sissaoui and Koclas, involving convergence rates and solution results.  However, no comprehensive analysis of iteration techniques exists.
-\tcr{last sentence is a bit vague}
+These techniques are by no means an exhaustive list of the possible iteration techniques for IQS. Dulla et al. in \cite{Dulla2008} does an in depth analysis of the fixed point iteration technique most similar to Sissaoui and Koclas, involving convergence rates and solution results.  However, no comprehensive analysis of iteration techniques exists, comparing both Newton and fixed-point convergence rates.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -541,7 +540,7 @@ Test & $e_{tol}$ & Error & Steps & Solves & Error & Steps & Solves & Error & Ste
 \item Implement step doubling time adaptation with IQS and analyze its performance compared to implicit discretization of the flux equations.
 \item Apply temperature feedback with IQS and analyze its performance with multiphysics benchmarks.
 \item Implement IQS into the Rattlesnake framework at INL.
-\item Perform testing with IQS to benchmarks including TWIGL and LRA. \tcr{what about the LMR benchmark? needed for paper}
+\item Perform testing with IQS to benchmarks including TWIGL, LRA, and LMW.
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
