@@ -106,8 +106,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Transient modeling of nuclear reactors has been a chronically foreboding task due to its computationally expensive nature.  However, recent developments in nuclear testing, including the revitalization of the Transient Reactor Testing (TREAT) Facility at Idaho National laboratory (INL), have brought significant attention to the development of transient reactor modeling.  3-D transient computational methods currently in use at national laboratories, including INL, have proven to be overbearingly computationally expensive for complex, real-world scenarios.  Therefore, implementation of more efficient and faster methods for 3-D transient simulations is highly desired.  The Department of Energy (DOE), through its NEAMS (Nuclear Energy Advanced Modeling and Simulation) program, has especially sought the development of transient multiphysics capability in 
-INL's MOOSE framework.  \\
+Transient modeling of nuclear reactors has been a chronically foreboding task due to its computationally expensive nature.  However, recent developments in nuclear testing, including the revitalization of the Transient Reactor Testing (TREAT) Facility at Idaho National Laboratory (INL), have brought significant attention to the development of transient reactor modeling.  3-D transient computational methods currently in use at national laboratories, including INL, have proven to be overbearingly computationally expensive for complex, real-world scenarios.  Therefore, implementation of more efficient and faster methods for 3-D transient simulations is highly desired.  The Department of Energy (DOE), through its NEAMS (Nuclear Energy Advanced Modeling and Simulation) program, has especially sought the development of transient multiphysics capability in INL's MOOSE (Multiphysics Object-Oriented Simulation Environment).  \\
 
 MOOSE is a multiphysics framework being developed at INL that presents the architecture for physics-based applications \cite{moose}.  Rattlesnake is a large application in MOOSE that involves deterministic radiation transport physics.  Currently, Rattlesnake is able to solve steady-state, transient, and k-eigenvalue neutron transport and diffusion problems using finite element methods (FEM) \cite{wang2013}. \\
 
@@ -156,7 +155,7 @@ $\beta$			 	  &	$=$	&	Total delayed neutron fraction ($\beta = \sum_{i=1}^I \bet
   & & 
 \end{tabular}
 
-Most reactor computation frameworks, including Rattlesnake, discretize the time variable directly with these equations using a multitude of schemes (Implicit Euler, Crank-Nicholson, implicit Runge-Kutta, etc.).  In this paper, this method of discretizing Equations~\ref{eq:flux}~and~\ref{eq:precursor} is generally referred to as ``implicit discretization''.  This research intends to improve upon this method by instead implementing the improved quasi-static method (IQS) for neutron kinetics and
+Most reactor computation frameworks, including Rattlesnake, discretize the time variable directly with these equations using a multitude of schemes (Implicit Euler, Crank-Nicholson, implicit Runge-Kutta, etc.).  In this paper, the method of discretizing Equations~\ref{eq:flux}~and~\ref{eq:precursor} is generally referred to as ``implicit discretization''.  This research intends to improve upon this method by instead implementing the improved quasi-static method (IQS) for neutron kinetics and
 implement it within a multiphysics setting. \\
 
 IQS is a spatial kinetics method that involves factorizing the flux solution into space- and time-dependent components \cite{Ott_1966,Dulla2008}.  These components are the flux's amplitude and its shape. Amplitude is only time-dependent, while the shape is both space- and time-dependent.  However, the impetus of the method is the assumption that the shape is only weakly dependent on time; therefore, the shape may not require an update at the same frequency as the amplitude function, but only on larger macro-time steps. The proposal for this research contains three sections: \sct{sect:back} explains the current theory of IQS and its implementation, \sct{sect:research} describes the proposed research in IQS, and \sct{sect:results} shows preliminary results of the proposed research.
@@ -312,7 +311,7 @@ Error_{IQS}=\left|\frac{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^{g,n}\r
 \ee
 
 
-This research intends to do investigate the performance of the previously implemented iterative techniques and compare them to this newly implemented technique.
+This research intends to investigate the performance of the previously implemented iterative techniques and compare them to this newly implemented technique.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Investigation of Various Time Discretization Schemes}
@@ -324,7 +323,7 @@ A vital part of the verification and validation for IQS is analyzing error conve
 \subsection{Application of Time Adaptation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-IQS aims at reducing the time discretization error in the flux solution by splitting the flux into an amplitude (that is highly resolved with at a micro time scale) and a shape (whose time-dependence is weaker than that of the flux itself). Thus, by construction, the IQS approach may employ larger time-step sizes for comparable temporal error. Further enhancements can be gained by using time adaptation (or time step control) in order to increase or reduce the macro time step size for the shape evaluation, depending on error estimates. A step-doubling technique is chosen as the time adaptation technique. The step doubling technique involves estimating the local error for a certain time step by taking the difference between a solution with one full step ($\varphi^g_{\Delta t}$) and a solution with two half steps ($\varphi^g_{\Delta t/2}$). Note: $\varphi$ is changed to $\phi$ for implicit discretization and IQS P-C. \\
+IQS aims at reducing the time discretization error in the flux solution by splitting the flux into an amplitude (highly resolved at a micro time scale) and a shape (whose time-dependence is weaker than that of the flux itself). Thus, by construction, the IQS approach may employ larger time-step sizes for comparable temporal error. Further enhancements can be gained by using time adaptation (or time step control) in order to increase or reduce the macro time step size for the shape evaluation, depending on error estimates. A step-doubling technique is chosen as the time adaptation technique. The step doubling technique involves estimating the local error for a certain time step by taking the difference between a solution with one full step ($\varphi^g_{\Delta t}$) and a solution with two half steps ($\varphi^g_{\Delta t/2}$). Note: $\varphi$ is changed to $\phi$ for implicit discretization and IQS P-C. \\
 
 The relative error is computed as follows:
 \be
@@ -412,7 +411,7 @@ For IQS, this temperature feedback affects both the shape equation and the react
 \label{fig:time}
 \end{figure}
 
-The couplings between temperature, amplitude, and shape are all nonlinear, so iteration processes are need for each time scale.  The amplitude and temperature need to be iterated on the middle time scale until convergence on each temperature step.  Then another iterative process needs to occur in the shape time scale scale on all three variables.
+The couplings between temperature, amplitude, and shape are all nonlinear, so iteration processes are needed for each time scale.  The amplitude and temperature need to be iterated on the middle time scale until convergence on each temperature step.  Then another iterative process needs to occur in the shape time scale on all three variables.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Implementation into Rattlesnake/MOOSE Framework}
@@ -428,7 +427,7 @@ A one-dimensional, single group FEM prototype will be created for IQS in order t
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-This section describes preliminary results of an example that tests an IQS implementation and shows its effectiveness on computation speed and accuracy.  The example is very simple and computes quickly, it entails a one dimensional, homogeneous 400 cm slab with a heterogenous perturbation in absorption cross section.  \fig{fig:slab} shows how the regions of the slab are divided and \tbl{tab:1Dmat} shows the initial material properties.  Regions 2, 3, and 4 have slope perturbations at different points in time, \tbl{tab:1Dslope} shows the values of the absorption cross-section in each region at the times of interest.  The values of $\Sigma_a$ between these times of interest are linear interpolations between the given values. \\
+This section describes preliminary results of an example that tests an IQS implementation and shows its effectiveness on computation speed and accuracy.  The example is very simple and computes quickly; it entails a one dimensional, homogeneous 400 cm slab with a heterogenous perturbation in absorption cross section.  \fig{fig:slab} shows how the regions of the slab are divided and \tbl{tab:1Dmat} shows the initial material properties.  Regions 2, 3, and 4 have slope perturbations at different points in time, \tbl{tab:1Dslope} shows the values of the absorption cross-section in each region at the times of interest.  The values of $\Sigma_a$ between these times of interest are linear interpolations between the given values. \\
 
 \begin{figure}[!htbp]
 \begin{center}
@@ -477,7 +476,7 @@ Region & Material Property & 0.0 s & 0.1 s & 0.6 s & 1.0 s & 1.7 s \\
 
 
 
-\fig{fig:power} shows the power at each macro time step as compared to the traditional brute force (full flux implicit discretization) method.  The strong correlation between the two curves shows that IQS is consistent with a proven method for a highly transient example. \fig{fig:conv} shows the error convergence for implicit discretization and IQS methods.  This plot shows that IQS has consistent convergence slope for first and second order time schemes and that IQS has a better error constant for the convergence.  \tbl{tab:1Ddt2} shows the results for time adaptation.  These results show that traditional IQS does not perform well with step doubling time adaptation and IQS P-C performs moderately better than implicit discretization.  The IQS performance in this example are not exceptional because it is not an easy problem.  As seen in \fig{fig:1D_shape}, the shape undergoes significant change through the transient, which requires many shape evaluations to retain accuracy.
+\fig{fig:power} shows the power at each macro time step as compared to the traditional brute force (full flux implicit discretization) method.  The strong correlation between the two curves shows that IQS is consistent with a proven method for a highly transient example. \fig{fig:conv} shows the error convergence for implicit discretization and IQS methods.  This plot shows that IQS has consistent convergence slope for first and second order time schemes and that IQS has a better error constant for the convergence.  \tbl{tab:1Ddt2} shows the results for time adaptation.  These results show that traditional IQS does not perform well with step doubling time adaptation and IQS P-C performs moderately better than implicit discretization.  The IQS performance in this example is not exceptional because the problem is difficult.  As seen in \fig{fig:1D_shape}, the shape undergoes significant change through the transient, which requires many shape evaluations to retain accuracy.
 
 \begin{figure}[!htbp]
 \centering
