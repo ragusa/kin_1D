@@ -112,16 +112,16 @@ sss=Sparsity(1:n,1:n);
 % subplot(2,3,5); spy(DD,5); title('block diag precondtioner re-ordered')
 % subplot(2,3,6); spy(AA-DD,5); title('full minus block diag re-ordered')
 % 
-% figure(69)
-% subplot(3,3,1); spy(AA,5); title('Full system')
-% subplot(3,3,2); spy(DD,5); title('Block Diag')
-% subplot(3,3,3); spy(AA-DD,5); title('full minus block diag')
-% subplot(3,3,4); spy(AA,5); title('Full system')
-% subplot(3,3,5); spy(SS,5); title('Diag with Scattering')
-% subplot(3,3,6); spy(AA-SS,5); title('full minus diag+scat')
-% subplot(3,3,7); spy(AA,5); title('Full system')
-% subplot(3,3,8); spy(FF,5); title('Block Diag with Fission')
-% subplot(3,3,9); spy(AA-FF,5); title('full minus diag+fiss')
+figure(69)
+subplot(3,3,1); spy(AA,5); title('Full system')
+subplot(3,3,2); spy(DD,5); title('Block Diag')
+subplot(3,3,3); spy(AA-DD,5); title('full minus block diag')
+subplot(3,3,4); spy(AA,5); title('Full system')
+subplot(3,3,5); spy(SS,5); title('Diag with Scattering')
+subplot(3,3,6); spy(AA-SS,5); title('full minus diag+scat')
+subplot(3,3,7); spy(AA,5); title('Full system')
+subplot(3,3,8); spy(FF,5); title('Block Diag with Fission')
+subplot(3,3,9); spy(AA-FF,5); title('full minus diag+fiss')
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
