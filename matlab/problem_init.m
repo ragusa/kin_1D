@@ -14,7 +14,9 @@ dat.rod_mov.t_beg_2=1.0; dat.rod_mov.t_end_2=2.7;
 % kinetic parameters
 dat.beta_tot=600e-5;
 dat.lambda=0.1;
-dat.invvel=1e-3;
+dat.invvel=1.;
+
+dat.source_phi = @(x,t) 0;
 
 dat.source_phi = @(x,t) 0;
 dat.source_c   = @(x,t) 0;
@@ -196,8 +198,7 @@ switch problem_ID
         end        
         npar.phi_exact = matlabFunction(phi);
         npar.C_exact = matlabFunction(C);
-%         npar.C_exact = @(x,t) 0.*x.*t;
-                
+%         npar.C_exact = @(x,t) 0.*x.*t;                
 
 %         S_p(x,t) = iv*diff(phi,t) + (Sa-nfSf*(1-b))*phi - cdiff*diff(diff(phi,x),x) ;
         S_p(x,t) = iv*diff(phi,t) + (Sa-nfSf*(1-b))*phi - cdiff*diff(diff(phi,x),x) -dat.lambda*C;
@@ -206,7 +207,6 @@ switch problem_ID
         dat.source_c = matlabFunction(S_c);
 %         dat.source_c = @(x,t) 0.*x.*t;
         clear x t S_p phi C S_c 
-    
     
     otherwise
         error('unknown problem ID ',problem_ID);
@@ -326,6 +326,14 @@ switch time_integration
         a(1,1)=1;
         c=sum(a,2);
         b(1)=1;
+        
+    case 2
+        nstages=2;
+        g = (2-sqrt(2))/2;
+        a = [g     0 ...
+             1-2*g g];
+        b = [0.5 0.5];
+        c = sum(a,2);
         
     case 3
         nstages=3;
