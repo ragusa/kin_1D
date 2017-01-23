@@ -15,10 +15,11 @@ if io.make_movie
 end
 
 % initial stuff
-if strcmp(func2str(FUNHANDLE),'solve_TD_diffusion_an_prec') && strcmp(npar.an_interp_type,'lagrange')
+order=1;
+if strcmp(npar.method,'BDF')
+    order = npar.bdf_order;
+elseif strcmp(func2str(FUNHANDLE),'solve_TD_diffusion_an_prec') && strcmp(npar.an_interp_type,'lagrange')
     order=npar.interpolation_order;
-else
-    order=1;
 end
 u=zeros(length(u0),order+1); u(:,end)=u0;
 t = 0:dt:ntimes*dt;
@@ -74,6 +75,14 @@ for it=1:ntimes
         pie([prog],labels);title(progstr);drawnow;
     end
 end
+
+L2norm_error = compute_L2norm(@(x) npar.phi_exact(x,time_end),u(1:npar.n,end))
+% L2norm_error = compute_L2norm(npar.phi_exact(npar.x',time_end),u(1:npar.n,end))
+figure(1)
+hold on
+plot(npar.x_dofs,u(1:npar.n,end))
+hold off
+
 % make movie
 if io.plot_transient_figure && io.make_movie
     close(gcf)
@@ -87,6 +96,14 @@ if io.plot_power_figure
         linspace(0,dt*ntimes,ntimes+1), amplitude_norm);
 end
 
+if dat.PbID==12
+%     amplitude_norm = compute_L2norm(@(x) npar.phi_exact(x,time_end),u(1:npar.n,end))
+    amplitude_norm = abs(npar.phi_exact(npar.x_dofs(2),time_end) - u(2,end))
+%     [Cend] = assemble_source(npar.C_exact,time_end);
+
+%     amplitude_norm = norm(Cend-u(npar.n+1:end,end),2)
+end
+    
 % output
 nOutputs = nargout;
 varargout = cell(1,nOutputs);
@@ -96,6 +113,10 @@ switch nOutputs
     case 2
         varargout{1} = amplitude_norm;
         varargout{2} = Ptot;
+    case 3
+        varargout{1} = amplitude_norm;
+        varargout{2} = Ptot;
+        varargout{3} = L2norm_error;
     otherwise
         error('Wrong number of output arguments in %s',mfilename);
 end

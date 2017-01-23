@@ -1,4 +1,4 @@
-function [u_shape, X, t, y] = solve_IQS_diffusion(u_shape,X,dt_macro,time_end)
+function [u_shape, X, t, y] = solve_IQS_diffusion(u_shape,X,dt_macro,tn)
 
 global io npar dat
 
@@ -10,17 +10,22 @@ npar.theta_old=[];
 % IV = assemble_mass(dat.inv_vel,time_end);
 
 % save values at beginning of macro time step: they are needed in the IQS iteration
-X_beg=X;
+X_beg=X(:,end);
 u_shape_beg=u_shape;
 % for clarity, I also single out the shape function at the beginning/end of the macro time step
-shape_beg=u_shape(1:npar.n);
+shape_beg=u_shape(1:npar.n,end);
 shape_end=shape_beg;
 
 % beginning of the time interval
+time_end = tn(end);
 time_beg = time_end - dt_macro;
 rk=npar.rk;
+if strcmp(npar.method,'BDF')
+    order = length(tn);
+    bdf = npar.bdf;
+end
 % storage for temp SDIRK quantities
-K=zeros(length(u_shape),rk.s-1);
+K=zeros(length(u_shape(:,end)),rk.s);
 
 for iter = 1: max_iter_iqs
     
@@ -58,12 +63,25 @@ for iter = 1: max_iter_iqs
         % assemble IQS
         TR = assemble_transient_operator_iqs(ti,pi,dpdti);
         M  = assemble_time_dependent_operator(ti);
-        % build system matrix
-        A = M-rk.a(i,i)*dt_macro*TR;
-        % build rhs 
-        rhs = M*u_shape_beg;
-        for j=1:rk.s-1
-            rhs = rhs + rk.a(i,j)*dt_macro*K(:,j);
+        S = assemble_source_operator(ti)/pi;
+        
+        if strcmp(npar.method,'BDF')
+            % build system matrix
+            A = M - dt_macro*bdf.b(order)*TR;
+            % build rhs
+            rhs = 0;
+            for j=1:order
+                rhs = rhs + bdf.a(order,j)*u_shape_beg(:,j);
+            end
+            rhs = M*rhs + dt_macro*bdf.b(order)*S;
+        else
+            % build system matrix
+            A = M-rk.a(i,i)*dt_macro*TR;
+            % build rhs 
+            rhs = M*u_shape_beg + rk.a(i,i)*dt_macro*S;
+            for j=1:rk.s-1
+                rhs = rhs + rk.a(i,j)*dt_macro*K(:,j);
+            end
         end
         % apply BC
         if npar.set_bc_last
@@ -75,7 +93,7 @@ for iter = 1: max_iter_iqs
         u_shape = A\rhs;
         % store for temp SDIRK quantities
         TR=apply_BC_mat_only(TR,npar.add_ones_on_diagonal);
-        K(:,i)=TR*u_shape;
+        K(:,i)=TR*u_shape + S;
     end % end rk loop
     % new shape
     shape_end=u_shape(1:npar.n);

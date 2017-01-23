@@ -39,39 +39,51 @@ for i=1:n_react+1 % same as length(times_react_update)
     % shape interpolation
     shape = shape_beg * w1 + shape_end * w2;
     % get prke values at different times
-    [rho_MGT(i),beff_MGT(i)]=compute_prke_parameters(times_react_update(i),shape);
+    [rho_MGT(i),beff_MGT(i),q_MGT(i)]=compute_prke_parameters(times_react_update(i),shape);
 end
 
 % make piecewise linear value for rho/beff at each micro time step;
 % since we are using BE, we do not need the value at time_beg
 rho_MGT_iqs  = [];
 beff_MGT_iqs = [];
+q_MGT_iqs    = [];
 for i=1:n_react
     aux = linspace(rho_MGT(i),rho_MGT(i+1),freq_react+1);
     rho_MGT_iqs = [ rho_MGT_iqs aux(2:end)];
     aux = linspace(beff_MGT(i),beff_MGT(i+1),freq_react+1);
     beff_MGT_iqs = [ beff_MGT_iqs aux(2:end)];
+    aux = linspace(q_MGT(i),q_MGT(i+1),freq_react+1);
+    q_MGT_iqs = [ q_MGT_iqs aux(2:end)];
 end
 
 % storage for t and y (for post-processing)
-t=zeros(nmicro+1,1); t(1) = time_beg;
-y=zeros(nmicro+1,1); y(1) = X(1);
+t=zeros(n_micro+1,1); t(1) = time_beg;
+y=zeros(n_micro+1,1); y(1) = X(1);
 
 % loop over micro time steps
 for it=1:n_micro
     % build prke matrix
     A=[(rho_MGT_iqs(it)-beff_MGT_iqs(it)-theta) dat.lambda ; ...
         beff_MGT_iqs(it)                 -(dat.lambda+theta)];
+%     A = [-0.33/npar.K0 dat.lambda; 0 dat.lambda];
+    % build rhs
+    q = [q_MGT_iqs(it); 0];
+%     tt = t(it)+dt;
+%     q = [(1/15000*(1+tt) - 1/300*(1+tt)^2 + 1/3*(1+tt)^2)/npar.K0; 0];
+    rhs = X + dt*q;
     % solve
-    X=(eye(2)-dt*A)\X;
+    X=(eye(2)-dt*A)\rhs;
+    
     % storage
     t(it+1)=t(it)+dt;
+%     X = [(1+t(it+1))^2; 0];
     y(it+1)=X(1);
 end
 
-fprintf('theta = %g, power= %g \n',theta,X(1));
+% fprintf('theta = %g, power= %g \n',theta,X(1));
 
 % save value for dpdt at the end of the macro time step
-dXdt = A*X;
+dXdt = A*X+q;
 dpdt=dXdt(1);
+% dpdt = 2*(1+t(end));
 

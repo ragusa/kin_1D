@@ -1,4 +1,4 @@
-function [X,w,t,pow] =  solve_prke_ode(X,dt_macro,time_end,shape_beg,shape_end)
+function [X,dXdt,w,t,pow] =  solve_prke_ode(X,dt_macro,time_end,shape_beg,shape_end)
 
 % make the problem-data a global variable
 global dat npar
@@ -22,23 +22,26 @@ if npar.solve_prke_compute_rho_each_time
     dat.ode.shape_end = shape_end;
     % call ode solver with prke function that re-compute rho/beta at each time (expensive)
     [t,y]=ode15s(@funprke,[time_beg time_end],X,options);
+    dXdt = funprke(time_end,y(end,:)');
     w = 0;
 else
     switch npar.iqs_prke_interpolation_method
         case 1% compute prke parameters at beg/end time and linearly interpolate
             w = [ shape_beg shape_end]; 
-            [dat.ode.rho_MGT_beg,dat.ode.beff_MGT_beg]=compute_prke_parameters(time_beg,shape_beg);
-            [dat.ode.rho_MGT_end,dat.ode.beff_MGT_end]=compute_prke_parameters(time_end,shape_end);
+            [dat.ode.rho_MGT_beg,dat.ode.beff_MGT_beg,dat.ode.q_MGT_beg]=compute_prke_parameters(time_beg,shape_beg);
+            [dat.ode.rho_MGT_end,dat.ode.beff_MGT_end,dat.ode.q_MGT_end]=compute_prke_parameters(time_end,shape_end);
             % call ode solver with prke function that linearly interpolates
             [t,y]=ode15s(@funprke_lin_interp,[time_beg time_end],X,options);
+            dXdt = funprke_lin_interp(time_end,y(end,:)');
         case 2 % linear variation for XS, linear for shape
             w = [ shape_beg shape_end]; 
             for k=1:size(w,2)
-                [dat.ode.rho_MGT_beg(k),dat.ode.beff_MGT_beg(k)]=compute_prke_parameters(time_beg,w(:,k));
-                [dat.ode.rho_MGT_end(k),dat.ode.beff_MGT_end(k)]=compute_prke_parameters(time_end,w(:,k));
+                [dat.ode.rho_MGT_beg(k),dat.ode.beff_MGT_beg(k),dat.ode.q_MGT_beg(k)]=compute_prke_parameters(time_beg,w(:,k));
+                [dat.ode.rho_MGT_end(k),dat.ode.beff_MGT_end(k),dat.ode.q_MGT_end(k)]=compute_prke_parameters(time_end,w(:,k));
             end
             % call ode solver with prke function that linearly interpolates
             [t,y]=ode15s(@funprke_linlin_interp,[time_beg time_end],X,options);
+            dXdt = funprke_linlin_interp(time_end,y(end,:)');
         case 3 % linear variation for XS, cubic hermite for shape
             % hermite interpolant
             t1=time_beg;
@@ -47,13 +50,14 @@ else
             rhs = [ shape_beg' ;shape_end' ; dat.ode.f_beg'; dat.ode.f_end'];
             % contains the w coefficients such that :
             %  shape(t) = w(1) t^3 + w(2) t^2 + w(3) t + w(4)
-            w = mat\rhs; w=w'; 
-            for k=1:size(w,2)
-                [dat.ode.rho_MGT_beg(k),dat.ode.beff_MGT_beg(k)]=compute_prke_parameters(time_beg,w(:,k));
-                [dat.ode.rho_MGT_end(k),dat.ode.beff_MGT_end(k)]=compute_prke_parameters(time_end,w(:,k));
+            w = mat\rhs; w=w'; dat.ode.nw = size(w,2);
+            for k=1:dat.ode.nw
+                [dat.ode.rho_MGT_beg(k),dat.ode.beff_MGT_beg(k),dat.ode.q_MGT_beg(k)]=compute_prke_parameters(time_beg,w(:,k));
+                [dat.ode.rho_MGT_end(k),dat.ode.beff_MGT_end(k),dat.ode.q_MGT_end(k)]=compute_prke_parameters(time_end,w(:,k));
             end
             % call ode solver with prke function that linearly interpolates
             [t,y]=ode15s(@funprke_linhermite_interp,[time_beg time_end],X,options);
+            dXdt = funprke_linhermite_interp(time_end,y(end,:)');
         case 4 % linear variation for XS, quadratic hermite for shape
             % hermite interpolant
             t1=time_beg;
@@ -69,6 +73,7 @@ else
             end
             % call ode solver with prke function that linearly interpolates
             [t,y]=ode15s(@funprke_linhermite_interp,[time_beg time_end],X,options);
+            dXdt = funprke_linhermite_interp(time_end,y(end,:)');
         otherwise
             error('interpolation_method method implemented')
     end
