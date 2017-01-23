@@ -40,7 +40,7 @@ for iter = 1: max_iter_iqs
     
     % solve for amplitude function over the entire macro-step
     if strcmpi(npar.prke_solve,'matlab')
-        [X,w,t,y] =  solve_prke_ode(X_beg(:,end),dt_macro,time_end,shape_beg(:,end),shape_end);
+        [X,dXdt,w,t,y] =  solve_prke_ode(X_beg(:,end),dt_macro,time_end,shape_beg(:,end),shape_end);
     else
         [X,dpdt,t,y] =  solve_prke_iqs(X_beg(:,end),dt_macro,time_end,shape_beg(:,end),shape_end,npar.n_micro,npar.freq_react);
     end
@@ -70,8 +70,13 @@ for iter = 1: max_iter_iqs
         
         % OLD shortcut
         % OLD p=X(1);
+%         pi = (1+ti)^2;
+%         dpdti = 2*(1+ti);
         pi = ppval(pp,ti);
-        dpdti = ppval(pp_der,ti);
+%         dpdti = ppval(pp_der,ti);
+%         tmp = funprke(ti,X);
+%         dpdti = tmp(1);
+        dpdti = dXdt(1);
         
         % assemble IQS
         D    = assemble_stiffness(dat.cdiff   ,ti);
@@ -137,6 +142,7 @@ for iter = 1: max_iter_iqs
         end
         % solve for new shape_end
         shape_end = A\rhs;
+%         shape_end = shape_beg(:,end);
         % finish Ci
         if strcmp(npar.method,'BDF')
             Ci = Ci +  bdf.b(order)*dt / deno * NFId_new*shape_end*pi;

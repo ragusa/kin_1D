@@ -1,4 +1,4 @@
-function [X,w,t,pow] =  solve_prke_ode(X,dt_macro,time_end,shape_beg,shape_end)
+function [X,dXdt,w,t,pow] =  solve_prke_ode(X,dt_macro,time_end,shape_beg,shape_end)
 
 % make the problem-data a global variable
 global dat npar
@@ -22,6 +22,7 @@ if npar.solve_prke_compute_rho_each_time
     dat.ode.shape_end = shape_end;
     % call ode solver with prke function that re-compute rho/beta at each time (expensive)
     [t,y]=ode15s(@funprke,[time_beg time_end],X,options);
+    dXdt = funprke(time_end,y(end,:)');
     w = 0;
 else
     switch npar.iqs_prke_interpolation_method
@@ -31,6 +32,7 @@ else
             [dat.ode.rho_MGT_end,dat.ode.beff_MGT_end,dat.ode.q_MGT_end]=compute_prke_parameters(time_end,shape_end);
             % call ode solver with prke function that linearly interpolates
             [t,y]=ode15s(@funprke_lin_interp,[time_beg time_end],X,options);
+            dXdt = funprke_lin_interp(time_end,y(end,:)');
         case 2 % linear variation for XS, linear for shape
             w = [ shape_beg shape_end]; 
             for k=1:size(w,2)
@@ -39,6 +41,7 @@ else
             end
             % call ode solver with prke function that linearly interpolates
             [t,y]=ode15s(@funprke_linlin_interp,[time_beg time_end],X,options);
+            dXdt = funprke_linlin_interp(time_end,y(end,:)');
         case 3 % linear variation for XS, cubic hermite for shape
             % hermite interpolant
             t1=time_beg;
@@ -54,6 +57,7 @@ else
             end
             % call ode solver with prke function that linearly interpolates
             [t,y]=ode15s(@funprke_linhermite_interp,[time_beg time_end],X,options);
+            dXdt = funprke_linhermite_interp(time_end,y(end,:)');
         case 4 % linear variation for XS, quadratic hermite for shape
             % hermite interpolant
             t1=time_beg;
@@ -69,6 +73,7 @@ else
             end
             % call ode solver with prke function that linearly interpolates
             [t,y]=ode15s(@funprke_linhermite_interp,[time_beg time_end],X,options);
+            dXdt = funprke_linhermite_interp(time_end,y(end,:)');
         otherwise
             error('interpolation_method method implemented')
     end

@@ -17,6 +17,8 @@ dat.lambda=0.1;
 dat.invvel=1.;
 
 dat.source_phi = @(x,t) 0;
+dat.source_phi = @(x,t) 0;
+dat.source_c   = @(x,t) 0;
 
 dat.source_phi = @(x,t) 0;
 dat.source_c   = @(x,t) 0;
@@ -153,7 +155,7 @@ switch problem_ID
     case 12
         % manufactured solution, one material, constant in space and time,
         % no precursors
-        do_steady = true;
+        do_steady = false;
         if do_steady
             dat.invvel=dat.invvel*0; % use this for steady state
         end
@@ -191,22 +193,26 @@ switch problem_ID
 %         A(t) = int(a(x,t),x,0,1);
 %         phi(x,t) = f(t)*a(x,t)/A(t);
 
-        phi(x,t) = x*(1-x)*(1+t)^2;
-        C(x,t) = x*(1-x)*(1+t)^1.2;
+        phi(x,t) = x*(1-x)*(1+t)^3;
+        C(x,t) = x*(1-x)*(1+t)^2;
         if do_steady
             phi(x,t) = x*(1-x); % use this for steady state
         end        
         npar.phi_exact = matlabFunction(phi);
         npar.C_exact = matlabFunction(C);
 %         npar.C_exact = @(x,t) 0.*x.*t;                
+%         npar.C_exact = matlabFunction(C);
+        npar.C_exact = @(x,t) 0.0*x.*t;
+                
 
-%         S_p(x,t) = iv*diff(phi,t) + (Sa-nfSf*(1-b))*phi - cdiff*diff(diff(phi,x),x) ;
-        S_p(x,t) = iv*diff(phi,t) + (Sa-nfSf*(1-b))*phi - cdiff*diff(diff(phi,x),x) -dat.lambda*C;
+        S_p(x,t) = iv*diff(phi,t) + (Sa-nfSf*(1-b))*phi - cdiff*diff(diff(phi,x),x) ;
+%         S_p(x,t) = iv*diff(phi,t) + (Sa-nfSf*(1-b))*phi - cdiff*diff(diff(phi,x),x) -dat.lambda*C;
         S_c(x,t) = diff(C,t) + dat.lambda *C -nfSf*b*phi;
         dat.source_phi = matlabFunction(S_p);
-        dat.source_c = matlabFunction(S_c);
-%         dat.source_c = @(x,t) 0.*x.*t;
+%         dat.source_c = matlabFunction(S_c);
+        dat.source_c = @(x,t) 0.*x.*t;
         clear x t S_p phi C S_c 
+    
     
     otherwise
         error('unknown problem ID ',problem_ID);
@@ -292,22 +298,22 @@ npar.add_ones_on_diagonal=~npar.add_zero_on_diagonal;
 % IQS options
 npar.solve_prke_compute_rho_each_time = false;
 npar.prke_solve = 'matlab' ;
-npar.int_order = 3;
+npar.int_order = 1;
 % npar.prke_solve = 'no' ;
 npar.max_iter_iqs = 6;
 npar.tol_iqs      = 1e-11;
-npar.iqs_prke_interpolation_method=2;
+npar.iqs_prke_interpolation_method=1;
 
 if ~strcmpi(npar.prke_solve,'matlab')
-    npar.n_micro=10;
-    npar.freq_react=1;
+    npar.n_micro=1000;
+    npar.freq_react=1000;
 end
 
 % movie options
 dat.max_y_val_movie = 2.;
 
 % time integration
-t_order=2;
+t_order=3;
 
 % npar.method = 'SDIRK';
 npar.method = 'BDF';

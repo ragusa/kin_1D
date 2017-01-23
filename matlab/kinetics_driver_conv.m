@@ -3,6 +3,7 @@ function kinetics_driver_conv
 clc;
 % clear all;
 close all;
+clear global;
 % turn off warning due to interp1
 warning('OFF','MATLAB:interp1:ppGriddedInterpolant')
 
@@ -11,7 +12,7 @@ global npar io
 % verbose/output parameters
 io.console_print         = false;
 io.plot_transient_figure = false;
-io.plot_power_figure     = false;
+io.plot_power_figure     = true;
 io.make_movie            = false;
 io.save_flux             = false;
 io.print_progress        = false;
@@ -32,6 +33,7 @@ if pbID~=12
 else
     [phi0] = npar.phi_exact(npar.x_dofs',curr_time);
     [C0]   = assemble_source(npar.C_exact,curr_time);
+    C0 = kinetics_init(phi0,curr_time);
 end
 
 
@@ -42,7 +44,7 @@ u=[phi0;C0];
 u0=u;
 
 % time steping data
-t_end = 1.28;
+t_end = 1.1;
 % t_end = 1.3;
 % t_end = 0.1;
 
@@ -56,8 +58,8 @@ else
     amplitude_norm_ref = reference_solution( t_end, u0);
 end
 
-nn=9;
-ntimes = 2.^(3:nn-1)*4;
+nn=5;
+ntimes = 2.^(0:nn-1)*10;
 dt = t_end./ntimes;
 
 % Interpolation type of shape for IQS prke parameters
@@ -76,11 +78,11 @@ npar.an_interp_type='lagrange'; % This is just a place holder, actual definition
     
 % Number of steps in history for lagrange interpolation of precursors for
 % analytical elimination precursors (see solve_TD_diffusion_an_prec)
-npar.interpolation_order=1;
+npar.interpolation_order=3;
 
 % If this is true, precursors are recalculated using a cubic hermite
 % interpolation of shape (see solve_TD_diffusion_an_prec line 192)
-npar.hermite_prec_update=true;
+npar.hermite_prec_update=false;
 
 % Used of IQS_PC, determines how precursors are solved after diffusion
 % evaluation (see solve_IQS_PC_diffusion_elim_prec line 80)
@@ -94,9 +96,9 @@ npar.prec_solve_type = 'linear';
 
 i=0;
 % not to be used for conv. studies % i=i+1; list_runs{i}= 'brute_force_matlab';
-i=i+1; list_runs{i}= 'brute_force';
+% i=i+1; list_runs{i}= 'brute_force';
 % i=i+1; list_runs{i}= 'brute_force_elim_prec';
-% i=i+1; list_runs{i}= 'brute_force_an_prec';
+i=i+1; list_runs{i}= 'brute_force_an_prec';
 % i=i+1; list_runs{i}= 'iqs_an_prec';
 % i=i+1; list_runs{i}= 'iqs_elim_prec';
 % i=i+1; list_runs{i}= 'iqsPC_an_prec';
@@ -246,8 +248,7 @@ for iconv=1:length(ntimes)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-figure(100); hold all;
+figure(100); 
 if should_I_run_this(list_runs,'brute_force')
     error_ = abs( brute_force.ampl - amplitude_norm_ref );
     curr_leg = 'space-time';
@@ -263,7 +264,7 @@ if should_I_run_this(list_runs,'brute_force')
 end
 if should_I_run_this(list_runs,'brute_force_an_prec')
     error_ = abs( brute_force_an_prec.ampl - amplitude_norm_ref );
-    curr_leg = 'space-time-ANALY';
+    curr_leg = 'Implicit Dis. Analytical Prec.';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
     p = polyfit(log10(dt),log10(error_),1);
@@ -273,11 +274,12 @@ if should_I_run_this(list_runs,'brute_force_an_prec')
         leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
     end
     legend(leg,'Location','Best');
+    hold all;
 end
 if should_I_run_this(list_runs,'brute_force_elim_prec')
     error_ = abs( brute_force_elim_prec.ampl - amplitude_norm_ref );
-    curr_leg = 'space-time-elim';
-    plot(log10(dt),log10(error_),'+-');
+    curr_leg = 'Implicit Dis.';
+    loglog(dt,error_,'+-');
     a=get(legend(gca),'String');
     p = polyfit(log10(dt),log10(error_),1);
     if isempty(a)
@@ -286,11 +288,12 @@ if should_I_run_this(list_runs,'brute_force_elim_prec')
         leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
     end
     legend(leg,'Location','Best');
+    hold all;
 end
 if should_I_run_this(list_runs,'iqs_an_prec')
     error_  = abs( iqs_an_prec.ampl           - amplitude_norm_ref );
     error_f = abs( iqs_an_prec.power_prke_iqs - amplitude_norm_ref );
-    curr_leg = 'IQS-an';
+    curr_leg = 'IQS Analytical Prec.';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
     p = polyfit(log10(dt),log10(error_),1);
@@ -299,16 +302,16 @@ if should_I_run_this(list_runs,'iqs_an_prec')
     else
         leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
     end
-    plot(log10(dt),log10(error_f));
-    a=get(legend(gca),'String');
-    leg = char(leg, char(strcat(curr_leg, ' fine')) );
+%     plot(log10(dt),log10(error_f));
+%     a=get(legend(gca),'String');
+%     leg = char(leg, char(strcat(curr_leg, ' fine')) );
     legend(leg,'Location','Best');
 end
 if should_I_run_this(list_runs,'iqs_elim_prec')
     error_  = abs( iqs_elim_prec.ampl           - amplitude_norm_ref );
     error_f = abs( iqs_elim_prec.power_prke_iqs - amplitude_norm_ref );
-    curr_leg = 'IQS-elim';
-    plot(log10(dt),log10(error_),'+-');
+    curr_leg = 'IQS';
+    loglog(dt,error_,'+-');
     a=get(legend(gca),'String');
     p = polyfit(log10(dt),log10(error_),1);
     if isempty(a)
@@ -316,15 +319,15 @@ if should_I_run_this(list_runs,'iqs_elim_prec')
     else
         leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
     end
-    plot(log10(dt),log10(error_f));
-    a=get(legend(gca),'String');
-    leg = char(leg, char(strcat(curr_leg, ' fine')) );
+%     plot(log10(dt),log10(error_f));
+%     a=get(legend(gca),'String');
+%     leg = char(leg, char(strcat(curr_leg, ' fine')) );
     legend(leg,'Location','Best');
 end
 if should_I_run_this(list_runs,'iqsPC_an_prec')
     error_  = abs( iqsPC_an_prec.ampl           - amplitude_norm_ref );
     error_f = abs( iqsPC_an_prec.power_prke_iqs - amplitude_norm_ref );
-    curr_leg = 'IQS-PC-an';
+    curr_leg = 'IQS-PC Analytical Prec.';
     plot(log10(dt),log10(error_),'+-');
     a=get(legend(gca),'String');
     p = polyfit(log10(dt),log10(error_),1);
@@ -333,16 +336,16 @@ if should_I_run_this(list_runs,'iqsPC_an_prec')
     else
         leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
     end
-    plot(log10(dt),log10(error_f));
-    a=get(legend(gca),'String');
-    leg = char(leg, char(strcat(curr_leg, ' fine')) );
+%     plot(log10(dt),log10(error_f));
+%     a=get(legend(gca),'String');
+%     leg = char(leg, char(strcat(curr_leg, ' fine')) );
     legend(leg,'Location','Best');
 end
 if should_I_run_this(list_runs,'iqsPC_elim_prec')
     error_  = abs( iqsPC_elim_prec.ampl           - amplitude_norm_ref );
     error_f = abs( iqsPC_elim_prec.power_prke_iqs - amplitude_norm_ref );
-    curr_leg = 'IQS-PC-elim';
-    plot(log10(dt),log10(error_),'+-');
+    curr_leg = 'IQS-PC';
+    loglog(dt,error_,'+-');
     a=get(legend(gca),'String');
     p = polyfit(log10(dt),log10(error_),1);
     if isempty(a)
@@ -350,9 +353,9 @@ if should_I_run_this(list_runs,'iqsPC_elim_prec')
     else
         leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
     end
-    plot(log10(dt),log10(error_f));
-    a=get(legend(gca),'String');
-    leg = char(leg, char(strcat(curr_leg, ' fine')) );
+%     plot(log10(dt),log10(error_f));
+%     a=get(legend(gca),'String');
+%     leg = char(leg, char(strcat(curr_leg, ' fine')) );
     legend(leg,'Location','Best');
 end
 if should_I_run_this(list_runs,'iqs_theta_prec')
@@ -367,9 +370,9 @@ if should_I_run_this(list_runs,'iqs_theta_prec')
     else
         leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
     end
-    plot(log10(dt),log10(error_f));
-    a=get(legend(gca),'String');
-    leg = char(leg, char(strcat(curr_leg, ' fine')) );
+%     plot(log10(dt),log10(error_f));
+%     a=get(legend(gca),'String');
+%     leg = char(leg, char(strcat(curr_leg, ' fine')) );
     legend(leg,'Location','Best');
 end
 if should_I_run_this(list_runs,'iqs')
@@ -384,12 +387,15 @@ if should_I_run_this(list_runs,'iqs')
     else
         leg=char(char(a),strcat(curr_leg,' slope = ',num2str(p(1))));
     end
-    plot(log10(dt),log10(error_f));
-    a=get(legend(gca),'String');
-    leg = char(leg, char(strcat(curr_leg, ' fine')) );
+%     plot(log10(dt),log10(error_f));
+%     a=get(legend(gca),'String');
+%     leg = char(leg, char(strcat(curr_leg, ' fine')) );
     legend(leg,'Location','Best');
 end
+xlabel('\Delta t')
+ylabel('Error')
 hold off;
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
