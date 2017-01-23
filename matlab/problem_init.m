@@ -18,6 +18,9 @@ dat.invvel=1.;
 
 dat.source_phi = @(x,t) 0;
 
+dat.source_phi = @(x,t) 0;
+dat.source_c   = @(x,t) 0;
+
 % assign function pointers to the various physical coeffcients
 switch problem_ID
     
@@ -150,11 +153,11 @@ switch problem_ID
     case 12
         % manufactured solution, one material, constant in space and time,
         % no precursors
-        do_steady = false;
+        do_steady = true;
         if do_steady
             dat.invvel=dat.invvel*0; % use this for steady state
         end
-        dat.beta_tot=dat.beta_tot*0;
+%         dat.beta_tot=dat.beta_tot*0;
         b=dat.beta_tot;
         iv=dat.invvel;
         cdiff = 1.0;
@@ -176,7 +179,7 @@ switch problem_ID
         imat = ones(n_regions,1);
         
         syms x t
-        syms S_p(x,t) phi(x,t)
+        syms S_p(x,t) phi(x,t) C(x,t) S_c(x,t)
         
 %         syms f(t) a(x,t) A(t)
 %         f(t) = (t+1)^5
@@ -189,16 +192,22 @@ switch problem_ID
 %         phi(x,t) = f(t)*a(x,t)/A(t);
 
         phi(x,t) = x*(1-x)*(1+t)^2;
+        C(x,t) = x*(1-x)*(1+t)^1.2;
         if do_steady
             phi(x,t) = x*(1-x); % use this for steady state
         end        
         npar.phi_exact = matlabFunction(phi);
-        
-        S_p(x,t) = iv*diff(phi,t) + (Sa-nfSf)*phi - cdiff*diff(diff(phi,x),x);
+        npar.C_exact = matlabFunction(C);
+%         npar.C_exact = @(x,t) 0.*x.*t;                
+
+%         S_p(x,t) = iv*diff(phi,t) + (Sa-nfSf*(1-b))*phi - cdiff*diff(diff(phi,x),x) ;
+        S_p(x,t) = iv*diff(phi,t) + (Sa-nfSf*(1-b))*phi - cdiff*diff(diff(phi,x),x) -dat.lambda*C;
+        S_c(x,t) = diff(C,t) + dat.lambda *C -nfSf*b*phi;
         dat.source_phi = matlabFunction(S_p);
-        clear x t S_p phi
-        
-        
+        dat.source_c = matlabFunction(S_c);
+%         dat.source_c = @(x,t) 0.*x.*t;
+        clear x t S_p phi C S_c 
+    
     otherwise
         error('unknown problem ID ',problem_ID);
 end
@@ -298,7 +307,17 @@ end
 dat.max_y_val_movie = 2.;
 
 % time integration
-time_integration=3;
+t_order=2;
+
+% npar.method = 'SDIRK';
+npar.method = 'BDF';
+
+if strcmp(npar.method,'SDIRK')
+    time_integration = t_order;
+    npar.bdf_order = 1;
+else
+    time_integration = 1;
+end
 switch time_integration
     case 1
         nstages=1;
@@ -329,6 +348,33 @@ switch time_integration
 end
 npar.rk.s=nstages;
 npar.rk.a=a; npar.rk.b=b; npar.rk.c=c;
+
+if strcmp(npar.method,'BDF')
+    a = zeros(t_order);
+    b = zeros(t_order,1);
+    for i = 1:t_order
+        switch i
+            case 1
+                a(i,1:i) = [1];
+                b(i) = 1;
+            case 2
+                a(i,1:i) = [-1/3 4/3];
+                b(i) = 2/3;
+            case 3
+                a(i,1:i) = [2/11 -9/11 18/11];
+                b(i) = 6/11;
+            case 4
+                a(i,1:i) = [-3/25 16/25 -36/25 48/25];
+                b(i) = 12/25;
+            otherwise
+                error('time integration %d not yet implemented',t_order);
+        end
+    end
+    npar.bdf.a=a;
+    npar.bdf.b=b;
+    npar.bdf_order = t_order;
+end
+            
 
 return
 end

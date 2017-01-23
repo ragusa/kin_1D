@@ -15,10 +15,11 @@ if io.make_movie
 end
 
 % initial stuff
-if strcmp(func2str(FUNHANDLE),'solve_TD_diffusion_an_prec') && strcmp(npar.an_interp_type,'lagrange')
+order=1;
+if strcmp(npar.method,'BDF')
+    order = npar.bdf_order;
+elseif strcmp(func2str(FUNHANDLE),'solve_TD_diffusion_an_prec') && strcmp(npar.an_interp_type,'lagrange')
     order=npar.interpolation_order;
-else
-    order=1;
 end
 u=zeros(length(u0),order+1); u(:,end)=u0;
 t = 0:dt:ntimes*dt;
@@ -95,6 +96,13 @@ if io.plot_power_figure
         linspace(0,dt*ntimes,ntimes+1), amplitude_norm);
 end
 
+if dat.PbID==12
+    amplitude_norm = compute_L2norm(@(x) npar.phi_exact(x,time_end),u(1:npar.n,end))
+    [Cend] = assemble_source(npar.C_exact,time_end);
+
+    amplitude_norm = norm(Cend-u(npar.n+1:end,end),2)
+end
+    
 % output
 nOutputs = nargout;
 varargout = cell(1,nOutputs);

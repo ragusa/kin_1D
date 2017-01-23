@@ -27,15 +27,15 @@ else
     switch npar.iqs_prke_interpolation_method
         case 1% compute prke parameters at beg/end time and linearly interpolate
             w = [ shape_beg shape_end]; 
-            [dat.ode.rho_MGT_beg,dat.ode.beff_MGT_beg]=compute_prke_parameters(time_beg,shape_beg);
-            [dat.ode.rho_MGT_end,dat.ode.beff_MGT_end]=compute_prke_parameters(time_end,shape_end);
+            [dat.ode.rho_MGT_beg,dat.ode.beff_MGT_beg,dat.ode.q_MGT_beg]=compute_prke_parameters(time_beg,shape_beg);
+            [dat.ode.rho_MGT_end,dat.ode.beff_MGT_end,dat.ode.q_MGT_end]=compute_prke_parameters(time_end,shape_end);
             % call ode solver with prke function that linearly interpolates
             [t,y]=ode15s(@funprke_lin_interp,[time_beg time_end],X,options);
         case 2 % linear variation for XS, linear for shape
             w = [ shape_beg shape_end]; 
             for k=1:size(w,2)
-                [dat.ode.rho_MGT_beg(k),dat.ode.beff_MGT_beg(k)]=compute_prke_parameters(time_beg,w(:,k));
-                [dat.ode.rho_MGT_end(k),dat.ode.beff_MGT_end(k)]=compute_prke_parameters(time_end,w(:,k));
+                [dat.ode.rho_MGT_beg(k),dat.ode.beff_MGT_beg(k),dat.ode.q_MGT_beg(k)]=compute_prke_parameters(time_beg,w(:,k));
+                [dat.ode.rho_MGT_end(k),dat.ode.beff_MGT_end(k),dat.ode.q_MGT_end(k)]=compute_prke_parameters(time_end,w(:,k));
             end
             % call ode solver with prke function that linearly interpolates
             [t,y]=ode15s(@funprke_linlin_interp,[time_beg time_end],X,options);
@@ -47,10 +47,10 @@ else
             rhs = [ shape_beg' ;shape_end' ; dat.ode.f_beg'; dat.ode.f_end'];
             % contains the w coefficients such that :
             %  shape(t) = w(1) t^3 + w(2) t^2 + w(3) t + w(4)
-            w = mat\rhs; w=w'; 
-            for k=1:size(w,2)
-                [dat.ode.rho_MGT_beg(k),dat.ode.beff_MGT_beg(k)]=compute_prke_parameters(time_beg,w(:,k));
-                [dat.ode.rho_MGT_end(k),dat.ode.beff_MGT_end(k)]=compute_prke_parameters(time_end,w(:,k));
+            w = mat\rhs; w=w'; dat.ode.nw = size(w,2);
+            for k=1:dat.ode.nw
+                [dat.ode.rho_MGT_beg(k),dat.ode.beff_MGT_beg(k),dat.ode.q_MGT_beg(k)]=compute_prke_parameters(time_beg,w(:,k));
+                [dat.ode.rho_MGT_end(k),dat.ode.beff_MGT_end(k),dat.ode.q_MGT_end(k)]=compute_prke_parameters(time_end,w(:,k));
             end
             % call ode solver with prke function that linearly interpolates
             [t,y]=ode15s(@funprke_linhermite_interp,[time_beg time_end],X,options);
