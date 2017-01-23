@@ -7,6 +7,10 @@ lambda = dat.lambda;
 dt = dt_macro;
 C_old = u_shape(npar.n+1:end,end);
 rk=npar.rk;
+if strcmp(npar.method,'BDF')
+    bdf = npar.bdf;
+end
+order = length(tn);
 
 max_iter_iqs = npar.max_iter_iqs;
 tol_iqs      = npar.tol_iqs;
@@ -19,7 +23,7 @@ X_beg=X;
 shape_beg=u_shape(1:npar.n,:);
 shape_end=shape_beg(:,end);
 
-tn = tn-dt;
+tn = tn - dt;
 time_beg = tn(end);
 time_end = time_beg+dt;
 
@@ -32,9 +36,9 @@ for iter = 1: max_iter_iqs
     
     % solve for amplitude function
     if strcmpi(npar.prke_solve,'matlab')
-        [X,w,t,y] =  solve_prke_ode(X_beg(:,end),dt_macro,time_end,shape_beg(:,end),shape_end);
+        [X,w,t,y]    = solve_prke_ode(X_beg(:,end),dt_macro,time_end,shape_beg(:,end),shape_end);
     else
-        [X,dpdt,t,y] =  solve_prke_iqs(X_beg(:,end),dt_macro,time_end,shape_beg,shape_end,n_micro,freq_react);
+        [X,dpdt,t,y] = solve_prke_iqs(X_beg(:,end),dt_macro,time_end,shape_beg(:,end),shape_end,npar.n_micro,npar.freq_react);
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % assemble IQS
@@ -61,9 +65,8 @@ for iter = 1: max_iter_iqs
     
     p_beg    = ppval(pp    ,time_beg);
     dpdt_beg = ppval(pp_der,time_beg);
-    
+   
     if strcmp(npar.an_interp_type,'lagrange')
-        order = length(tn);
         a = zeros(order+1,2);
     elseif strcmp(npar.an_interp_type,'hermite')
         i2 = zeros(npar.n,2); i3=i2;
@@ -103,6 +106,7 @@ for iter = 1: max_iter_iqs
         IV   = assemble_mass(     dat.inv_vel ,ti);
         Aiqs = assemble_mass(     dat.inv_vel ,ti) * dpdti/pi;
         NFId_new = assemble_mass(dat.nusigf_d ,ti)    / npar.keff ;
+        S    = assemble_source(   dat.source_phi,ti)/pi;
         
         % flux-flux matrix
         TR=NFIp-(D+A+Aiqs);
@@ -139,14 +143,27 @@ for iter = 1: max_iter_iqs
             zi = zi + lambda * ( NFId_old*(i1(1)*num/deno+i2(:,1)+i3(:,1)) + NFId_new*(i1(2)*num/deno+i2(:,2)+i3(:,2)) )/pi;
 
         end
-    
-        % build system matrix
-        A = IV-rk.a(i,i)*dt*TR;
-
-        rhs = IV*shape_beg(:,end) + rk.a(i,i)*dt *zi;
-        for j=1:rk.s-1
-            rhs = rhs + rk.a(i,j)*dt*K(:,j);
+        zi = zi + S;
+        
+        if strcmp(npar.method,'BDF')
+            % build system matrix
+            A = IV - dt_macro*bdf.b(order)*TR;
+            % build rhs
+            rhs = 0;
+            for j=1:order
+                rhs = rhs + bdf.a(order,j)*shape_beg(:,j);
+            end
+            rhs = IV*rhs + dt_macro*bdf.b(order)*zi;
+        else    
+            % build system matrix
+            A = IV-rk.a(i,i)*dt*TR;
+            % build rhs
+            rhs = IV*shape_beg(:,end) + rk.a(i,i)*dt *zi;
+            for j=1:rk.s-1
+                rhs = rhs + rk.a(i,j)*dt*K(:,j);
+            end
         end
+        
         % apply BC
         if npar.set_bc_last
             [A,rhs]=apply_BC(A,rhs,npar.add_ones_on_diagonal);

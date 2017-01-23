@@ -1,4 +1,4 @@
-function [ u ] = solve_TD_diffusion_an_prec(u,dt,tn)
+function [ varargout ] = solve_TD_diffusion_an_prec(u,dt,tn)
 
 global dat npar
 
@@ -84,12 +84,15 @@ lambda = dat.lambda;
 % gives (f=Qy+z)
 %  [I-aii.h.Q(ti)]Yi = yn + h.aii zi + h sum(j=1..i-1) ( aij {Q(tj)Yj + zj} )
 rk=npar.rk;
+if strcmp(npar.method,'BDF')
+    bdf = npar.bdf;
+end
 
 % beginning of the time interval
 time_beg = tn(end);
+order = length(tn);
 
 if strcmp(npar.an_interp_type,'lagrange')
-    order = length(tn);
     a = zeros(order+1,2);
 elseif strcmp(npar.an_interp_type,'hermite')
     i2 = zeros(npar.n,2); i3=i2;
@@ -112,6 +115,7 @@ end
 K=zeros(length(Phi_old(:,1)),rk.s);
 
 NFId_old = assemble_mass(dat.nusigf_d,time_beg) / npar.keff;
+auxPhi=zeros(length(Phi_old(:,end)),rk.s);
 
 for i=1:rk.s
     
@@ -124,6 +128,7 @@ for i=1:rk.s
     NFIp = assemble_mass(     dat.nusigf_p,ti) / npar.keff;
     IV   = assemble_mass(     dat.inv_vel ,ti);
     NFId_new = assemble_mass( dat.nusigf_d,ti) / npar.keff;
+    S    = assemble_source(   dat.source_phi,ti);
     
     % integrals for the analytical expressions for the precursors
     t2=ti;
@@ -134,7 +139,7 @@ for i=1:rk.s
     % flux-flux matrix
     TR=NFIp-(D+A);        
     % build rhs
-    zi =  lambda *( C_old*exp(-lambda*dti) );
+    zi =  lambda*(C_old*exp(-lambda*dti)) + S;
     
     if strcmp(npar.an_interp_type,'lagrange')
         for j=1:(order+1)
@@ -167,12 +172,23 @@ for i=1:rk.s
         
     end
     
-    % build system matrix
-    A = IV-rk.a(i,i)*dt*TR;
-    
-    rhs = IV*Phi_old(:,end) + rk.a(i,i)*dt *zi;
-    for j=1:rk.s-1
-        rhs = rhs + rk.a(i,j)*dt*K(:,j);
+    if strcmp(npar.method,'BDF')
+        % build system matrix
+        A = IV - dt*bdf.b(order)*TR;
+        % build rhs
+        rhs = 0;
+        for j=1:order
+            rhs = rhs + bdf.a(order,j)*Phi_old(:,j);
+        end
+        rhs = dt*bdf.b(order)*zi + IV*rhs;        
+    else
+        % build system matrix
+        A = IV-rk.a(i,i)*dt*TR;
+        % build rhs
+        rhs = IV*Phi_old(:,end) + rk.a(i,i)*dt *zi;
+        for j=1:rk.s-1
+            rhs = rhs + rk.a(i,j)*dt*K(:,j);
+        end
     end
     % apply BC
     if npar.set_bc_last
@@ -182,16 +198,18 @@ for i=1:rk.s
     end
     % solve: M(unew-uold)/dt=TR.unew
     Phi_new = A\rhs;
+    % save intermediate fluxes
+    auxPhi(:,i)=Phi_new;
     % store for temp SDIRK quantities
     K(:,i)=TR*Phi_new + zi;
 end
 
-dat.ode.f_end=K(1:npar.n,rk.s);
+dat.ode.f_end=IV\K(1:npar.n,rk.s);
 
 % update precursors
 if npar.hermite_prec_update
     mat=[ t1^3 t1^2 t1 1; t2^3 t2^2 t2 1;  3*t1^2 2*t1 1 0; 3*t2^2 2*t2 1 0];
-    rhs = [ Phi_old(:,end)' ;Phi_new' ; (IV\dat.ode.f_beg)'; (IV\dat.ode.f_end)'];
+    rhs = [ Phi_old(:,end)' ;Phi_new' ; dat.ode.f_beg'; dat.ode.f_end'];
     % contains the w coefficients such that :
     %  Phi(t) = w(1) t^3 + w(2) t^2 + w(3) t + w(4)
     w = mat\rhs; w=w'; nw=size(w,2);
@@ -214,6 +232,19 @@ else
 end
 % re-package as single solution vector
 u = [Phi_new;C_new];
+
+% output
+nOutputs = nargout;
+varargout = cell(1,nOutputs);
+switch nOutputs
+    case(1)
+        varargout{1} = u;
+    case(2)
+        varargout{1} = u;
+        varargout{2} = auxPhi;
+    otherwise
+        error('Wrong number of output arguments in %s',mfilename);
+end
 
 
 end
