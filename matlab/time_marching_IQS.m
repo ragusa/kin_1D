@@ -55,7 +55,7 @@ for it=1:ntimes
     end
     
     % solve time-dependent diffusion for flux
-    [u_shape(:,end),X(:,end),t,y] = FUNHANDLE(u_shape(:,end-od:end-1),X(:,end-od:end-1),dt,tn(it-od+2:it+1));
+    [u_shape(:,end),X(:,end),t,y] = FUNHANDLE(u_shape(:,end-od:end-1),X(:,end-od:end-1),dt,tn(it-od+1:it+1));
     
     % update data for hermite interpolation
         dat.ode.f_beg=dat.ode.f_end;
@@ -115,8 +115,8 @@ end
 if dat.PbID==12
     if (strcmp(func2str(FUNHANDLE),'solve_IQS_PC_diffusion_an_prec') || ...
     strcmp(func2str(FUNHANDLE),'solve_IQS_PC_diffusion_elim_prec'))
-%         amplitude_norm = compute_L2norm(@(x) npar.phi_exact(x,time_end),         u_shape(1:npar.n,end))
-        amplitude_norm = abs(npar.phi_exact(npar.x_dofs(2),time_end) - u_shape(2,end))
+        amplitude_norm = compute_L2norm(@(x) npar.phi_exact(x,time_end),         u_shape(1:npar.n,end))
+%         amplitude_norm = abs(npar.phi_exact(npar.x_dofs(2),time_end) - u_shape(2,end))
     else
         amplitude_norm = compute_L2norm(@(x) npar.phi_exact(x,time_end),X(1,end)*u_shape(1:npar.n,end))
     end

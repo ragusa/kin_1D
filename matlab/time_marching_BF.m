@@ -44,7 +44,7 @@ for it=1:ntimes
     else
         od = order;
     end
-    u(:,end) = FUNHANDLE(u(:,end-od:end-1),dt,t(it-od+2:it+1));
+    u(:,end) = FUNHANDLE(u(:,end-od:end-1),dt,t(it-od+1:it+1));
     
     % update data for hermite interpolation
     dat.ode.f_beg=dat.ode.f_end;
@@ -76,13 +76,6 @@ for it=1:ntimes
     end
 end
 
-L2norm_error = compute_L2norm(@(x) npar.phi_exact(x,time_end),u(1:npar.n,end))
-% L2norm_error = compute_L2norm(npar.phi_exact(npar.x',time_end),u(1:npar.n,end))
-figure(1)
-hold on
-plot(npar.x_dofs,u(1:npar.n,end))
-hold off
-
 % make movie
 if io.plot_transient_figure && io.make_movie
     close(gcf)
@@ -97,8 +90,8 @@ if io.plot_power_figure
 end
 
 if dat.PbID==12
-%     amplitude_norm = compute_L2norm(@(x) npar.phi_exact(x,time_end),u(1:npar.n,end))
-    amplitude_norm = abs(npar.phi_exact(npar.x_dofs(2),time_end) - u(2,end))
+    amplitude_norm = compute_L2norm(@(x) npar.phi_exact(x,time_end),u(1:npar.n,end))
+%     amplitude_norm = abs(npar.phi_exact(npar.x_dofs(2),time_end) - u(2,end))
 %     [Cend] = assemble_source(npar.C_exact,time_end);
 
 %     amplitude_norm = norm(Cend-u(npar.n+1:end,end),2)
@@ -113,10 +106,6 @@ switch nOutputs
     case 2
         varargout{1} = amplitude_norm;
         varargout{2} = Ptot;
-    case 3
-        varargout{1} = amplitude_norm;
-        varargout{2} = Ptot;
-        varargout{3} = L2norm_error;
     otherwise
         error('Wrong number of output arguments in %s',mfilename);
 end

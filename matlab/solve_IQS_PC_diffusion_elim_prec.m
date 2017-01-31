@@ -19,8 +19,11 @@ X_beg=X(:,end);
 u_beg=u;
 % for clarity, I also single out the shape function at the beginning/end of the macro time step
 % IV   = assemble_mass(     dat.inv_vel ,time_end);
-z = (npar.phi_adj)'*npar.IV*u(1:npar.n,end)/npar.K0;
-shape_beg=u(1:npar.n,end)/z; dat.ode.shape_beg=shape_beg;
+for i=1:length(u(1,:))
+    z = (npar.phi_adj)'*npar.IV*u(1:npar.n,i)/npar.K0;
+    shape_old(:,i)=u(1:npar.n,i)/z; 
+end
+shape_beg = shape_old(:,end); dat.ode.shape_beg=shape_beg;
 
 for iter = 1: max_iter_iqs
     
@@ -37,7 +40,7 @@ for iter = 1: max_iter_iqs
     
     % solve for amplitude function
     if strcmpi(npar.prke_solve,'matlab')
-        [X,w,t,y] =  solve_prke_ode(X_beg,dt_macro,time_end,shape_beg,shape_end);
+        [X,dXdt,w,t,y] =  solve_prke_ode(X_beg(:,end),dt_macro,tn,shape_old(:,1:end),shape_end);
     else
         [X,dpdt,t,y] =  solve_prke_iqs(X_beg,dt_macro,time_end,shape_beg,shape_end,npar.n_micro,npar.freq_react);
     end
@@ -186,5 +189,5 @@ for iter = 1: max_iter_iqs
 end
 
 if err>=tol_iqs
-    warning('IQS did not converge in %s',mfilename);
+%     warning('IQS did not converge in %s',mfilename);
 end

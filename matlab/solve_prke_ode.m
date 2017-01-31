@@ -1,11 +1,15 @@
-function [X,dXdt,w,t,pow] =  solve_prke_ode(X,dt_macro,time_end,shape_beg,shape_end)
+function [X,dXdt,w,t,pow] =  solve_prke_ode(X,dt_macro,tn,shape_beg,shape_end)
 
 % make the problem-data a global variable
 global dat npar
 
 % create a list of times when reactivity will be recomputed for this macro
 % time step
+time_end = tn(end);
 time_beg = time_end - dt_macro;
+if npar.iqs_prke_interpolation_method~=5 || npar.solve_prke_compute_rho_each_time
+    shape_beg = shape_beg(:,end);
+end
 
 dat.ode.time_beg = time_beg;
 dat.ode.time_end = time_end;
@@ -68,12 +72,20 @@ else
             %  shape(t) = w(1) t^2 + w(2) t + w(3)
             w = mat\rhs; w=w'; dat.ode.nw = size(w,2);
             for k=1:dat.ode.nw
-                [dat.ode.rho_MGT_beg(k),dat.ode.beff_MGT_beg(k)]=compute_prke_parameters(time_beg,w(:,k));
-                [dat.ode.rho_MGT_end(k),dat.ode.beff_MGT_end(k)]=compute_prke_parameters(time_end,w(:,k));
+                [dat.ode.rho_MGT_beg(k),dat.ode.beff_MGT_beg(k),dat.ode.q_MGT_beg(k)]=compute_prke_parameters(time_beg,w(:,k));
+                [dat.ode.rho_MGT_end(k),dat.ode.beff_MGT_end(k),dat.ode.q_MGT_end(k)]=compute_prke_parameters(time_end,w(:,k));
             end
             % call ode solver with prke function that linearly interpolates
             [t,y]=ode15s(@funprke_linhermite_interp,[time_beg time_end],X,options);
             dXdt = funprke_linhermite_interp(time_end,y(end,:)');
+        case 5 % lagrange interpolation of shape using previous shapes
+            shape = [shape_beg shape_end];
+            dat.ode.tn = tn;
+            for k=1:length(tn)
+                [dat.ode.rho_MGT(k),dat.ode.beff_MGT(k),~]=compute_prke_parameters(tn(k),shape(:,k));
+            end
+            [t,y]=ode15s(@funprke_lag_interp,[time_beg time_end],X,options);
+            w=0;
         otherwise
             error('interpolation_method method implemented')
     end
@@ -81,6 +93,9 @@ end
 % save data
 X=(y(end,:))';
 pow=y(:,1);
+[rho_MGT,beff_MGT,q_MGT]=compute_prke_parameters(time_end,shape_end);
+dXdt = [(rho_MGT-beff_MGT) dat.lambda ; beff_MGT -dat.lambda]*X + [q_MGT;0];
+
 
 % % save value for dpdt at the end of the macro time step
 % if npar.solve_prke_compute_rho_each_time

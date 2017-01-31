@@ -1,7 +1,7 @@
 function dydt=funprke_lin_interp(time,y)
 
 % global
-global dat
+global dat npar
 
 time_beg = dat.ode.time_beg;
 time_end = dat.ode.time_end;
@@ -19,6 +19,9 @@ q_MGT    = dat.ode.q_MGT_beg    * w1 + dat.ode.q_MGT_end    * w2;
 % compute PRKE matrix at current time
 J=[(rho_MGT-beff_MGT)   dat.lambda ; ...
     beff_MGT           -dat.lambda ];
+
+S    = assemble_source(   dat.source_phi,time);
+q_MGT    = (npar.phi_adj' * S)/npar.K0;
 
 q = [q_MGT; 0];
 

@@ -24,7 +24,7 @@ shape_end=shape_beg(:,end);
 rk=npar.rk;
 if strcmp(npar.method,'BDF')
     bdf = npar.bdf;
-    order = length(tn);
+    order = length(tn)-1;
 end
 
 % beginning of the time interval
@@ -40,11 +40,11 @@ for iter = 1: max_iter_iqs
     
     % solve for amplitude function over the entire macro-step
     if strcmpi(npar.prke_solve,'matlab')
-        [X,dXdt,w,t,y] =  solve_prke_ode(X_beg(:,end),dt_macro,time_end,shape_beg(:,end),shape_end);
+        [X,dXdt,w,t,y] =  solve_prke_ode(X_beg(:,end),dt_macro,tn,shape_beg(:,1:end),shape_end);
     else
         [X,dpdt,t,y] =  solve_prke_iqs(X_beg(:,end),dt_macro,time_end,shape_beg(:,end),shape_end,npar.n_micro,npar.freq_react);
     end
-    
+%     X(1) = (1+time_end);
     % interpolating polynomial
     if strcmpi(npar.prke_solve,'matlab')
         if npar.int_order==3
@@ -70,8 +70,8 @@ for iter = 1: max_iter_iqs
         
         % OLD shortcut
         % OLD p=X(1);
-%         pi = (1+ti)^2;
-%         dpdti = 2*(1+ti);
+%         pi = (1+ti);
+%         dpdti = 1;
         pi = ppval(pp,ti);
 %         dpdti = ppval(pp_der,ti);
 %         tmp = funprke(ti,X);
@@ -142,6 +142,7 @@ for iter = 1: max_iter_iqs
         end
         % solve for new shape_end
         shape_end = A\rhs;
+%         shape_end = npar.shape_exact(npar.x_dofs',ti);
 %         shape_end = shape_beg(:,end);
         % finish Ci
         if strcmp(npar.method,'BDF')
@@ -156,7 +157,8 @@ for iter = 1: max_iter_iqs
     
     % save for hermite interp
     if npar.iqs_prke_interpolation_method>=3
-        dat.ode.f_end=IV\f(:,rk.s);
+%         dat.ode.f_end=IV\f(:,rk.s);
+%         dat.ode.f_end=npar.dshape_exact(npar.x_dofs',time_end);
     end
     
     % re-package as single solution vector

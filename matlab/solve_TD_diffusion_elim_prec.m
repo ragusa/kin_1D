@@ -17,7 +17,7 @@ lambda = dat.lambda;
 rk=npar.rk;
 if strcmp(npar.method,'BDF')
     bdf = npar.bdf;
-    order = length(tn);
+    order = length(tn)-1;
 end
 
 % beginning of the time interval

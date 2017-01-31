@@ -12,7 +12,7 @@ global npar io
 % verbose/output parameters
 io.console_print         = false;
 io.plot_transient_figure = false;
-io.plot_power_figure     = true;
+io.plot_power_figure     = false;
 io.make_movie            = false;
 io.save_flux             = false;
 io.print_progress        = false;
@@ -21,7 +21,7 @@ io.figID = 99;
 npar.set_bc_last=true;
 
 % select problem
-pbID=12; refinements=1;
+pbID=10; refinements=1;
 problem_init(pbID,refinements);
 
 % compute fundamental eigenmode
@@ -69,7 +69,8 @@ dt = t_end./ntimes;
 %   2      = linear interpolation of shape
 %   3      = cubic interpolation of shape
 %   4      = quadratic interpolation of shape
-npar.iqs_prke_interpolation_method=2;
+npar.iqs_prke_interpolation_method=5;
+npar.solve_prke_compute_rho_each_time = false;
 
 % Type of precursor interpolation for analytical elimination
 % (see solve_TD_diffusion_an_prec)
@@ -78,7 +79,7 @@ npar.an_interp_type='lagrange'; % This is just a place holder, actual definition
     
 % Number of steps in history for lagrange interpolation of precursors for
 % analytical elimination precursors (see solve_TD_diffusion_an_prec)
-npar.interpolation_order=3;
+npar.interpolation_order=1;
 
 % If this is true, precursors are recalculated using a cubic hermite
 % interpolation of shape (see solve_TD_diffusion_an_prec line 192)
@@ -97,12 +98,12 @@ npar.prec_solve_type = 'linear';
 i=0;
 % not to be used for conv. studies % i=i+1; list_runs{i}= 'brute_force_matlab';
 % i=i+1; list_runs{i}= 'brute_force';
-% i=i+1; list_runs{i}= 'brute_force_elim_prec';
-i=i+1; list_runs{i}= 'brute_force_an_prec';
+i=i+1; list_runs{i}= 'brute_force_elim_prec';
+% i=i+1; list_runs{i}= 'brute_force_an_prec';
 % i=i+1; list_runs{i}= 'iqs_an_prec';
-% i=i+1; list_runs{i}= 'iqs_elim_prec';
+i=i+1; list_runs{i}= 'iqs_elim_prec';
 % i=i+1; list_runs{i}= 'iqsPC_an_prec';
-% i=i+1; list_runs{i}= 'iqsPC_elim_prec';
+i=i+1; list_runs{i}= 'iqsPC_elim_prec';
 % i=i+1; list_runs{i}= 'iqs_theta_prec';
 % i=i+1; list_runs{i}= 'iqs';
 % % npar.iqs_prke_interpolation_method=3
@@ -252,7 +253,7 @@ figure(100);
 if should_I_run_this(list_runs,'brute_force')
     error_ = abs( brute_force.ampl - amplitude_norm_ref );
     curr_leg = 'space-time';
-    plot(log10(dt),log10(error_),'+-');
+    loglog(dt,error_,'+-');
     a=get(legend(gca),'String');
     p = polyfit(log10(dt),log10(error_),1);
     if isempty(a)
@@ -265,7 +266,7 @@ end
 if should_I_run_this(list_runs,'brute_force_an_prec')
     error_ = abs( brute_force_an_prec.ampl - amplitude_norm_ref );
     curr_leg = 'Implicit Dis. Analytical Prec.';
-    plot(log10(dt),log10(error_),'+-');
+    loglog(dt,error_,'+-');
     a=get(legend(gca),'String');
     p = polyfit(log10(dt),log10(error_),1);
     if isempty(a)
@@ -294,7 +295,7 @@ if should_I_run_this(list_runs,'iqs_an_prec')
     error_  = abs( iqs_an_prec.ampl           - amplitude_norm_ref );
     error_f = abs( iqs_an_prec.power_prke_iqs - amplitude_norm_ref );
     curr_leg = 'IQS Analytical Prec.';
-    plot(log10(dt),log10(error_),'+-');
+    loglog(dt,error_,'+-');
     a=get(legend(gca),'String');
     p = polyfit(log10(dt),log10(error_),1);
     if isempty(a)
@@ -328,7 +329,7 @@ if should_I_run_this(list_runs,'iqsPC_an_prec')
     error_  = abs( iqsPC_an_prec.ampl           - amplitude_norm_ref );
     error_f = abs( iqsPC_an_prec.power_prke_iqs - amplitude_norm_ref );
     curr_leg = 'IQS-PC Analytical Prec.';
-    plot(log10(dt),log10(error_),'+-');
+    loglog(dt,error_,'+-');
     a=get(legend(gca),'String');
     p = polyfit(log10(dt),log10(error_),1);
     if isempty(a)
@@ -362,7 +363,7 @@ if should_I_run_this(list_runs,'iqs_theta_prec')
     error_  = abs( iqs_theta_prec.ampl           - amplitude_norm_ref );
     error_f = abs( iqs_theta_prec.power_prke_iqs - amplitude_norm_ref );
     curr_leg = 'IQS-theta-prec';
-    plot(log10(dt),log10(error_),'+-');
+    loglog(dt,error_,'+-');
     a=get(legend(gca),'String');
     p = polyfit(log10(dt),log10(error_),1);
     if isempty(a)
@@ -379,7 +380,7 @@ if should_I_run_this(list_runs,'iqs')
     error_  = abs( iqs.ampl           - amplitude_norm_ref );
     error_f = abs( iqs.power_prke_iqs - amplitude_norm_ref );
     curr_leg = 'IQS';
-    plot(log10(dt),log10(error_),'+-');
+    loglog(dt,error_,'+-');
     a=get(legend(gca),'String');
     p = polyfit(log10(dt),log10(error_),1);
     if isempty(a)
@@ -394,6 +395,7 @@ if should_I_run_this(list_runs,'iqs')
 end
 xlabel('\Delta t')
 ylabel('Error')
+grid on
 hold off;
 
 

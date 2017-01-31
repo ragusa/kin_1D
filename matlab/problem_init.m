@@ -12,9 +12,9 @@ dat.rod_mov.t_beg_1=0.1; dat.rod_mov.t_end_1=0.6;
 dat.rod_mov.t_beg_2=1.0; dat.rod_mov.t_end_2=2.7;
 
 % kinetic parameters
-dat.beta_tot=600e-5;
+dat.beta_tot=600e-5*0;
 dat.lambda=0.1;
-dat.invvel=1.;
+dat.invvel=1e-3;
 
 dat.source_phi = @(x,t) 0;
 dat.source_phi = @(x,t) 0;
@@ -182,24 +182,31 @@ switch problem_ID
         
         syms x t
         syms S_p(x,t) phi(x,t) C(x,t) S_c(x,t)
+        syms varphi(x,t) amp(t) dvarphi(x,t)
         
-%         syms f(t) a(x,t) A(t)
+        syms f(t) a(x,t) A(t)
 %         f(t) = (t+1)^5
 %         a(x,t) = sin(x*(1-x)*(t+1))
 %         A(t) = int(a(x,t),x,0,1)
 %         phi(x,t) = f(t)*a(x,t)/A(t);
-%         f(t) = (t+1)^0;
-%         a(x,t) = x*(1-x)*(x+t);
-%         A(t) = int(a(x,t),x,0,1);
-%         phi(x,t) = f(t)*a(x,t)/A(t);
+        f(t) = (t+1)^1;
+        a(x,t) = x*(1-x)*(x+t);
+        A(t) = int(a(x,t)*a(x,0),x,0,1);
+        phi(x,t) = f(t)*a(x,t)/A(t);
+        varphi(x,t) = a(x,t)/A(t);
+        amp(t) = f(t);
 
-        phi(x,t) = x*(1-x)*(1+t)^3;
-        C(x,t) = x*(1-x)*(1+t)^2;
+%         phi(x,t) = x*(1-x)*(1+t)^3;
+%         C(x,t) = x*(1-x)*(1+t)^2;
+        dvarphi = diff(varphi,t);
         if do_steady
             phi(x,t) = x*(1-x); % use this for steady state
         end        
         npar.phi_exact = matlabFunction(phi);
-        npar.C_exact = matlabFunction(C);
+        npar.shape_exact = matlabFunction(varphi);
+        npar.p_exact = matlabFunction(amp);
+        npar.dshape_exact = matlabFunction(dvarphi);
+%         npar.C_exact = matlabFunction(C);
 %         npar.C_exact = @(x,t) 0.*x.*t;                
 %         npar.C_exact = matlabFunction(C);
         npar.C_exact = @(x,t) 0.0*x.*t;
@@ -212,6 +219,8 @@ switch problem_ID
 %         dat.source_c = matlabFunction(S_c);
         dat.source_c = @(x,t) 0.*x.*t;
         clear x t S_p phi C S_c 
+        clear varphi(x,t) amp(t) dvarphi(x,t)
+        clear f(t) a(x,t) A(t)
     
     
     otherwise
@@ -242,7 +251,7 @@ npar.nel = nbr_refinements_per_region * n_regions ;
 % domain
 npar.x = linspace(0,dat.width,npar.nel+1);
 % polynomial degree
-npar.porder=2;
+npar.porder=1;
 % nbr of dofs per variable
 npar.ndofs = npar.porder*npar.nel+1;
 % n: linear system size

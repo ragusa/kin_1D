@@ -7,8 +7,6 @@ NFId = assemble_mass(dat.nusigf_d,curr_time) /npar.keff;
 if ~npar.set_bc_last
     NFId = apply_BC_mat_only(NFId,npar.add_zero_on_diagonal);
 end
-size(NFId)
-size(phi)
 C = NFId*phi/dat.lambda;
 
 % verif
