@@ -79,7 +79,7 @@ M\&C 2017 - International Conference on Mathematics \& Computational Methods App
 \vspace*{-42pt}
 \begin{strip}
 \centering{\parbox{153mm}{{\bf Abstract} \itshape - 
-This template provides the standard format and styles of the full papers to be submitted to M\&C 2017. It is basically the same as the extended summary template except that the abstract is given and the section numbers are specified.
+The purpose of this paper is to present a new technique in dealing with multi-physics feedback in transient reactor simulations, specifically utilizing the improved quasi-static method (IQS).  the technique involves the addition of an intermediate time scale to evaluate temperature and PRKE parameters.  The theory is that temperature and the parameters are more quickly varying in time than the shape, thus further reducing the number of multi-group diffusion evaluations and execution time for a given accuracy. The technique was implemented into the Rattlesnake/MOOSE framework at Idaho National Laboratory (INL) and tested with the LRA benchmark and the Transient-15 TREAT problem.  The results proved that the addition of this time scale was effective in reducing error and execution time for these problems. 
 }\par}
 \vspace*{14pt}
 \end{strip}
@@ -89,13 +89,14 @@ This template provides the standard format and styles of the full papers to be s
 \section{Introduction}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The purpose of this paper is to introduce several techniques in dealing with multi-physics feedback for transient neutron diffusion calculations.  In dynamic simulations, the neutron temporal distribution in a nuclear core can be strongly influenced by non-neutronics variables, e.g., temperature.The improved quasi-static method (IQS) is an effective technique for simulating the temporal behavior of the neutron flux in reactors. Here, we present a study combining the IQS method with multi-physics solution techniques for coupled transient calculations.
+The purpose of this paper is to introduce several techniques in dealing with multi-physics feedback for transient neutron diffusion calculations.  In dynamic simulations, the neutron temporal distribution in a nuclear core can be strongly influenced by non-neutronics variables, e.g., temperature. The improved quasi-static method (IQS) is an effective technique for simulating the temporal behavior of the neutron flux in reactors. Here, we present a study combining the IQS method with multi-physics solution techniques for coupled transient calculations.
 
 IQS is a transient spatial kinetics method that involves factorizing the neutron flux into a space- and time-dependent component (shape) and a time-dependent component (amplitude) \cite{Ott_1966,Dulla2008}. The technique relies on the shape being less rapidly varying in time compared to the flux, hence requiring fewer shape computations or updates. IQS has largely been applied to neutron kinetics, without other feedback mechanisms. This paper presents the application of multi-physics feedback with IQS and analyzes performance with temperature feedback benchmark problems.
 
 The majority of publicized applications of IQS involve purely neutron kinetics, with several exceptions.  Devooght et. al. discusses the application of the generalized quasi-static method with thermal hydraulic feedback within a newton iteration scheme in \cite{Devooght_1984}. This implementation is not ideally efficient for IQS because, theoretically, the shape is less variant in time than temperature feedback and temperature is more closely coupled with amplitude.  Other references such as \cite{Banfield_2013} and \cite{KIKO3D_2003} apply IQS to multi-physics feedback problems, but are ambiguous on their coupling treatment.
 
 This paper presents a new approach to multi-physics feedback with IQS involving inclusion of feedback mechanisms in the quasi-static process.  The intention of this implementation is to further optimize solution accuracy with computational effort.  In order to evaluate the performance of the methodology, it will be tested with two temperature feedback problems: the LRA benchmark and an example from Transient Reactor Testing Facility (TREAT) reactor.  The performance is quantified by comparing accuracies with traditional implementations of neutron dynamics and IQS.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Theory}
@@ -154,7 +155,7 @@ Where the functional coefficients are calculated using the space-/time-dependent
 \label{eq:l}
 \ee
 
-Solving for the shape in \eqt{eq:shape} can become expensive, especially in two or three dimensions, and even more so when using the transport equations in lieu of the diffusion equations.  Using IQS, one expects the time dependence of the shape to be weaker than that of the flux itself,  thus allowing for larger time step sizes in updating the shape. The PRKE equations form a small ODE system and can be solved using a much smaller time step size. In transients where the shape varies much less than the flux, IQS can thus be very computationally effective. The two-time scale solution process, a micro scale for the PRKE and a macro scale for the shape, is illustrated in \fig{fig:iqsviz}.  
+Solving for the shape in \eqt{eq:shape} can become expensive, especially in two or three dimensions, and even more so when using the transport equations in lieu of the diffusion equations.  Using IQS, one expects the time dependence of the shape to be weaker than that of the flux itself,  thus allowing for larger time step sizes in updating the shape. The PRKE equations form a small ODE system and can be solved using a much smaller time step size. In transients where the shape varies much less than the flux, IQS can be very computationally effective. The two-time scale solution process, a micro scale for the PRKE and a macro scale for the shape, is illustrated in \fig{fig:iqsviz}.  
 
 \begin{figure}[!htbp]
 \includegraphics[width=\linewidth]{IQS_visualization.jpg}
@@ -302,7 +303,7 @@ To test the multiple time scale implementation of IQS, the LRA benchmark was cho
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{LRA Benchmark}
 
-The LRA benchmark is a two-dimensional, two-group neutron diffusion problem with adiabatic heat-up and Doppler feedback in thermal reactor \cite{ANL_BPB}.  It is a super prompt-critical transient. The execution of the benchmark was performed by the Rattlesnake/MOOSE framework at Idaho National Laboratory (INL).  The spacial discretization was performed using continuous finite element method with first order Lagrangian basis functions. The mesh consisted of blocks 11X11 with five uniform refinements, totaling 165,165 elements and 124,609 nodes. Three different temporal techniques were applied: implicit discretization of the flux equation (Brute force), IQS, and IQS-PC. Crank-Nicholson time discretization scheme was used for the diffusion evaluation of each technique.  Third order Runge–Kutta discretization with step doubling adaptation was used for the PRKE evaluation.  The performance of IQS and the temperature updates were measured by its improvement in accuracy at peak power over the Brute force technique.
+The LRA benchmark is a two-dimensional, two-group neutron diffusion problem with adiabatic heat-up and Doppler feedback in thermal reactor \cite{ANL_BPB}.  It is a super prompt-critical transient. The execution of the benchmark was performed by the Rattlesnake/MOOSE framework at Idaho National Laboratory (INL) \cite{wang2013}.  The spacial discretization was performed using continuous finite element method with first order Lagrangian basis functions. The mesh consisted of blocks 11X11 with five uniform refinements, totaling 165,165 elements and 124,609 nodes. Three different temporal techniques were applied: implicit discretization of the flux equation (Brute force), IQS, and IQS-PC. Crank-Nicholson time discretization scheme was used for the diffusion evaluation of each technique.  Third order Runge-Kutta discretization with step doubling adaptation was used for the PRKE evaluation.  The performance of IQS and the temperature updates were measured by its improvement in accuracy at peak power over the Brute force technique.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{LRA Temperature Feedback}
@@ -320,7 +321,7 @@ The heat up is described by \eqt{eq:temp} and the feedback is described by \eqt{
 \label{eq:dopp}
 \ee
 
-In the temperature evaluation, a typical implicit solver would simply use the interpolated flux at end of the temperature time step for the right hand side of the equation.  However, IQS has much more information about the profile of the flux along the time step because of the micro-step amplitude evaluation.  Therefore, it is possible to solve for temperature using a semi-analytical approach, shown by \eqt{eq:temp_an}.
+In the temperature evaluation, a typical implicit solver would simply use the interpolated flux at end of the temperature time step for the right-hand-side of the equation.  However, IQS has much more information about the profile of the flux along the time step because of the micro-step amplitude evaluation.  Therefore, it is possible to solve for temperature using a semi-analytical approach, shown by \eqt{eq:temp_an}.
 
 \be
 T^{n+1} = T^n + \frac{\kappa_f}{\rho c_p} \left(a_2 \varphi^{n+1} + a_1 \varphi^{n}\right)
@@ -341,7 +342,7 @@ Any interpolation of the amplitude along the micro steps is possible for the int
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{LRA Results}
 
-\fig{fig:lra_profile} shows the baseline power and temperature profile for the LRA benchmark.  The baseline results are compared to the results achieved by Sutton and Aviles in \cite{Sutton_1996} and presented in \tbl{tab:base}.  The relative difference in the magnitude of the peak power ($t\approx1.44 s$) from the baseline was used for error comparison.  \fig{fig:lra_bad} is an error convergence plot comparing the three techniques where temperature is evaluated only on the macro step (1 temperature update).  \fig{fig:conv} is an error convergence plot comparing the three techniques where temperature is evaluated 5 times within a macro step (5 temperature updates).  Finally, \fig{fig:mp} shows the affect of various temperature updates. The dashed lines correspond to brute force at different flux step sizes, while the IQS macro step size is kept constant. \\
+\fig{fig:lra_profile} shows the baseline power and temperature profile for the LRA benchmark.  The baseline results are compared to the results achieved by Sutton and Aviles in \cite{Sutton_1996} and presented in \tbl{tab:base}.  The relative difference in the magnitude of the peak power ($t\approx1.44 s$) from the baseline was used for error comparison.  \fig{fig:lra_bad} is an error convergence plot comparing the three techniques where temperature is evaluated only on the macro step (1 temperature update).  \fig{fig:conv} is an error convergence plot comparing the three techniques where temperature is evaluated 5 times within a macro step (5 temperature updates).  Finally, \fig{fig:mp} shows the effect of various temperature updates. The dashed lines correspond to brute force at different flux step sizes, while the IQS macro step size is kept constant. \\
 
 \begin{figure}[htbp!]
 \includegraphics[width=\linewidth]{lra_profile.png}
@@ -389,7 +390,7 @@ Peak Power (W/cm$^3$) 	& 5456 		& 5461 \\
 \label{fig:mp}
 \end{figure}
 
-The convergence plots show that updating temperature and the PRKE parameters within a macro step has a significant affect on the performance of IQS.  With only one update, IQS was only slightly better than brute force, brute force required about 150\% more time steps than IQS for the same error.  While 5 temperature updates showed a much more significant IQS performance, brute force required about 400\% more time steps than IQS for the same error.  \fig{fig:mp} shows that error has a convergent behavior for the number of temperature updates.  This convergence makes sense because temperature can only be so accurate before the error in shape is dominating. Table \ref{tab:ndiff_lra} shows the run time results for the implicit discretization calculations.  Tables \ref{tab:iqs_lra} and \ref{tab:iqspc_lra} present the IQS run-times with various numbers of temperature updates.  These run-times are based on total alive time of the execution where the diffusion evaluation is distributed over 24 processors. \\
+The convergence plots show that updating temperature and the PRKE parameters within a macro step has a significant effect on the performance of IQS.  With only one update, IQS was only slightly better than brute force, brute force required about 150\% more time steps than IQS for the same error.  While 5 temperature updates showed a much more significant IQS performance, brute force required about 400\% more time steps than IQS for the same error.  \fig{fig:mp} shows that error has a convergent behavior for the number of temperature updates.  This convergence makes sense because temperature can only be so accurate before the error in shape is dominating. Table \ref{tab:ndiff_lra} shows the run time results for the implicit discretization calculations.  Tables \ref{tab:iqs_lra} and \ref{tab:iqspc_lra} present the IQS run-times with various numbers of temperature updates.  These run-times are based on total alive time of the execution where the diffusion evaluation is distributed over 24 processors. These run-times show a marginal performance for IQS and impressive performance for IQS P-C.  Some of the execution times were able to decrease from implicit discretization with the same number of macro steps because IQS is better equipped to resolve the nonlinearity between temperature and amplitude. Furthermore, there does seem to be an ideal number of temperature updates to optimize execution time: IQS only needs one and IQS P-C seems to be ideal at 4 updates. This discrepancy in the number of updates shows that a adaptive type implementation of the updates would be ideal, and could enforce a constant error over the transient. \\
 
 \begin{table}[!htbp]
 \begin{center}
@@ -419,16 +420,18 @@ Run  &  $\Delta t$ & Error & Runtime (hr) \\
 	&  Temperature 	&  		& Runtime 	& \% Increase	\\
 Run	&  Updates 	& Error & (hr)		& in Runtime$^*$\\
 \hline
-1	& 1		& 2.612e-3 	&  `&	\\
-2	& 2		& 9.893e-4 	& 	& 	\\
-3 	& 4 	& 5.796e-4 	& 	&	\\
-4 	& 8 	& 4.772e-4 	& 	&	\\
-5 	& 16	& 4.516e-4 	& 	&	\\
+1	& 1		& 2.612e-3 	& 3.96 `& -3.18\%	\\
+2	& 2		& 9.893e-4 	& 6.02	&  47.1\%	\\
+3 	& 4 	& 5.796e-4 	& 7.87	&  92.3\%	\\
+4 	& 8 	& 4.772e-4 	& 12.61	& 207.9\% 	\\
+5 	& 16	& 4.516e-4 	& 22.14	& 440.7\%	\\
 \hline
 \end{tabular}
 %}
 \end{center}
-\caption{Traditional IQS run time results with $\Delta t = 0.004$}
+\vspace{-3mm}
+$^*$ difference in runtime from $\Delta t = 0.004$ implicit discretization 
+\caption{IQS run time results with $\Delta t = 0.004$}
 \label{tab:iqs_lra}
 \end{table}
 
@@ -440,15 +443,17 @@ Run	&  Updates 	& Error & (hr)		& in Runtime$^*$\\
 	&  Temperature 	&  		& Runtime 	& \% Increase	\\
 Run	&  Updates 	& Error & (hr)		& in Runtime$^*$\\
 \hline
-1	& 1		& 3.488e-3 	& 6.24 `&	\\
-2	& 2		& 1.349e-3 	& 6.18	& 	\\
-3 	& 4 	& 9.161e-4 	& 7.05	&	\\
-4 	& 8 	& 8.052e-4 	& 7.72	&	\\
-5 	& 16	& 7.905e-4 	& 10.82	&	\\
+1	& 1		& 3.488e-3 	& 2.91 `& -28.9\%	\\
+2	& 2		& 1.349e-3 	& 3.73	& -9.00\%	\\
+3 	& 4 	& 9.161e-4 	& 3.97	& -3.04\%	\\
+4 	& 8 	& 8.052e-4 	& 5.39	&  31.7\%	\\
+5 	& 16	& 7.905e-4 	& 8.19	&  100\%	\\
 \hline
 \end{tabular}
 %}
 \end{center}
+\vspace{-3mm}
+$^*$ difference in runtime from $\Delta t = 0.004$ implicit discretization 
 \caption{IQS PC run time results with $\Delta t = 0.004$}
 \label{tab:iqspc_lra}
 \end{table}
@@ -456,7 +461,7 @@ Run	&  Updates 	& Error & (hr)		& in Runtime$^*$\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Transient-15 TREAT Example}
 
-Transient 15 is a small core TREAT experiment that was modeled by the Rattlesnake group at INL for demonstrating their model's fidelity to TREAT’s feedback mechanisms. The goal of the simulations is to obtain a power peak whose position and magnitude that sufficiently matches experimental results.  The model involves an 11 energy group diffusion approximation and is discretized into 355,712 hexahedral continuous finite elements totaling 4,109,523 degrees of freedom.  The three second transient involves a linear ramp decrease in boron content throughout the fuel region.  \fig{fig:Tran15} shows a visualization of the flux profile within the core, hidden is the massive amount of graphite surrounding the core.   
+Transient 15 is a small core TREAT experiment that was modeled by the Rattlesnake group at INL for demonstrating their model's fidelity to TREAT's feedback mechanisms. The goal of the simulations is to obtain a power peak whose position and magnitude that sufficiently matches experimental results.  The model involves an 11-energy group diffusion approximation and is discretized into 355,712 hexahedral continuous finite elements totaling 4,109,523 degrees of freedom.  The three second transient involves a linear ramp decrease in boron content throughout the fuel region.  \fig{fig:Tran15} shows a visualization of the flux profile within the core, hidden is the massive amount of graphite surrounding the core.   
 
 \begin{figure}[htbp!]
 \centering
@@ -484,7 +489,7 @@ c_p = -5.8219e-10T^3 - 4.3694e-7T^2 + 2.8369e-3T -1.009e-2
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Transient-15 Results}
 
-\fig{fig:Tran15_profile} shows the baseline power and temperature profile for the Transient-15 example.
+In order to test the temperature feedback treatment, six different scenarios were run: a baseline with a very small time step, implicit discretization, IQS with one and 5 temperature updates per macro step, and IQS P-C with one and 5 updates.  \fig{fig:Tran15_profile} shows the baseline power and temperature profile for the Transient-15 example.  \tbl{tab:tran15} shows the error and runtime results.
 
 \begin{figure}[htbp!]
 \centering
@@ -493,12 +498,42 @@ c_p = -5.8219e-10T^3 - 4.3694e-7T^2 + 2.8369e-3T -1.009e-2
 \label{fig:Tran15_profile}
 \end{figure}
 
+\begin{table*}[htb]
+\begin{center}
+%\resizebox{\linewidth}{!}{
+\begin{tabular}{|l|cccccc|}
+\hline
+ & No.	& Max &	Time at Max &	Max Average &	\% Increase &	Max Power \\
+Method & of Steps &	Power (W) &	Power (s) &	Temperature (K) & Runtime$^*$ & Error \\
+\hline
+Baseline 			& 3000 	& 3.504e+08 & 1.9 	& 370 &	---		&	---		\\
+Implicit Dis. 		& 65 	& 3.424e+08 & 1.875 & 370 &	---		&	0.0230 	\\
+IQS 				& 61 	& 3.527e+08 & 1.9 	& 371 &	 17.9\%	&	0.00643 \\
+IQS (5 updates) 	& 61 	& 3.514e+08 & 1.9 	& 371 &	-19.2\%	&	0.00339	\\
+IQS P-C 			& 66 	& 4.340e+08 & 1.9 	& 374 &	 20.3\%	&	0.238	\\
+IQS P-C (5 updates) & 66 	& 3.537e+08 & 1.875 & 372 &  81.9\%	&	0.00935	\\
+\hline
+\end{tabular}
+%}
+\end{center}
+\vspace{-3mm}
+$^*$ difference in runtime from implicit discretization 
+\caption{Transient-15 Error and Runtime Results}
+\label{tab:tran15}
+\end{table*}
+
+The results from \tbl{tab:tran15} prove the performance of IQS with the temperature updates is slightly more ambiguous than the results from the LRA.  IQS with 5 temperature updates shows a performance that reduces the error to approximately a tenth of the implicit discretization error, and reduces the execution time by about 20\%.  This shows that the 5 updates were able to resolve the nonlinearity between flux and temperature with significantly less diffusion evaluations.  However, IQS P-C did not perform nearly as well and proved almost detrimental to the problem.  With only one update, IQS P-C achieved a less accurate solution and increased the execution time.  Only with 5 updates was the error reduced from the implicit discretization error, but the increase in run-time was significant. \\
+
+
+%\newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions}
 
-IQS is a powerful tool for reactor simulation, it has the capability of greatly reducing computation time while retaining accuracy of relevant quantities.  The goal of this summary is to demonstrate IQS's performance with multi-physics simulations, as well as techniques to improve its performance.  The technique focused on incorporating a new time scale in IQS for feedback quantities and PRKE parameters.  The results when IQS is applied to the temperature feedback model of the LRA benchmark showed that incorporating a intermediate time scale for temperature has significant impact on IQS performance.
+IQS is a powerful tool for reactor simulation, it has the capability of greatly reducing computation time while retaining accuracy of relevant quantities.  The goal of this paper is to demonstrate IQS's performance with multi-physics simulations, as well as techniques to improve its performance.  The technique focused on incorporating a new time scale in IQS for feedback quantities and PRKE parameters. The methodology is that for problems involving prompt-critical transients, temperature and its feedback to amplitude is more quickly varying than shape, but less time-dependent than amplitude itself.  Therefore, an intermediate time scale was implemented, as well as a fixed-point iteration between amplitude and temperature.  The attempt is to reduce the number of multi-group diffusion evaluations in a transient by reducing the number of time steps required for a given accuracy, and reduce the number of nonlinear iterations between flux/shape and temperature.  Since multi-group diffusion evaluations are significantly more computationally expensive than temperature and amplitude evaluations, this result will show a decrease in execution time for a given accuracy.
 
-The full paper version will include time adaptive simulations for multiphysics dynamic transients: LRA benchmark, a full core TREAT model, and the Lady Godiva benchmark with structural feedback \cite{CritSafetyHandbook}. Performance of the IQS method with intermediate time scale for physics feedback will be compared to that of an implicit discretization of the flux equations with feedback. 
+Two examples were chosen to test the implementation of the temperature feedback treatment: the LRA benchmark and the Transient-15 TREAT problem.  Both problems involve adiabatic heat up of the core, the LRA has a constant specific heat, while Transient-15's is dependent on temperature.  The LRA showed clear results concluding a marginal improvement in performance for IQS and a impressive performance for IQS P-C.  The results proved that the updates improved the performance for both IQS and IQS P-C, but optimization of the number of updates is important, possibly requiring adaptation.  The implementation to the Transient-15 problem gave more ambiguous results.  IQS proved to significantly benefit from the updates, increasing accuracy and decreasing execution time.  IQS P-C was able to reduce the error with the updates, but the execution time was significantly greater.
+
+In conclusion, the multi-physics treatment with IQS presented in this paper is worth further investigation, optimization, and implementation into other transient reactor problems with other feedback mechanisms.   
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\appendix
