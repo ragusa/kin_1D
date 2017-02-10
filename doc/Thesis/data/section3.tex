@@ -66,9 +66,80 @@ Region & Material Property & 0.0 s & 0.1 s & 0.6 s & 1.0 s & 1.7 s \\
 \end{center}
 \end{table}
 
+\fig{fig:1D_power} shows the resulting baseline relative power profile of the one-dimensional problem.  The baseline was computed using MATLAB's ode15s function which is a embedded Runge-Kutta time adaptive method for stiff problems, the error tolerance was set very tightly ($10^{-12}$).  This baseline computation is used to compute the error of the other time discretization methods.  \fig{fig:1D_shape} shows the shape profile at various times during the transient.  It is apparent that the shape is very time-dependent, so it is expected that IQS has marginal accuracy gain for a given time step.
+
+\begin{figure}[!htbp]
+\begin{center}
+\includegraphics[width=\linewidth]{\FiguresDir/1D_power_base.png}
+\caption{Baseline power profile of 1D slab}
+\label{fig:1D_power}
+\end{center}
+\end{figure}
+
+\begin{figure}[!htbp]
+\begin{center}
+\includegraphics[width=\linewidth]{\FiguresDir/1D_shape.png}
+\caption{Flux profile of 1D slab at various times}
+\label{fig:1D_shape}
+\end{center}
+\end{figure}
+
 \subsection{IQS Iteration Convergence}
 
 \subsection{Time Step Convergence}
+
+In order to evaluate the performance and error convergence of IQS, the slab was simulated with varying time discretization methods and time step sizes.  \fig{1D_conv} shows these convergence plots of five different discretization methods for implicit discretization, IQS, and IQS P-C.  These plots were generated from the results using the MATLAB prototype program.  The plots show that IQS and IQS P-C are convergent through fourth order BDF.  Third order SDIRK did not show third order convergence, but, through extensive testing, SDIRK shows non-convergent behavior for too stiff of problems.  
+
+There are higher discretization order that can be tested, but most practical application do not go beyond second order.  This paper shows an analysis of the first publicized application of IQS with higher than second order discretization, which exposed unforeseen properties of IQS.  When using higher order techniques, the interpolation of PRKE parameters and shape for precursor integration become important to consider.  Every other application that was investigated linearly interpolates parameters for the PRKE evaluation.  Similarly, the shape used for the integration of the ODE for the precursors needs to have higher order interpolation to preserve high order error convergence.  This interpolation was done using Lagragian and Hermite methods, both leading to successful convergence.
+
+The 1D slab problem was also applied to the Rattlesnake implementation of IQS.  \fig{fig:1D_conv_Rat} shows the error convergence for implicit Euler and BDF2 discretization of the three methods.  The results differ slightly from the prototype, especially in the fact that IQS P-C performs better than IQS.  Since Rattlesnake uses a PJFNK solver for the FEM model, number of time steps isn't strictly proportional to the execution time.  \fig{fig:1D_conv_lin} shows the error of the three methods as compared to the number of linear GMRES iterations, which is a better mark for comparison in computation time.  This figure shows that IQS performs worse than implicit discretization for most time-step sizes, but IQS P-C performs significantly better.  This is due to the fact that IQS needs to iterate between amplitude and shape to resolve its nonlinearity.
+
+\begin{figure}[!htbp]
+\centering
+\begin{subfigure}[b]{0.49\textwidth}
+\centering
+\includegraphics[width=\linewidth]{\FiguresDir/1D_conv_IE.png}
+\caption{Implicit Euler}
+\end{subfigure}
+\begin{subfigure}[b]{0.49\textwidth}
+\centering
+\includegraphics[width=\linewidth]{\FiguresDir/1D_conv_BDF2.png}
+\caption{BDF2}
+\end{subfigure}
+\begin{subfigure}[b]{0.49\textwidth}
+\centering
+\includegraphics[width=\linewidth]{\FiguresDir/1D_conv_BDF3.png}
+\caption{BDF3}
+\end{subfigure}
+\begin{subfigure}[b]{0.49\textwidth}
+\centering
+\includegraphics[width=\linewidth]{\FiguresDir/1D_conv_BDF4.png}
+\caption{BDF4}
+\end{subfigure}
+\begin{subfigure}[b]{0.49\textwidth}
+\centering
+\includegraphics[width=\linewidth]{\FiguresDir/1D_conv_SDIRK33.png}
+\caption{SDIRK33}
+\end{subfigure}
+\caption{Error convergence plots of implicit discretization, IQS, and IQS P-C with various time discretization schemes}
+\label{fig:1D_conv}
+\end{figure}
+
+\begin{figure}[!htbp]
+\begin{center}
+\includegraphics[width=0.75\linewidth]{\FiguresDir/1D_conv_Rat.png}
+\caption{Error convergence plots of implicit discretization, IQS, and IQS P-C from Rattlesnake implementation}
+\label{fig:1D_conv_Rat}
+\end{center}
+\end{figure}
+
+\begin{figure}[!htbp]
+\begin{center}
+\includegraphics[width=0.75\linewidth]{\FiguresDir/1D_conv_lin.png}
+\caption{Error convergence plots of implicit discretization, IQS, and IQS P-C vs. number of GMRES iterations}
+\label{fig:1D_conv_lin}
+\end{center}
+\end{figure}
 
 \pagebreak
 \section{TWIGL Benchmark}
