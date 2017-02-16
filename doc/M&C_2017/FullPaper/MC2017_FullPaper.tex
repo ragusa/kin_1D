@@ -158,6 +158,7 @@ Where the functional coefficients are calculated using the space-/time-dependent
 Solving for the shape in \eqt{eq:shape} can become expensive, especially in two or three dimensions, and even more so when using the transport equations in lieu of the diffusion equations.  Using IQS, one expects the time dependence of the shape to be weaker than that of the flux itself,  thus allowing for larger time step sizes in updating the shape. The PRKE equations form a small ODE system and can be solved using a much smaller time step size. In transients where the shape varies much less than the flux, IQS can be very computationally effective. The two-time scale solution process, a micro scale for the PRKE and a macro scale for the shape, is illustrated in \fig{fig:iqsviz}.  
 
 \begin{figure}[!htbp]
+\centering
 \includegraphics[width=\linewidth]{IQS_visualization.jpg}
 \caption{IQS method visualization}
 \label{fig:iqsviz}
@@ -198,6 +199,7 @@ physics components (temperature). Figure~\ref{fig:time} shows a such a solution 
 
 \begin{figure}[htbp!]
 \centering
+\resizebox{\linewidth}{!}{%
 \begin{tikzpicture}[scale=1]
 \tikzset{font={\footnotesize}}
 %Shape
@@ -246,7 +248,7 @@ physics components (temperature). Figure~\ref{fig:time} shows a such a solution 
 \draw (6,1) edge[out=-135,in=135,->,thick] node[below,sloped] {$\rho$} (6,0);
 \draw (6,0) edge[out=45,in=0,->,thick] node[below,sloped] {$p, \frac{dp}{dt}$} (6,2);
 
-\end{tikzpicture}
+\end{tikzpicture}}
 \caption{Time scales and process of IQS}
 \label{fig:time}
 \end{figure}
@@ -293,11 +295,29 @@ The top time scale represents a shape diffusion evaluation on a macro step, the 
 \label{fig:proc}
 \end{figure}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Dynamical Time Scale Analysis}
+\label{sect:tau}
+
+The temporal variance of flux, shape, temperature, and amplitude can be quantified by defining a dynamical time scale ($\tau$) for each physics.  A small value $\tau$ means the variable is quickly varying in time and consequently needs relatively small time steps for accuracy, vice-versa for large $\tau$.  The general definition of $tau$ is defined by \eqt{eq:tau1}, where $\theta$ is the variable of interest.  Since each variable in discretized in time, a finite difference approximation will be made for the $\frac{d\theta}{dt}$ term and the average between the two corresponding time steps will be made for the $\frac{1}{\theta}$ term.  Additionally, $\tau$ is spatially dependent for flux and temperature,  but only the time dependent behaivior of this quantity is of interest.  Therefore, the $L^2$ norm of each term will be used to compute the approximate time scale ($\tilde{\tau}$), formally defined by \eqt{eq:tau2}.  $\theta$ represents a summation over groups for flux and shape.
+
+\be
+\tau = \frac{1}{\left|\frac{1}{\theta}\frac{d\theta}{dt}\right|}
+\label{eq:tau1}
+\ee
+
+\be
+\tilde{\tau}_{n+1} = \frac{\norm{\theta_{n+1} + \theta_{n}}/2}{\norm{\theta_{n+1} - \theta_{n}}/\Delta t}
+\label{eq:tau2}
+\ee
+
+According to the a priori hypothesis from previous sections, $\tau$ is large for shape, somewhat smaller for temperature, and very small for amplitude and flux.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results and Analysis}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+.
 To test the multiple time scale implementation of IQS, the LRA benchmark was chosen for reference and a TREAT example was employed. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -337,7 +357,7 @@ a_2 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)p(t')dt'
 \label{eq:a2}
 \ee
 
-Any interpolation of the amplitude along the micro steps is possible for the integration, this application uses piece-wise linear.
+Any interpolation of the amplitude function $p(t)$ along the micro steps is possible to carry out the above macro-step integrals. Here, we use piece-wise linear interpolation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{LRA Results}
@@ -345,6 +365,7 @@ Any interpolation of the amplitude along the micro steps is possible for the int
 \fig{fig:lra_profile} shows the baseline power and temperature profile for the LRA benchmark.  The baseline results are compared to the results achieved by Sutton and Aviles in \cite{Sutton_1996} and presented in \tbl{tab:base}.  The relative difference in the magnitude of the peak power ($t\approx1.44 s$) from the baseline was used for error comparison.  \fig{fig:lra_bad} is an error convergence plot comparing the three techniques where temperature is evaluated only on the macro step (1 temperature update).  \fig{fig:conv} is an error convergence plot comparing the three techniques where temperature is evaluated 5 times within a macro step (5 temperature updates).  Finally, \fig{fig:mp} shows the effect of various temperature updates. The dashed lines correspond to brute force at different flux step sizes, while the IQS macro step size is kept constant. \\
 
 \begin{figure}[htbp!]
+\centering
 \includegraphics[width=\linewidth]{lra_profile.png}
 \caption{LRA baseline temperature and power profile}
 \label{fig:lra_profile}
@@ -357,7 +378,7 @@ Any interpolation of the amplitude along the micro steps is possible for the int
 \hline
 Calculation  &  Baseline & Sutton (Spandex 1936) \\
 \hline
-No. of Mesh 			& 3872 		& 1936 \\
+No. of Spatial Nodes	& 3872 		& 1936 \\
 Eigenvalue 				& 0.99637	& 0.99637 \\
 No. of Time Steps 		& 6000 		& 23,890 \\
 Time to Peak Power (s) 	& 1.441 	& 1.441 \\
@@ -371,6 +392,7 @@ Peak Power (W/cm$^3$) 	& 5456 		& 5461 \\
 \end{table}
 
 \begin{figure}[!htpb]
+\centering
 \includegraphics[width=\linewidth]{lra_bad.jpg}
 \caption{LRA convergence plots with only one temperature update each macro step}
 \label{fig:lra_bad}
@@ -390,25 +412,25 @@ Peak Power (W/cm$^3$) 	& 5456 		& 5461 \\
 \label{fig:mp}
 \end{figure}
 
-The convergence plots show that updating temperature and the PRKE parameters within a macro step has a significant effect on the performance of IQS.  With only one update, IQS was only slightly better than brute force, brute force required about 150\% more time steps than IQS for the same error.  While 5 temperature updates showed a much more significant IQS performance, brute force required about 400\% more time steps than IQS for the same error.  \fig{fig:mp} shows that error has a convergent behavior for the number of temperature updates.  This convergence makes sense because temperature can only be so accurate before the error in shape is dominating. Table \ref{tab:ndiff_lra} shows the run time results for the implicit discretization calculations.  Tables \ref{tab:iqs_lra} and \ref{tab:iqspc_lra} present the IQS run-times with various numbers of temperature updates.  These run-times are based on total alive time of the execution where the diffusion evaluation is distributed over 24 processors. These run-times show a marginal performance for IQS and impressive performance for IQS P-C.  Some of the execution times were able to decrease from implicit discretization with the same number of macro steps because IQS is better equipped to resolve the nonlinearity between temperature and amplitude. Furthermore, there does seem to be an ideal number of temperature updates to optimize execution time: IQS only needs one and IQS P-C seems to be ideal at 4 updates. This discrepancy in the number of updates shows that a adaptive type implementation of the updates would be ideal, and could enforce a constant error over the transient. \\
+The convergence plots show that updating temperature and the PRKE parameters within a macro step has a significant effect on the performance of IQS.  With only one update, IQS was only slightly better than brute force, brute force required about 150\% more time steps than IQS for the same error.  While 5 temperature updates showed a much more significant IQS performance, brute force required about 400\% more time steps than IQS for the same error.  \fig{fig:mp} shows that error has a convergent behavior for the number of temperature updates.  This convergence makes sense because temperature can only be so accurate before the error in shape is dominating. Table \ref{tab:ndiff_lra} shows the run time results for the brute force calculations.  Tables \ref{tab:iqs_lra} and \ref{tab:iqspc_lra} present the IQS run-times with various numbers of temperature updates.  These run-times are based on total alive time of the execution where the diffusion evaluation is distributed over 24 processors. These run-times show a marginal performance for IQS and impressive performance for IQS P-C.  Some of the execution times were able to decrease from brute force with the same number of macro steps because IQS is better equipped to resolve the nonlinearity between temperature and amplitude. Furthermore, there does seem to be an ideal number of temperature updates to optimize execution time: IQS only needs one and IQS P-C seems to be ideal at 4 updates. This discrepancy in the number of updates shows that a adaptive type implementation of the updates would be ideal, and could enforce a constant error over the transient. It is also important to compare the error of brute force with IQS at one update and IQS P-C at 4 updates.  IQS shows an error comparable to brute force at $\Delta t = 0.002$, signifying an actual increase in runtime by -34.1\%.  IQS P-C shows an error less than brute force at $\Delta t = 0.002$, signifying an actual increase in runtime by <-34.9\%. \\
 
 \begin{table}[!htbp]
 \begin{center}
 %\resizebox{\linewidth}{!}{
-\begin{tabular}{|l|l|cc|}
+\begin{tabular}{|l|l|ccc|}
 \hline
-Run  &  $\Delta t$ & Error & Runtime (hr) \\
+Run  &  $\Delta t$ & Error & Runtime (hr) & Linear Iter.\\
 \hline
-1	& 4.0e-3	& 1.407e-2 	& 4.11	\\
-2	& 2.0e-3	& 3.174e-3 	& 5.68 	\\
-3 	& 1.0e-3 	& 7.690e-4 	& 5.55	\\
-4 	& 5.0e-4 	& 1.892e-4 	& 13.57	\\
-5 	& 2.5e-4	& 4.590e-5 	& 23.81	\\
+1	& 4.0e-3	& 1.407e-2 	& 4.11	& 7.13e4	\\
+2	& 2.0e-3	& 3.174e-3 	& 6.01	& 9.49e4 	\\
+3 	& 1.0e-3 	& 7.690e-4 	& 10.38	& 1.45e5	\\
+4 	& 5.0e-4 	& 1.892e-4 	& 21.91	& 2.08e5	\\
+5 	& 2.5e-4	& 4.590e-5 	& 25.23	& 3.16e5	\\
 \hline
 \end{tabular}
 %}
 \end{center}
-\caption{Implicit discretization run time results}
+\caption{Brute force run time results}
 \label{tab:ndiff_lra}
 \end{table}
 
@@ -420,7 +442,7 @@ Run  &  $\Delta t$ & Error & Runtime (hr) \\
 	&  Temperature 	&  		& Runtime 	& \% Increase	\\
 Run	&  Updates 	& Error & (hr)		& in Runtime$^*$\\
 \hline
-1	& 1		& 2.612e-3 	& 3.96 `& -3.18\%	\\
+1	& 1		& 2.612e-3 	& 3.96 	& -3.18\%	\\
 2	& 2		& 9.893e-4 	& 6.02	&  47.1\%	\\
 3 	& 4 	& 5.796e-4 	& 7.87	&  92.3\%	\\
 4 	& 8 	& 4.772e-4 	& 12.61	& 207.9\% 	\\
@@ -430,7 +452,7 @@ Run	&  Updates 	& Error & (hr)		& in Runtime$^*$\\
 %}
 \end{center}
 \vspace{-3mm}
-$^*$ difference in runtime from $\Delta t = 0.004$ implicit discretization 
+$^*$ difference in runtime from $\Delta t = 0.004$ brute force 
 \caption{IQS run time results with $\Delta t = 0.004$}
 \label{tab:iqs_lra}
 \end{table}
@@ -443,7 +465,7 @@ $^*$ difference in runtime from $\Delta t = 0.004$ implicit discretization
 	&  Temperature 	&  		& Runtime 	& \% Increase	\\
 Run	&  Updates 	& Error & (hr)		& in Runtime$^*$\\
 \hline
-1	& 1		& 3.488e-3 	& 2.91 `& -28.9\%	\\
+1	& 1		& 3.488e-3 	& 2.91 	& -28.9\%	\\
 2	& 2		& 1.349e-3 	& 3.73	& -9.00\%	\\
 3 	& 4 	& 9.161e-4 	& 3.97	& -3.04\%	\\
 4 	& 8 	& 8.052e-4 	& 5.39	&  31.7\%	\\
@@ -453,15 +475,25 @@ Run	&  Updates 	& Error & (hr)		& in Runtime$^*$\\
 %}
 \end{center}
 \vspace{-3mm}
-$^*$ difference in runtime from $\Delta t = 0.004$ implicit discretization 
+$^*$ difference in runtime from $\Delta t = 0.004$ brute force 
 \caption{IQS PC run time results with $\Delta t = 0.004$}
 \label{tab:iqspc_lra}
 \end{table}
 
+The performance of the quasi-statics can also be explained by the computation of the dynamical time scale described by \sct{sect:tau}.  \fig{fig:LRAtc} shows the time scale profile over the transient, computed using \eqt{eq:tau2}.  This plot shows that in a brute force simulation, the flux dominates the time dependent behaivior, while temperature lags in its variance for the majority of the transient.  In an IQS simulation, the time scale behavior of amplitude almost exactly matches the flux, while shape is more varying than temperature throughout most of the transient.  The large $\tau$ for temperature during the beginning of the transient shows that adaptation of the number of updates is important; computational expense on temperature evaluations is being wasted during this time.
+
+\begin{figure}[htbp!]
+\centering
+\includegraphics[width=\linewidth]{time_constant_lra.png}
+\caption{Dynamical time scale for LRA benchmark}
+\label{fig:LRAtc}
+\end{figure}
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Transient-15 TREAT Example}
 
-Transient 15 is a small core TREAT experiment that was modeled by the Rattlesnake group at INL for demonstrating their model's fidelity to TREAT's feedback mechanisms. The goal of the simulations is to obtain a power peak whose position and magnitude that sufficiently matches experimental results.  The model involves an 11-energy group diffusion approximation and is discretized into 355,712 hexahedral continuous finite elements totaling 4,109,523 degrees of freedom.  The three second transient involves a linear ramp decrease in boron content throughout the fuel region.  \fig{fig:Tran15} shows a visualization of the flux profile within the core, hidden is the massive amount of graphite surrounding the core.   
+Transient 15 is a test case based on the TREAT core. The purpose of the original creation of this simulation in Rattlesnake is to test the model's fidelity with the thermal feedback of TREAT, but it is not meant to exactly match any previous experiments.  Nevertheless, the goal of the following simulations is to test IQS and its time scale based treatment of temperature with a more complex model. Transient 15 involves an 11-energy group diffusion approximation and is discretized into $355,712$ hexahedral continuous finite elements totaling $4,109,523$ degrees of freedom.  The three-second transient involves a linear ramp decrease in the absorption cross section throughout the control rod region. \fig{fig:Tran15} shows a visualization of the flux profile within the core, hidden is the massive amount of graphite surrounding the core.   
 
 \begin{figure}[htbp!]
 \centering
@@ -489,7 +521,7 @@ c_p = -5.8219e-10T^3 - 4.3694e-7T^2 + 2.8369e-3T -1.009e-2
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Transient-15 Results}
 
-In order to test the temperature feedback treatment, six different scenarios were run: a baseline with a very small time step, implicit discretization, IQS with one and 5 temperature updates per macro step, and IQS P-C with one and 5 updates.  \fig{fig:Tran15_profile} shows the baseline power and temperature profile for the Transient-15 example.  \tbl{tab:tran15} shows the error and runtime results.
+In order to test the temperature feedback treatment, six different scenarios were run: a baseline with a very small time step, brute force, IQS with one and 5 temperature updates per macro step, and IQS P-C with one and 5 updates.  \fig{fig:Tran15_profile} shows the baseline power and temperature profile for the Transient-15 example.  \tbl{tab:tran15} shows the error and runtime results.
 
 \begin{figure}[htbp!]
 \centering
@@ -501,28 +533,35 @@ In order to test the temperature feedback treatment, six different scenarios wer
 \begin{table*}[htb]
 \begin{center}
 %\resizebox{\linewidth}{!}{
-\begin{tabular}{|l|cccccc|}
+\begin{tabular}{|l|ccccccc|}
 \hline
- & No.	& Max &	Time at Max &	Max Average &	\% Increase &	Max Power \\
-Method & of Steps &	Power (W) &	Power (s) &	Temperature (K) & Runtime$^*$ & Error \\
+ & No.	& Max &	Time at Max &	Max Average &	\% Increase &	Max Power & Linear	\\
+Method & of Steps &	Power (W) &	Power (s) &	Temperature (K) & Runtime$^*$ & Error & Iterations \\
 \hline
-Baseline 			& 3000 	& 3.504e+08 & 1.9 	& 370 &	---		&	---		\\
-Implicit Dis. 		& 65 	& 3.424e+08 & 1.875 & 370 &	---		&	0.0230 	\\
-IQS 				& 61 	& 3.527e+08 & 1.9 	& 371 &	 17.9\%	&	0.00643 \\
-IQS (5 updates) 	& 61 	& 3.514e+08 & 1.9 	& 371 &	-19.2\%	&	0.00339	\\
-IQS P-C 			& 66 	& 4.340e+08 & 1.9 	& 374 &	 20.3\%	&	0.238	\\
-IQS P-C (5 updates) & 66 	& 3.537e+08 & 1.875 & 372 &  81.9\%	&	0.00935	\\
+Baseline 			& 3000 	& 3.5039e+08 & 1.901 & 371 &	---		&	---		 & ---		\\
+Brute Force 		& 300 	& 3.5011e+08 & 1.90  & 371 &	---		&	7.875e-4 & 41020	\\
+IQS 				& 300	& 3.5036e+08 & 1.90  & 371 & -11.9\%	&	8.385e-5 & 23949	\\
+IQS (5 updates) 	& 300 	& 3.5040e+08 & 1.90  & 371 &  49.7\%	&	3.687e-5 & 24035	\\
+IQS P-C 			& 66 	& 4.3400e+08 & 1.90  & 374 &  20.3\%	&	0.238	 & 12318	\\
+IQS P-C (5 updates) & 66 	& 3.5370e+08 & 1.90  & 372 &  81.9\%	&	0.00935	 & 15598	\\
 \hline
 \end{tabular}
 %}
 \end{center}
 \vspace{-3mm}
-$^*$ difference in runtime from implicit discretization 
+$^*$ difference in runtime from brute force 
 \caption{Transient-15 Error and Runtime Results}
 \label{tab:tran15}
 \end{table*}
 
-The results from \tbl{tab:tran15} prove the performance of IQS with the temperature updates is slightly more ambiguous than the results from the LRA.  IQS with 5 temperature updates shows a performance that reduces the error to approximately a tenth of the implicit discretization error, and reduces the execution time by about 20\%.  This shows that the 5 updates were able to resolve the nonlinearity between flux and temperature with significantly less diffusion evaluations.  However, IQS P-C did not perform nearly as well and proved almost detrimental to the problem.  With only one update, IQS P-C achieved a less accurate solution and increased the execution time.  Only with 5 updates was the error reduced from the implicit discretization error, but the increase in run-time was significant. \\
+The results from \tbl{tab:tran15} show similar performance of IQS with the temperature updates as the LRA.  IQS with 1 temperature update shows a performance that reduces the error to approximately a tenth of the brute force error, and reduces the execution time by about 12\%.  This shows that IQS was able to resolve the nonlinearity between flux and temperature with significantly less diffusion evaluations.  Having IQS with 5 updates significantly increased the execution time for the same time step, but the error was reduced.  Comparing this error to a similar brute force error at a smaller time step could show that the runtime was reduced.  However, IQS P-C did not perform nearly as well and proved almost detrimental to the problem.  With only one update, IQS P-C achieved a less accurate solution and increased the execution time.  Only with 5 updates was the error reduced from the brute force error, but the increase in run-time was significant. The transient profile of the varibles' dynamical time scales is shown in \fig{fig:tran15tc}.  This plot exhibits a similar response to that of the LRA. The response of temperature shows that the updates are a computational frugal treatment of the feedback and adaptation of the number of updates is vital for optimization. \\
+
+\begin{figure}[htbp!]
+\centering
+\includegraphics[width=\linewidth]{time_constant_tran15.png}
+\caption{Dynamical time scale for the Transient 15 example}
+\label{fig:tran15tc}
+\end{figure}
 
 
 %\newpage
