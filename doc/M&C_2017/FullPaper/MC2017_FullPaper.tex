@@ -317,8 +317,8 @@ According to the a priori hypothesis from previous sections, $\tau$ is large for
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results and Analysis}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-.
-To test the multiple time scale implementation of IQS, the LRA benchmark was chosen for reference and a TREAT example was employed. 
+
+To test the multiple time scale implementation of IQS, the LRA benchmark was chosen for reference and a TREAT example was employed. The performance of the implementation is evaluated comparing errors in power at peak points with brute force and IQS without quasi-static temperature treatment.  Execution times were also compared at given error values to judge the computational efficiency of adding more temperature evaluations.  These examples were executed using the MOOSE/Rattlesnake framework at INL, which uses a PJFNK (preconditioned Jacobian-free Newton Krylov) method to evaluate the nonlinear problems.  Each time step evaluation consists of three iteration loops: GMRES iterations for the linear system, Newton iterations for the temperature-flux nonlinearity, and Picard iterations for the shape-amplitude nonlinearity.  Another judge of computational expense is the total number of linear iterations during the execution, these are shown specifically for the brute force LRA simulations and all the simulations for the TREAT example.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{LRA Benchmark}
@@ -362,13 +362,20 @@ Any interpolation of the amplitude function $p(t)$ along the micro steps is poss
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{LRA Results}
 
-\fig{fig:lra_profile} shows the baseline power and temperature profile for the LRA benchmark.  The baseline results are compared to the results achieved by Sutton and Aviles in \cite{Sutton_1996} and presented in \tbl{tab:base}.  The relative difference in the magnitude of the peak power ($t\approx1.44 s$) from the baseline was used for error comparison.  \fig{fig:lra_bad} is an error convergence plot comparing the three techniques where temperature is evaluated only on the macro step (1 temperature update).  \fig{fig:conv} is an error convergence plot comparing the three techniques where temperature is evaluated 5 times within a macro step (5 temperature updates).  Finally, \fig{fig:mp} shows the effect of various temperature updates. The dashed lines correspond to brute force at different flux step sizes, while the IQS macro step size is kept constant. \\
+\fig{fig:lra_profile} shows the baseline power and temperature transient profile for the LRA benchmark, and \fig{fig:lra_profile2D} shows the spacial power distribution at the peak power.  The baseline results are compared to the results achieved by Sutton and Aviles in \cite{Sutton_1996} and presented in \tbl{tab:base}.  The relative difference in the magnitude of the peak power ($t\approx1.44 s$) from the baseline was used for error comparison.  \fig{fig:lra_bad} is an error convergence plot comparing the three techniques where temperature is evaluated only on the macro step (1 temperature update).  \fig{fig:conv} is an error convergence plot comparing the three techniques where temperature is evaluated 5 times within a macro step (5 temperature updates).  Finally, \fig{fig:mp} shows the effect of various temperature updates. The dashed lines correspond to brute force at different flux step sizes, while the IQS macro step size is kept constant. \\
 
 \begin{figure}[htbp!]
 \centering
 \includegraphics[width=\linewidth]{lra_profile.png}
 \caption{LRA baseline temperature and power profile}
 \label{fig:lra_profile}
+\end{figure}
+
+\begin{figure}[htbp!]
+\centering
+\includegraphics[width=\linewidth]{lra_profile2D.png}
+\caption{LRA baseline spacial power profile at $t=1.44 s$}
+\label{fig:lra_profile2D}
 \end{figure}
 
 \begin{table}[!htbp]
