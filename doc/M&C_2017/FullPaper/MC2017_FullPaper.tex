@@ -79,7 +79,8 @@ M\&C 2017 - International Conference on Mathematics \& Computational Methods App
 \vspace*{-42pt}
 \begin{strip}
 \centering{\parbox{153mm}{{\bf Abstract} \itshape - 
-The purpose of this paper is to present a new technique in dealing with multi-physics feedback in transient reactor simulations, specifically utilizing the improved quasi-static method (IQS).  the technique involves the addition of an intermediate time scale to evaluate temperature and PRKE parameters.  The theory is that temperature and the parameters are more quickly varying in time than the shape, thus further reducing the number of multi-group diffusion evaluations and execution time for a given accuracy. The technique was implemented into the Rattlesnake/MOOSE framework at Idaho National Laboratory (INL) and tested with the LRA benchmark and the Transient-15 TREAT problem.  The results proved that the addition of this time scale was effective in reducing execution time for these problems while maintaining accuracy. 
+In this paper, we  present a tightly coupled technique to solve multi-physics transient reactor simulations, whereby the neutronic solution  is based on the improved quasi-static method (IQS).  In IQS, the flux is typically factored into components, shape and amplitude, have greatly varying time scales. When multiphysic simulations are considered, 
+an additional intermediate time scale to evaluate feedback (temperature and PRKE parameters) is used. The rationale for the intermediate time scale is based on the observation that temperature and point-reactor parameters may vary quickly in time than the shape itself. The method was implemented in the Rattlesnake/MOOSE framework of Idaho National Laboratory (INL) and tested with the LRA benchmark and the Transient-15 TREAT problem.  The results show that the addition of this time scale was effective in reducing execution time for these problems while yielding accurate answers. 
 }\par}
 \vspace*{14pt}
 \end{strip}
