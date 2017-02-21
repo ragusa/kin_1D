@@ -20,8 +20,26 @@
 
 \chapter{\uppercase{Introduction}}
 
-Transient modeling of nuclear reactors has been a chronically foreboding task due to its computationally expensive nature.  However, recent developments in nuclear testing, including the revitalization of the Transient Reactor Testing (TREAT) Facility at Idaho National Laboratory (INL), have brought significant attention to the development of transient reactor modeling.  3-D transient computational methods currently in use at national laboratories, including INL, have proven to be overbearingly computationally expensive for complex, real-world scenarios.  Therefore, implementation of more efficient and faster methods for 3-D transient simulations is highly desired.  The Department of Energy (DOE), through its NEAMS (Nuclear Energy Advanced Modeling and Simulation) program, has especially sought the development of transient multiphysics capability in INL's MOOSE (Multiphysics Object-Oriented Simulation Environment).  \\
+\tcr{Advice: rename through git the files section1 ... with more meaningful filenames, e.g., introduction, theory, ...}
 
+\tcr{Advice: use bibtex for bibliography in the future, rather than bibitem, so that you can change the bibliography
+style super quickly. Also, most journals provide the bibtex entry for the article, so you just save that in your bib file - yes, no need to type much if you use that feature-}
+
+Transient modeling of nuclear reactors has been a chronically foreboding task due to its computationally expensive nature.  However, recent developments in nuclear testing
+\tcr{this is not the introduction of a short summary, you can spend a bit more time in the topic of transient testing,
+what is it for, what facilities, how what it simulated before, why a regain of interest in simulation for this today, ... build the storyline...}, including the revitalization of the Transient Reactor Testing (TREAT) Facility at Idaho National Laboratory (INL), have brought significant attention to the development of transient reactor modeling.  3-D transient computational methods currently in use at national laboratories, including INL, have proven to be overbearingly computationally expensive for complex, real-world scenarios.  Therefore, implementation of more efficient and faster methods for 3-D transient simulations is highly desired \tcr{this was already a problem when Karl Ott introduced IQS in 1977(?) so to rationale sounds a bit hollow the way you present it and yet we are doing it and Downar was awarded last year a grant to do this too. I think the real reason is that most modern reactor physics tools have not being used much for fast transients, so the only thing we are doing is bringing back the method into modern tools. However, in doing so, }.  The Department of Energy (DOE), through its NEAMS (Nuclear Energy Advanced Modeling and Simulation) program, has especially sought the development of transient multiphysics capability in INL's MOOSE (Multiphysics Object-Oriented Simulation Environment).  \\
+
+\tcr{
+I think an outline for the introduction should be 
+\begin{enumerate}
+\item reactor transient testing. Background, etc... this subsection should conclude on the overarching need of transient testing: computational methods for multiphysics reactor transients. It should also introduce the next 2 subsections, which are both about lit review, one on time-dependent  neutronics, one on multiphysics solution techniques for reactor physics.
+\item literature review on mostly neutronics time dependent: challenges in computational methods for time-dependent neutron balance equations. the size of the phase-space, the need for implicitness in the temporal treatment due to the stiffness, .... this should open up to a discussion on alternate methods, such as IQS, ... it is a lit review, so no need for equations, but rather a demonstration that you know the background and have a solid understand of that foundation to lay the ground from your OWN work. As part of this lit, some discussion of Mund's, Dulla's, Ott's, Monier,'s the Canadian's papers is welcome. 
+\item now, reactor transients also means coupled to other physics. this is were you discuss some aspect related to multiphysics. you can start with the general discussion that this is typically a nonlinear problem, that it can be solved via picard or newton. this is maybe a segway into a discussion/introduction about MOOSE. Then you go back on IQS and add the multiphysics aspects. Ott did some work with multiphysics, I gave you the code manual of his own software where he discusses when he decided to do shape updates.
+\end{enumerate}
+Generally speaking, the rest is real good but you need to spend some time on these 5-8 pages of introduction that set the tone and the background. Everybody needs to understand that you know a lot; that your thoughts are well organized and clear; the rest will come easy (except some results ...).\\
+%
+side note: we need to put the small results about sdirk being poor for stiffness problem. maybe as an appendix. I want to keep that knowledge somewhere. 
+}
 MOOSE is a multiphysics framework being developed at INL that presents the architecture for physics-based applications \cite{moose}.  Rattlesnake is a large application in MOOSE that involves deterministic radiation transport physics.  Currently, Rattlesnake is able to solve steady-state, transient, and k-eigenvalue neutron transport and diffusion problems using finite element methods (FEM) \cite{wang2013}. \\
 
 The difficulty in transient reactor modeling is due to 
