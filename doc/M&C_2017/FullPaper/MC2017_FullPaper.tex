@@ -79,8 +79,7 @@ M\&C 2017 - International Conference on Mathematics \& Computational Methods App
 \vspace*{-42pt}
 \begin{strip}
 \centering{\parbox{153mm}{{\bf Abstract} \itshape - 
-In this paper, we  present a tightly coupled technique to solve multi-physics transient reactor simulations, whereby the neutronic solution  is based on the improved quasi-static method (IQS).  In IQS, the flux is typically factored into components, shape and amplitude, have greatly varying time scales. When multiphysic simulations are considered, 
-an additional intermediate time scale to evaluate feedback (temperature and PRKE parameters) is used. The rationale for the intermediate time scale is based on the observation that temperature and point-reactor parameters may vary quickly in time than the shape itself. The method was implemented in the Rattlesnake/MOOSE framework of Idaho National Laboratory (INL) and tested with the LRA benchmark and the Transient-15 TREAT problem.  The results show that the addition of this time scale was effective in reducing execution time for these problems while yielding accurate answers. 
+In this paper, we present a tightly coupled technique to solve multi-physics transient reactor simulations, whereby the neutronic solution  is based on the improved quasi-static method (IQS).  In IQS, the flux is typically factored into components, shape and amplitude, have greatly varying time scales. When multiphysic simulations are considered, an additional intermediate time scale to evaluate feedback (temperature and PRKE parameters) is used. The rationale for the intermediate time scale is based on the observation that temperature and point-reactor parameters may vary quickly in time than the shape itself. The method was implemented in the Rattlesnake/MOOSE framework of Idaho National Laboratory (INL) and tested with the LRA benchmark and the Transient-15 TREAT problem.  The results show that the addition of this time scale was effective in reducing execution time for these problems while yielding accurate answers. 
 }\par}
 \vspace*{14pt}
 \end{strip}
@@ -156,7 +155,7 @@ where the functional coefficients are calculated using the space-/time-dependent
 \label{eq:l}
 \ee
 
-Solving for the shape in \eqt{eq:shape} can become expensive, especially in two or three dimensions, and even more so when using the transport equations in lieu of the diffusion equations.  Using IQS, one expects the time dependence of the shape to be weaker than that of the flux itself,  thus allowing for larger time step sizes in updating the shape. The PRKE equations form a small ODE system and can be solved using a much smaller time step size. In transients where the shape varies much less than the flux, IQS can be very computationally effective. The two-time scale solution process, a micro scale for the PRKE and a macro scale for the shape, is illustrated in \fig{fig:iqsviz}.  
+Solving for the shape in \eqt{eq:shape} can become expensive, especially in two or three dimensions, and even more so when using the transport equations in lieu of the diffusion equations.  Using IQS, one expects the time dependence of the shape to be weaker than that of the flux itself, thus allowing for larger time step sizes in updating the shape. The PRKE equations form a small ODE system and can be solved using a much smaller time step size. In transients where the shape varies much less than the flux, IQS can be very computationally effective. The two-time scale solution process, a micro scale for the PRKE and a macro scale for the shape, is illustrated in \fig{fig:iqsviz}.  
 
 \begin{figure}[!htbp]
 \centering
@@ -191,11 +190,11 @@ The PRKE parameters are then computed with this shape using Equations \eqref{eq:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{IQS Solution Process with Multiphysics}
 
-Other physical quantities, such as temperature, are affected by reaction rates and subsequently affect the operators of the flux equations.  
+Other physical quantities, such as temperature, are affected by reaction rates and subsequently affect the operators of the flux equations. 
 For IQS, this feedback affects both the shape equation and the parameters of the PRKE; thus, it is an additional nonlinear component to the 
-already non-linear shape-amplitude equations.  Each of these components have different temporal behaviors; so it may be beneficial for 
-efficiency to evaluate them on different time scales.  The amplitude is more rapidly varying than the shape which is computationally expensive to evaluate
-and is evaluated only on macro-time steps. In multiphysics simulations, one may take advantage of a fine-scale power distribution in the coupled
+already non-linear shape-amplitude equations.  Each of these components have different temporal behaviors; so, it may be beneficial for 
+efficiency to evaluate them on different time scales.  The amplitude is more rapidly varying than the shape which is computationally expensive to evaluate 
+and is evaluated only on macro-time steps. In multiphysics simulations, one may take advantage of a fine-scale power distribution in the coupled 
 physics components (temperature). Figure~\ref{fig:time} shows a such a solution process for temperature feedback.
 
 \begin{figure}[htbp!]
@@ -306,7 +305,7 @@ The temporal variance of flux, shape, temperature, and amplitude can be quantifi
 \tau = \frac{1}{\left|\frac{1}{\theta}\frac{d\theta}{dt}\right|}
 \label{eq:tau1}
 \ee
-Since each variable in discretized in time, a finite difference approximation will be made for the $\frac{d\theta}{dt}$ term and the average between the two corresponding time steps will be made for the $\frac{1}{\theta}$ term.  Additionally, $\tau$ is spatially dependent for flux and temperature,  but only the time dependent behavior of this quantity is of interest.  Therefore, the $L^2$ norm of each term will be used to compute the approximate time scale ($\tilde{\tau}$), formally defined by \eqt{eq:tau2}.  $\theta$ represents a summation over groups for flux and shape.
+Since each variable in discretized in time, a finite difference approximation will be made for the $\frac{d\theta}{dt}$ term and the average between the two corresponding time steps will be made for the $\frac{1}{\theta}$ term.  Additionally, $\tau$ is spatially dependent for flux and temperature, but only the time dependent behavior of this quantity is of interest.  Therefore, the $L^2$ norm of each term will be used to compute the approximate time scale ($\tilde{\tau}$), formally defined by \eqt{eq:tau2}.  $\theta$ represents a summation over groups for flux and shape.
 \be
 \tilde{\tau}_{n+1} = \frac{\norm{\theta_{n+1} + \theta_{n}}}{2}\frac{\Delta t}{\norm{\theta_{n+1} - \theta_{n}}}
 \label{eq:tau2}
@@ -319,7 +318,7 @@ According to the a priori hypothesis from previous sections, $\tau$ is large for
 \section{Results and Analysis}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-To test the multiple time scale implementation of IQS, the LRA benchmark
+To test the multiple time scale implementation of IQS, the LRA benchmark 
 \cite{ANL_BPB} and a TREAT reactor example have been selected. The performance of the implementation is evaluated comparing errors in power at peak time with standard flux solution techniques (``brute force'') and IQS without quasi-static temperature treatment.  Execution times were also compared at given error values to judge the computational efficiency of adding more temperature evaluations.  These examples were executed using INL's MOOSE/Rattlesnake framework, which uses a PJFNK (preconditioned Jacobian-free Newton Krylov) method to evaluate the nonlinear problems.  Each time step evaluation consists of three iteration loops: GMRES iterations for the linear system, Newton iterations for the temperature-flux nonlinearity, and Picard iterations for the shape-amplitude nonlinearity.  Another judge of computational expense is the total number of linear iterations during the execution, these are shown specifically for the brute force LRA simulations and all the simulations for the TREAT example.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -489,7 +488,7 @@ $^*$ difference in runtime from $\Delta t = 0.004$ brute force
 \label{tab:iqspc_lra}
 \end{table}
 
-The performance of the quasi-statics can also be explained by the computation of the dynamical time scale described by \sct{sect:tau}.  \fig{fig:LRAtc} shows the time scale profile over the transient, computed using \eqt{eq:tau2}.  This plot shows that in a brute force simulation, the flux dominates the time dependent behaivior, while temperature lags in its variance for the majority of the transient.  In an IQS simulation, the time scale behavior of amplitude almost exactly matches the flux, while shape is more varying than temperature throughout most of the transient.  The large $\tau$ for temperature during the beginning of the transient shows that adaptation of the number of updates is important; computational expense on temperature evaluations is being wasted during this time.
+The performance of the quasi-statics can also be explained by the computation of the dynamical time scale described by \sct{sect:tau}.  \fig{fig:LRAtc} shows the time scale profile over the transient, computed using \eqt{eq:tau2}.  This plot shows that in a brute force simulation, the flux dominates the time dependent behavior, while temperature lags in its variance for the majority of the transient.  In an IQS simulation, the time scale behavior of amplitude almost exactly matches the flux, while shape is more varying than temperature throughout most of the transient.  The large $\tau$ for temperature during the beginning of the transient shows that adaptation of the number of updates is important; computational expense on temperature evaluations is being wasted during this time.
 
 \begin{figure}[htbp!]
 \centering
@@ -563,7 +562,7 @@ $^*$ difference in runtime from brute force
 \label{tab:tran15}
 \end{table*}
 
-The results from \tbl{tab:tran15} show similar performance of IQS with the temperature updates as the LRA.  IQS with 1 temperature update shows a performance that reduces the error to approximately a tenth of the brute force error, and reduces the execution time by about 12\%.  This shows that IQS was able to resolve the nonlinearity between flux and temperature with significantly fewer diffusion evaluations.  Having IQS with 5 updates significantly increased the execution time for the same time step, but the error was reduced.  Comparing this error to a similar brute force error at a smaller time step could show that the runtime was reduced. IQS P-C performed not nearly as well as it did with the LRA benchmark, but still proved to be effective.  Having 5 updates for IQS P-C increased the runtime marginally, but decreased the error significantly.  The transient profile of the varibles' dynamical time scales is shown in \fig{fig:tran15tc}.  This plot exhibits a similar response to that of the LRA. The response of temperature shows that the updates are a computational frugal treatment of the feedback and adaptation of the number of updates is vital for optimization. \\
+The results from \tbl{tab:tran15} show similar performance of IQS with the temperature updates as the LRA.  IQS with 1 temperature update shows a performance that reduces the error to approximately a tenth of the brute force error, and reduces the execution time by about 12\%.  This shows that IQS was able to resolve the nonlinearity between flux and temperature with significantly fewer diffusion evaluations.  Having IQS with 5 updates significantly increased the execution time for the same time step, but the error was reduced.  Comparing this error to a similar brute force error at a smaller time step could show that the runtime was reduced. IQS P-C performed not nearly as well as it did with the LRA benchmark, but still proved to be effective.  Having 5 updates for IQS P-C increased the runtime marginally, but decreased the error significantly.  The transient profile of the variables' dynamical time scales is shown in \fig{fig:tran15tc}.  This plot exhibits a similar response to that of the LRA. The response of temperature shows that the updates are a computational frugal treatment of the feedback and adaptation of the number of updates is vital for optimization. \\
 
 \begin{figure}[htbp!]
 \centering
@@ -589,7 +588,7 @@ In conclusion, the multi-physics treatment with IQS presented in this paper is w
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Acknowledgments}
-This work was supported by the Department of Energy, Idaho National Laboratory, and the Integrated University Program Fellowship.  We thank Mark Dehart, Yaqi Wang, the NEAMS program, and INL's Moose/Rattlesnake team for their support.
+This work was supported by the Department of Energy, Idaho National Laboratory, and the Integrated University Program Fellowship.  We thank Mark Dehart, Yaqi Wang, the NEAMS program, and INL's MOOSE/Rattlesnake team for their support.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{ans}
