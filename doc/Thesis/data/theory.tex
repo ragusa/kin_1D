@@ -19,6 +19,45 @@
 \label{sect:theory}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+To derive the IQS equations, the time dependent neutron diffusion equation with delayed neutron precursors are presented by Equations~\ref{eq:flux}~and~\ref{eq:precursor}.
+
+\begin{subequations}
+\begin{multline}
+\frac{1}{v^g}\frac{\partial \phi^g}{\partial t}  = 
+\frac{\chi_p^g}{\keff} (1-\beta)\sum_{g'=1}^G  \nu^{g'} \Sigma_f^{g'} \phi^{g'} 
++ \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \phi^{g'}  \\ + \sum_{i=1}^I\chi_{d,i}^g\lambda_i C_i 
+-  \left( -\div D^g \grad  + \Sigma_r^g \right) \phi^g   
+\ , \quad 1 \le g \le G 
+\label{eq:flux}
+\end{multline}
+\be
+\frac{dC_i}{dt} = \frac{\beta_i}{\keff}\sum_{g=1}^G\nu^{g} \Sigma_f^g \phi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
+\label{eq:precursor}
+\ee
+\end{subequations}
+
+where,
+
+\begin{longtable}{lll}
+$\phi^g$   			&	$=$	&	Scalar flux in energy group $g$ \\
+$C_i$					  &	$=$	&	Concentration of delayed neutron precursor $i$ \\
+$\Sigma_f^{g}$	&	$=$	&	Fission cross section in energy group $g$ \\
+$\Sigma_r^{g}$	&	$=$	&	Removal cross section in energy group $g$ \\
+$\Sigma_s^{g' \to g}$	&	$=$	&	Scattering cross section from energy group $g'$ to $g$ \\
+$v^g$					  &	$=$	&	Neutron velocity in energy group $g$ \\
+$\chi_p^g$			&	$=$	&	Fission spectrum of prompt neutrons \\
+$\chi_{d,i}^g$	&	$=$	&	Fission spectrum of delayed neutrons from precursor $i$ \\
+$\nu^g$					&	$=$	&	Total number of neutrons per fission \\
+$D^g$					  &	$=$	&	Diffusion coefficient in energy group $g$\\
+$\lambda_i$			&	$=$	&	Decay constant of precursor $i$ \\
+$\beta_i$				&	$=$	&	Delayed neutron fraction  from precursor $i$ \\
+$\beta$			 	  &	$=$	&	Total delayed neutron fraction ($\beta = \sum_{i=1}^I \beta_{i}$) \\
+  & & 
+\end{longtable}
+
+Most reactor computation frameworks, including Rattlesnake, discretize the time variable directly with these equations using a multitude of schemes (Implicit Euler, Crank-Nicholson, implicit Runge-Kutta, etc.).  In this paper, the method of discretizing Equations~\ref{eq:flux}~and~\ref{eq:precursor} is generally referred to as ``implicit discretization''.  This research intends to improve upon this method by instead implementing the improved quasi-static method (IQS) for neutron kinetics and
+implement it within a multiphysics setting.
+
 IQS involves factorizing the flux from \eqt{eq:flux} into time-dependent amplitude ($p$) and space- and time- dependent shape ($\varphi$).  The resulting equation is the shape-diffusion equation with precursors represented by Equations~\ref{eq:shape}~and~\ref{eq:prec}.
 
 \begin{subequations}

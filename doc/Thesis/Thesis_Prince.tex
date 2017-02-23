@@ -102,6 +102,7 @@
 \usepackage{tikz}
 %\usepackage{enumitem}
 \usepackage[htt]{hyphenat}
+\usepackage{longtable}
 
 \setlength\parindent{24pt}
 
@@ -188,13 +189,8 @@
 %The degree title goes here. See the OGAPS site for more info.
 \renewcommand{\tamudegree}{Master of Science}
 \renewcommand{\tamuchairone}{Dr. Jean C. Ragusa}
-
-
-% Uncomment out the next line if you have co-chairs.  You will also need to edit the titlepage.tex file.
-%\newcommand{\tamuchairtwo}{Additional Chair Name}
 \renewcommand{\tamumemberone}{Dr. Jim E. Morel}
 \newcommand{\tamumembertwo}{Dr. Bojan Popov}
-%\newcommand{\tamumemberthree}{Committee Member 3}
 \renewcommand{\tamudepthead}{Dr. Yassin Hassan}
 
 %Type only May, August, or December.
@@ -213,47 +209,15 @@
 
 \include{data/lists}  % This is simply a file that formats and adds your toc, lof, and lot, please do not edit this unless you have a specific need.
 
-\include{data/section1}
-\include{data/section2}
-\include{data/section3}
-\include{data/section4}
-%The next line is the format for inserting new sections.
-%Replace the name "newsection"  with the name of your
-%new section file.
-%\include{data/newsection}
+\include{data/introduction}
+\include{data/theory}
+\include{data/kinetics}
+\include{data/dynamics}
 
-%fix spacing in bibliography, if any...
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\let\oldbibitem\bibitem
-\renewcommand{\bibitem}{\setlength{\itemsep}{0pt}\oldbibitem}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%The bibliography style declared is the IEEE format. If
-%you require a different style, see the document
-%bibstyles.pdf included in this package. This file,
-%hosted by the University of Vienna, shows several
-%bibliography styles and examples of in-text citation
-%and a references page.
 \bibliographystyle{ieeetr}
-
-\phantomsection
-\addcontentsline{toc}{chapter}{REFERENCES}
-
 \renewcommand{\bibname}{{\normalsize\rm REFERENCES}}
-
-%This file is a .bib database that contains the sources.
-%This removes the dependency on the previous file
-%bibliography.tex.
 \bibliography{data/references_IQS}
 
-
-
-
-%This next line includes appendices. The file
-%appendix.tex contains commands pointing to
-%the appendix files; be sure to change these
-%pointers if you end up changing the filenames.
-%Leave this commented if you will not need
-%appendix material.
 \include{data/appendices}
 
 
