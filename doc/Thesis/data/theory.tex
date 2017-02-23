@@ -19,7 +19,7 @@
 \label{sect:theory}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-To derive the IQS equations, the time dependent neutron diffusion equation with delayed neutron precursors are presented by Equations~\ref{eq:flux}~and~\ref{eq:precursor}.
+To derive the IQS equations, the time dependent neutron diffusion equation with delayed neutron precursors are presented by \eqts{eq:flux}{eq:precursor}.
 
 \begin{subequations}
 \begin{multline}
@@ -55,10 +55,10 @@ $\beta$			 	  &	$=$	&	Total delayed neutron fraction ($\beta = \sum_{i=1}^I \bet
   & & 
 \end{longtable}
 
-Most reactor computation frameworks, including Rattlesnake, discretize the time variable directly with these equations using a multitude of schemes (Implicit Euler, Crank-Nicholson, implicit Runge-Kutta, etc.).  In this paper, the method of discretizing Equations~\ref{eq:flux}~and~\ref{eq:precursor} is generally referred to as ``implicit discretization''.  This research intends to improve upon this method by instead implementing the improved quasi-static method (IQS) for neutron kinetics and
+Most reactor computation frameworks, including Rattlesnake, discretize the time variable directly with these equations using a multitude of schemes (Implicit Euler, Crank-Nicholson, implicit Runge-Kutta, etc.).  In this paper, the method of discretizing \eqts{eq:flux}{eq:precursor} is generally referred to as ``implicit discretization''.  This research intends to improve upon this method by instead implementing the improved quasi-static method (IQS) for neutron kinetics and
 implement it within a multiphysics setting.
 
-IQS involves factorizing the flux from \eqt{eq:flux} into time-dependent amplitude ($p$) and space- and time- dependent shape ($\varphi$).  The resulting equation is the shape-diffusion equation with precursors represented by Equations~\ref{eq:shape}~and~\ref{eq:prec}.
+IQS involves factorizing the flux from \eqt{eq:flux} into time-dependent amplitude ($p$) and space- and time- dependent shape ($\varphi$).  The resulting equation is the shape-diffusion equation with precursors represented by \eqts{eq:shape}{eq:prec}.
 
 \begin{subequations}
 \begin{align}
@@ -139,7 +139,7 @@ Next, the factorization $\Psi^g(\vec{r},\vec{\Omega},t)=p(t)\psi^g(\vec{r},\vec{
 \frac{\partial}{\partial t}\left(\frac{\psi^g}{v^g}\right) = \sum_{g'} \left(H^{g' \to g} + P_p^{g' \to g}\right) \psi^{g'} - \left( L^g + \frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\right) \psi^g + \frac{1}{p} S_d^g
 \label{eq:tshape}
 \ee
-Finally, the PRKE parameters are defined by Equations~\ref{eq:trmb}~and~\ref{eq:tb}, where 
+Finally, the PRKE parameters are defined by \eqts{eq:trmb}{eq:tb}, where 
 $\left(\Psi^{*g},f^g\right) =$\\ $ \int_{4\pi}\int_D \Psi^{*g}(\vec{r},\vec{\Omega})f^g(\vec{r},\vec{\Omega})d^3r d^2\Omega$.
 \be
 \frac{\rho-\bar{\beta}}{\Lambda}=\frac{ \sum_{g=1}^G\left(\Psi^{*g},\sum_{g'}(H^{g' \to g}g+P_p^{g' \to g}-L^{g'}\delta_{g'g})\psi^{g'}\right)}{\sum_{g=1}^G\left(\Psi^{*g},\frac{1}{v^g}\psi^g\right)}
@@ -270,7 +270,7 @@ Where $J$ is the Jacobian matrix defined as $J_{ij}=\partial R_i/\partial\varphi
 \be 
 (JP^{-1})(P\delta\varphi)=-R(\varphi,p)
 \ee
-This resulting system can be split into two systems, represented by Equations~\eqref{eq:PJFNK_1}~and~\eqref{eq:PJFNK_2}.
+This resulting system can be split into two systems, represented by \eqts{eq:PJFNK_1}{eq:PJFNK_2}.
 \be 
 (JP^{-1})w = -R(\varphi,p)
 \label{eq:PJFNK_1}
@@ -291,7 +291,7 @@ This Jacobian operation is a finite difference approach.  $\epsilon$ is a pertur
 \label{sect:pc}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The Predictor-Corrector (P-C) version of IQS factorizes the flux and derives the PRKE the same way as the standard version, but the solution of the coupled system of equations is different.  In the IQS P-C version, the flux equations (not the shape equations) are solved (represented by Equations~\ref{eq:flux}~and~\ref{eq:precursor}) in order to obtain a predicted flux solution. This predicted flux is then converted to a shape by rescaling it as follows:
+The Predictor-Corrector (P-C) version of IQS factorizes the flux and derives the PRKE the same way as the standard version, but the solution of the coupled system of equations is different.  In the IQS P-C version, the flux equations (not the shape equations) are solved (represented by \eqts{eq:flux}{eq:precursor}) in order to obtain a predicted flux solution. This predicted flux is then converted to a shape by rescaling it as follows:
 \be
 \varphi^g_{n+1} = \underbrace{\phi^g_{n+1}}_{\text{predicted}} \frac{K_0}{K_{n+1}}
 \label{eq:rescale}
@@ -304,7 +304,7 @@ K_{n+1} =\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\phi^g_{n+1}\right)
 K_{0} =\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g_{n+1}\right)=\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\phi^g_{0}\right)
 \ee
 
-The PRKE parameters are then computed with this shape using Equations~\ref{eq:rmb}~-~\ref{eq:l} and interpolated over the macro step, then the PRKE ODE system is solved on the micro time scale.  With the newly computed amplitude, the shape is rescaled into a flux and the final corrected flux is given by:
+The PRKE parameters are then computed with this shape using \eqtss{eq:rmb}{eq:l} and interpolated over the macro step, then the PRKE ODE system is solved on the micro time scale.  With the newly computed amplitude, the shape is rescaled into a flux and the final corrected flux is given by:
 \be
 \underbrace{\phi^g_{n+1}}_{\text{corrected}} = p_{n+1} \times \varphi^g_{n+1} \,.
 \ee
@@ -405,6 +405,25 @@ For IQS, this temperature feedback affects both the shape equation and the react
 \caption{Time scales and process of IQS with temperature feedback}
 \label{fig:time}
 \end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Dynamical Time Scale Analysis}
+\label{sect:tau}
+
+The temporal variance of flux, shape, temperature, and amplitude can be quantified by defining a dynamical time scale ($\tau$) for each physics.  A small value $\tau$ means the variable is quickly varying in time and consequently needs relatively small time steps for accuracy, vice-versa for large $\tau$.  The general definition of $\tau$ is defined by \eqt{eq:tau1}, where $\theta$ is the physic component of interest.  
+\be
+\tau = \frac{1}{\left|\frac{1}{\theta}\frac{d\theta}{dt}\right|}
+\label{eq:tau1}
+\ee
+Since each variable in discretized in time, a finite difference approximation will be made for the $\frac{d\theta}{dt}$ term and the average between the two corresponding time steps will be made for the $\frac{1}{\theta}$ term.  Additionally, $\tau$ is spatially dependent for flux and temperature, but only the time dependent behavior of this quantity is of interest.  Therefore, the $L^2$ norm of each term will be used to compute the approximate time scale ($\tilde{\tau}$), formally defined by \eqt{eq:tau2}.  $\theta$ represents a summation over groups for flux and shape.
+\be
+\tilde{\tau}_{n+1} = \frac{\norm{\theta_{n+1} + \theta_{n}}}{2}\frac{\Delta t}{\norm{\theta_{n+1} - \theta_{n}}}
+\label{eq:tau2}
+\ee
+%
+According to the a priori hypothesis from previous sections, $\tau$ is large for shape, somewhat smaller for temperature, and much smaller for amplitude and flux.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Programming Logic}
@@ -538,7 +557,7 @@ If the error is smaller than the user-specified tolerance, $e_{tol}$, the time s
 \Delta t_{new} = S \Delta t \left(\frac{e_{tol}}{e_n}\right)^{\frac{1}{1+q}}
 \label{eq:dt2}
 \ee
-Where $q$ is the convergence order of the time integration scheme being used and $S\simeq 0.8$ is a safety factor. If the error is larger than the user-specified tolerance, the time step is rejected. A new time step size is estimated using  \eqt{eq:edt2} as well. This process can be visualized by Figs.~\ref{fig:dt2_1}~and~\ref{fig:dt2_2}.  Where a step involves a full convergence of shape, amplitude, and any multiphysics on the respective time step.
+Where $q$ is the convergence order of the time integration scheme being used and $S\simeq 0.8$ is a safety factor. If the error is larger than the user-specified tolerance, the time step is rejected. A new time step size is estimated using  \eqt{eq:edt2} as well. This process can be visualized by \figs{fig:dt2_1}{fig:dt2_2}.  Where a step involves a full convergence of shape, amplitude, and any multiphysics on the respective time step.
 
 To investigate IQS's performance with step-doubling time adaptation, the adaptation will be applied to implicit discretization method, traditional IQS, and IQS P-C.  Each of these methods will be applied to several diffusion problems; the number of time steps taken and the resulting error will be used to compare the methods.
 
@@ -672,13 +691,13 @@ To enable Rattlesnake to solve this equation, an IQS removal kernel was created 
 \subsection{PRKE coefficients}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-In order to evaluate the PRKE coefficients, defined by Equations~\ref{eq:rmb}~-~\ref{eq:l}, four postprocessors were created.  The parameter calculations were separated by $\frac{\bar{\beta}_i}{\Lambda}$ numerator, $\bar{\lambda}_i$ numerator/denominator, $\frac{\rho-\bar{\beta}}{\Lambda}/\frac{\bar{\beta}}{\Lambda}$ denominator, and $\frac{\rho-\bar{\beta}}{\Lambda}$ numerator. The first three are relatively simple, only relying on material properties and solution quantities, then computing the elemental integral.  The $\frac{\rho-\bar{\beta}}{\Lambda}$ numerator requires the use of the MOOSE \texttt{save\_in} feature. This feature saves the residual from a calculated kernel or boundary contribution in the shape evaluation to an auxiliary variable.  The postprocessor then computes the inner product of this variable and the initial adjoint solution.  After each of these postprocessors are evaluated, a user object pulls together all the values and performs the numerator/denominator divisions.  The resulting values are then passed to the executioner for the PRKE solve.
+In order to evaluate the PRKE coefficients, defined by \eqtss{eq:rmb}{eq:l}, four postprocessors were created.  The parameter calculations were separated by $\frac{\bar{\beta}_i}{\Lambda}$ numerator, $\bar{\lambda}_i$ numerator/denominator, $\frac{\rho-\bar{\beta}}{\Lambda}/\frac{\bar{\beta}}{\Lambda}$ denominator, and $\frac{\rho-\bar{\beta}}{\Lambda}$ numerator. The first three are relatively simple, only relying on material properties and solution quantities, then computing the elemental integral.  The $\frac{\rho-\bar{\beta}}{\Lambda}$ numerator requires the use of the MOOSE \texttt{save\_in} feature. This feature saves the residual from a calculated kernel or boundary contribution in the shape evaluation to an auxiliary variable.  The postprocessor then computes the inner product of this variable and the initial adjoint solution.  After each of these postprocessors are evaluated, a user object pulls together all the values and performs the numerator/denominator divisions.  The resulting values are then passed to the executioner for the PRKE solve.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Other Action Systems}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-For simplicity, IQS implementation has only been described for CFEM diffusion.  However, Rattlesnake has other action systems capable of transient simulation, where IQS can be implemented and be effective.  One of these action systems is DFEM diffusion, where the only major difference from CFEM is the diffusion term in Equations~\eqref{eq:flux}~and~\eqref{eq:shape}.  However, in the derivation for IQS, this term is unaffected between shape and flux evaluation.  So saving the residual for this diffusion kernel in the \texttt{save\_in} variable is the only alteration to this action for IQS to function.\\
+For simplicity, IQS implementation has only been described for CFEM diffusion.  However, Rattlesnake has other action systems capable of transient simulation, where IQS can be implemented and be effective.  One of these action systems is DFEM diffusion, where the only major difference from CFEM is the diffusion term in \eqts{eq:flux}{eq:shape}.  However, in the derivation for IQS, this term is unaffected between shape and flux evaluation.  So saving the residual for this diffusion kernel in the \texttt{save\_in} variable is the only alteration to this action for IQS to function.\\
 Additional action systems involve transport, but it is evident from \sct{sect:transport} that IQS implementation in these is straightforward as well.  The main differences between a diffusion implementation and a transport implementation are outlined below:
 \begin{enumerate}
 \item The form of the operators in the shape equations is different, but Rattlesnake has already implemented all the kernels necessary to represent these operators.  So no change is necessary to these kernels is necessary for IQS.  Additionally, the $\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}$ is the same, so both action systems can use the same kernel.
