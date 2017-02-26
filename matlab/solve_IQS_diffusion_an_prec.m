@@ -10,7 +10,7 @@ rk=npar.rk;
 if strcmp(npar.method,'BDF')
     bdf = npar.bdf;
 end
-order = length(tn);
+order = length(tn)-1;
 
 max_iter_iqs = npar.max_iter_iqs;
 tol_iqs      = npar.tol_iqs;
@@ -23,9 +23,8 @@ X_beg=X;
 shape_beg=u_shape(1:npar.n,:);
 shape_end=shape_beg(:,end);
 
-tn = tn - dt;
-time_beg = tn(end);
-time_end = time_beg+dt;
+time_end = tn(end);
+time_beg = time_end-dt;
 
 % storage for temp SDIRK quantities
 K=zeros(length(shape_beg(:,1)),rk.s);
@@ -33,10 +32,11 @@ K=zeros(length(shape_beg(:,1)),rk.s);
 NFId_old = assemble_mass(dat.nusigf_d,time_beg) / npar.keff;
 
 for iter = 1: max_iter_iqs
-    
+    shape_prev = shape_end;
+    X_prev = X;
     % solve for amplitude function
     if strcmpi(npar.prke_solve,'matlab')
-        [X,dXdt,w,t,y]    = solve_prke_ode(X_beg(:,end),dt_macro,time_end,shape_beg(:,end),shape_end);
+        [X,dXdt,w,t,y] =  solve_prke_ode(X_beg(:,end),dt_macro,tn,shape_beg,shape_end);
     else
         [X,dpdt,t,y] = solve_prke_iqs(X_beg(:,end),dt_macro,time_end,shape_beg(:,end),shape_end,npar.n_micro,npar.freq_react);
     end
@@ -91,12 +91,12 @@ for iter = 1: max_iter_iqs
         ti = time_beg + rk.c(i)*dt;
         t2=ti;
         t1=time_beg;
-        t_all = [tn t2];
+        t_all = tn;
         dti=rk.c(i)*dt;
         
         % OLD shortcut
         % OLD p=X(1);
-        pi = ppval(pp,ti);
+        pi = X(1);
 %         dpdti = ppval(pp_der,ti);
         dpdti = dXdt(1);
         
@@ -208,17 +208,40 @@ for iter = 1: max_iter_iqs
     u_shape = [ shape_end ; C_new];
     
     % check for tolerance
-    err = abs( (npar.phi_adj)'*IV*shape_end/npar.K0  - 1);
+    err = 0;
+    if strcmp(npar.conv_criteria,'Linf')
+        err = compute_conv_error(shape_end,shape_prev,Inf);
+    elseif strcmp(npar.conv_criteria,'L2')
+        err = compute_conv_error(shape_end,shape_prev,2);
+    elseif max(strcmp(npar.conv_criteria,{'amp', 'rho', 'param_all'}))
+        if max(strcmp(npar.conv_criteria,{'rho', 'param_all'}))
+            [rho_end,~,~]=compute_prke_parameters(time_end,shape_end);
+            [rho_prev,~,~]=compute_prke_parameters(time_end,shape_prev);
+            err = max(err,abs(rho_end - rho_prev));
+        end
+        if max(strcmp(npar.conv_criteria,{'amp', 'param_all'}))
+            err = max(err,abs(X(1) - X_prev(1)));
+        end
+        if strcmp(npar.conv_criteria,'param_all')
+            err = max(err,abs( (npar.phi_adj)'*IV*shape_end/npar.K0  - 1));
+        end
+    else
+        err = abs( (npar.phi_adj)'*IV*shape_end/npar.K0  - 1);
+    end
+    
     if io.console_print
         fprintf('  IQS iter %d, err %g \n',iter,err);
     end
     if err<tol_iqs
         break
-    else
-        %         u_shape = u_shape / ((npar.phi_adj)'*IV*shape_end/npar.K0);
-        %         shape_end=u_shape(1:npar.n);
+    elseif npar.scale_IQS_each
+        u_shape = u_shape / ((npar.phi_adj)'*IV*shape_end/npar.K0);
+        shape_end=u_shape(1:npar.n);
     end
 end
+
+dat.iter_IQS = [dat.iter_IQS iter];
+dat.iter_err = [dat.iter_err err];
 
 if err>=tol_iqs
 %     warning('IQS did not converge in %s',mfilename);
@@ -226,4 +249,6 @@ end
 
 
 % renormalize anyway
-u_shape = u_shape / ( ((npar.phi_adj)'*npar.IV*shape_end) / npar.K0 );
+if npar.scale_IQS
+    u_shape = u_shape / ( ((npar.phi_adj)'*npar.IV*shape_end) / npar.K0 );
+end

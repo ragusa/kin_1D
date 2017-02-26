@@ -18,7 +18,7 @@ end
 order=1;
 if strcmp(npar.method,'BDF')
     order = npar.bdf_order;
-elseif strcmp(func2str(FUNHANDLE),'solve_TD_diffusion_an_prec') && strcmp(npar.an_interp_type,'lagrange')
+elseif strcmp(func2str(FUNHANDLE),'solve_IQS_diffusion_an_prec') && strcmp(npar.an_interp_type,'lagrange')
     order=npar.interpolation_order;
 end
 u_shape=zeros(length(u0),order+1);
@@ -32,9 +32,11 @@ Ptot = dat.Ptot*ones(ntimes+1,1);
 [~,beff_MGT]=compute_prke_parameters(0.,u0(1:npar.n));
 X(:,end)=[1;beff_MGT/dat.lambda];
 
-    dat.ode.f_beg=zeros(npar.n,1);
-    dat.ode.f_end=zeros(npar.n,1);
+dat.ode.f_beg=zeros(npar.n,1);
+dat.ode.f_end=zeros(npar.n,1);
 
+dat.iter_IQS = [0];
+dat.iter_err = [0];
 
 time_prke_iqs=[];
 power_prke_iqs=[];
@@ -110,6 +112,33 @@ if io.plot_power_figure
     plot_power_level( func2str(FUNHANDLE),...
         linspace(0,dt*ntimes,ntimes+1), amplitude_norm,...
         time_prke_iqs, power_prke_iqs );
+end
+
+if io.plot_iqs_conv
+    figure(23)
+%     plot(tn,(amplitude_norm-min(amplitude_norm))/(max(amplitude_norm)-min(amplitude_norm))*npar.max_iter_iqs,'k--')
+%     semilogy(tn,10.^((amplitude_norm-min(amplitude_norm))/(max(amplitude_norm)-min(amplitude_norm))*max(dat.iter_err)),'k--')
+    hold on
+%     plot(tn,dat.iter_IQS)
+    semilogy(tn,dat.iter_err)
+    xlabel('time (s)')
+    ylabel('# of Iterations')
+    grid on
+%     figid = figure(23);
+%     Pline = line(tn,amplitude_norm,'Color','b');
+%     ax1 = gca;
+%     ax1.XColor = 'k';
+%     ax1.YColor = 'b';
+%     ax1.YLabel.String = 'log_{10}(Total Power (W))';
+%     ax1_xlim = ax1.XLim;
+%     ax1_ylim = ax1.YLim;
+% 
+%     ax1_pos = ax1.Position;
+%     ax2 = axes('Position',ax1_pos,'YAxisLocation','right','Color','none');
+%     ax2.YColor = 'k';
+%     ax2.XLabel.String = 'time (s)';
+%     ax2.YLabel.String = '# of Iterations';
+%     iter_line = line(tn,dat.iter_IQS,'Parent',ax2);
 end
 
 if dat.PbID==12

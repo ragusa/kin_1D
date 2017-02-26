@@ -86,9 +86,42 @@ Region & Material Property & 0.0 s & 0.1 s & 0.6 s & 1.0 s & 1.7 s \\
 
 \subsection{IQS Iteration Convergence}
 
+IQS, as previously stated, is a system of nonlinear equations between shape and amplitude. These equations needed to be iterated to numerically converge to an accurate solution.  \sct{sect:iter} describes various iteration techniques for fixed-point and Newton schemes. \fig{fig:iter} shows the number of fixed-point iterations required for a $10^{-11}$ tolerance over the transient. The criteria listed in the legend are described as:
+\begin{enumerate}
+\item $L^{\infty} \rightarrow$ \eqt{eq:shape_Linf}
+\item $L^{2} \rightarrow$ \eqt{eq:shape_L2}
+\item Reactivity $\rightarrow$ \eqt{eq:rho_conv}
+\item Amplitude $\rightarrow$ \eqt{eq:p_conv}
+\item K criteria $\rightarrow$ \eqt{eq:K_conv}
+\item All properties $\rightarrow$ \eqtss{eq:rho_conv}{eq:K_conv}
+\end{enumerate}
+This plot shows that 1-4 have approximately the same convergence behavior, but the K criteria converges to a certain error. \fig{fig:iter_err} shows the resulting error the K criteria converges to for different points of rescaling the shape. The rescaling is described by \eqt{eq:shape_scale}. Rescaling shape more frequently helps the error.  However, rescaling every iteration is somewhat artificial because it does not consider changes spatially. Regardless, an error of $~10^{-5}$ is quite large and it is expected that the magnitude is due to the explicit treatment of precursors (\eqt{eq:dnp_theta}). Switching to an analytical elimination (\eqt{eq:dnp_an}) does not converge as well, but the error is much smaller, seen in \fig{fig:iter_err_an}.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.75\linewidth]{\FiguresDir/iter_renorm.png}
+\caption{\# of iterations for various convergence criteria, tolerance$=10^{-11}$, max iterations$=20$}
+\label{fig:iter}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.75\linewidth]{\FiguresDir/iter_error.png}
+\caption{Final iteration error for K convergence criteria}
+\label{fig:iter_err}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.75\linewidth]{\FiguresDir/iter_error_an.png}
+\caption{Final iteration error for K convergence criteria with analytical precursor elimination}
+\label{fig:iter_err_an}
+\end{figure}
+
+
 \subsection{Time Step Convergence}
 
-In order to evaluate the performance and error convergence of IQS, the slab was simulated with varying time discretization methods and time step sizes.  \fig{1D_conv} shows these convergence plots of five different discretization methods for implicit discretization, IQS, and IQS P-C.  These plots were generated from the results using the MATLAB prototype program.  The plots show that IQS and IQS P-C are convergent through fourth order BDF.  Third order SDIRK did not show third order convergence, but, through extensive testing, SDIRK shows non-convergent behavior for too stiff of problems.  
+In order to evaluate the performance and error convergence of IQS, the slab was simulated with varying time discretization methods and time step sizes.  \fig{fig:1D_conv} shows these convergence plots of five different discretization methods for implicit discretization, IQS, and IQS P-C.  These plots were generated from the results using the MATLAB prototype program.  The plots show that IQS and IQS P-C are convergent through fourth order BDF.  Third order SDIRK did not show third order convergence, but, through extensive testing, SDIRK shows non-convergent behavior for too stiff of problems.  
 
 There are higher discretization order that can be tested, but most practical application do not go beyond second order.  This paper shows an analysis of the first publicized application of IQS with higher than second order discretization, which exposed unforeseen properties of IQS.  When using higher order techniques, the interpolation of PRKE parameters and shape for precursor integration become important to consider.  Every other application that was investigated linearly interpolates parameters for the PRKE evaluation.  Similarly, the shape used for the integration of the ODE for the precursors needs to have higher order interpolation to preserve high order error convergence.  This interpolation was done using Lagragian and Hermite methods, both leading to successful convergence.
 

@@ -9,10 +9,10 @@ dat.PbID = problem_ID;
 
 % rod mov times
 dat.rod_mov.t_beg_1=0.1; dat.rod_mov.t_end_1=0.6;
-dat.rod_mov.t_beg_2=1.0; dat.rod_mov.t_end_2=2.7;
+dat.rod_mov.t_beg_2=1.0; dat.rod_mov.t_end_2=1.7;
 
 % kinetic parameters
-dat.beta_tot=600e-5*0;
+dat.beta_tot=600e-5;
 dat.lambda=0.1;
 dat.invvel=1e-3;
 
@@ -309,9 +309,12 @@ npar.solve_prke_compute_rho_each_time = false;
 npar.prke_solve = 'matlab' ;
 npar.int_order = 1;
 % npar.prke_solve = 'no' ;
-npar.max_iter_iqs = 6;
+npar.max_iter_iqs = 20;
 npar.tol_iqs      = 1e-11;
 npar.iqs_prke_interpolation_method=1;
+npar.conv_criteria = 'none';
+npar.scale_IQS = false;
+npar.scale_IQS_each = false;
 
 if ~strcmpi(npar.prke_solve,'matlab')
     npar.n_micro=1000;
@@ -322,10 +325,10 @@ end
 dat.max_y_val_movie = 2.;
 
 % time integration
-t_order=3;
+t_order=1;
 
-% npar.method = 'SDIRK';
-npar.method = 'BDF';
+npar.method = 'SDIRK';
+% npar.method = 'BDF';
 
 if strcmp(npar.method,'SDIRK')
     time_integration = t_order;

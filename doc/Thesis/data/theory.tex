@@ -625,6 +625,7 @@ A common precursor evaluation technique is using the theta method, described in 
 Where $S_f$ is the fission source equivalent for shape ($S_f^n=(\nu\Sigma_f)^n\varphi^n$). Rearranging to solve for the precursor at the end of the time step yields
 \be
 C^{n+1} = \frac{1-(1-\theta)\Delta t\lambda}{1+\theta\Delta t\lambda}C^n + \frac{(1-\theta)\Delta t \beta}{1+\theta\Delta t\lambda}S_f^n p^n +  \frac{\theta\Delta t \beta}{1+\theta\Delta t\lambda}S_f^{n+1} p^{n+1}
+\label{eq:dnp_theta}
 \ee
 Reporting this value of $C^{n+1}$, one can solve for the shape $\varphi^{n+1}$ as a function of $\varphi^n$ and $C^n$ (and $p^n$, $p^{n+1}$, $dp/dt|_n$ and  $dp/dt|_{n+1}$).
 Once $\varphi^{n+1}$ has been determined, $C^{n+1}$ is updated.  Applying this technique to implicit discretization is done by changing the definition the fission source ($S_f^n=(\nu\Sigma_f)^n\varphi^n$) and eliminating all $p$ terms.
@@ -644,6 +645,7 @@ S_f(t) = \frac{t_{n+1}-t}{t_{n+1}-t_n}S_f^n  + \frac{t-t_n}{t_{n+1}-t_n}S_f^{n+1
 Applying this to \eqt{eq:prec_an} yields:
 \be
 C^{n+1} = C^n e^{-\lambda \Delta t} + \left(\hat{a}_2 S_f^{n+1}+\hat{a}_1 S_f^n\right)\beta
+\label{eq:dnp_an}
 \ee
 With integration coefficients defined as:
 \begin{align}
