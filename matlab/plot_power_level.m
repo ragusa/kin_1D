@@ -22,6 +22,9 @@ switch method_name
     case 'solve_IQS_diffusion_elim_prec'
         curr_leg = 'IQS-elim';
     
+    case 'solve_IQS_diffusion_JFNK'
+        curr_leg = 'IQS-JFNK';
+    
     case 'solve_IQS_PC_diffusion_an_prec'
         curr_leg = 'IQS-PC-an';
     

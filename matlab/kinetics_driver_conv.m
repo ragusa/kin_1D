@@ -2,7 +2,7 @@ function kinetics_driver_conv
 
 clc;
 % clear all;
-close all;
+% close all;
 clear global;
 % turn off warning due to interp1
 warning('OFF','MATLAB:interp1:ppGriddedInterpolant')
@@ -10,12 +10,13 @@ warning('OFF','MATLAB:interp1:ppGriddedInterpolant')
 global npar io
 
 % verbose/output parameters
-io.console_print         = false;
+io.console_print         = true;
 io.plot_transient_figure = false;
-io.plot_power_figure     = false;
+io.plot_power_figure     = true;
 io.make_movie            = false;
 io.save_flux             = false;
 io.print_progress        = false;
+io.plot_iqs_conv         = false;
 io.figID = 99;
 % one of the two choices for applying BC
 npar.set_bc_last=true;
@@ -44,7 +45,7 @@ u=[phi0;C0];
 u0=u;
 
 % time steping data
-t_end = 1.1;
+t_end = 2.0;
 % t_end = 1.3;
 % t_end = 0.1;
 
@@ -58,8 +59,8 @@ else
     amplitude_norm_ref = reference_solution( t_end, u0);
 end
 
-nn=5;
-ntimes = 2.^(0:nn-1)*10;
+nn=1;
+ntimes = 2.^(0:nn-1)*100;
 dt = t_end./ntimes;
 
 % Interpolation type of shape for IQS prke parameters
@@ -69,7 +70,7 @@ dt = t_end./ntimes;
 %   2      = linear interpolation of shape
 %   3      = cubic interpolation of shape
 %   4      = quadratic interpolation of shape
-npar.iqs_prke_interpolation_method=5;
+npar.iqs_prke_interpolation_method=1;
 npar.solve_prke_compute_rho_each_time = false;
 
 % Type of precursor interpolation for analytical elimination
@@ -98,12 +99,13 @@ npar.prec_solve_type = 'linear';
 i=0;
 % not to be used for conv. studies % i=i+1; list_runs{i}= 'brute_force_matlab';
 % i=i+1; list_runs{i}= 'brute_force';
-i=i+1; list_runs{i}= 'brute_force_elim_prec';
+% i=i+1; list_runs{i}= 'brute_force_elim_prec';
 % i=i+1; list_runs{i}= 'brute_force_an_prec';
 % i=i+1; list_runs{i}= 'iqs_an_prec';
-i=i+1; list_runs{i}= 'iqs_elim_prec';
+% i=i+1; list_runs{i}= 'iqs_elim_prec';
+i=i+1; list_runs{i}= 'iqs_jfnk';
 % i=i+1; list_runs{i}= 'iqsPC_an_prec';
-i=i+1; list_runs{i}= 'iqsPC_elim_prec';
+% i=i+1; list_runs{i}= 'iqsPC_elim_prec';
 % i=i+1; list_runs{i}= 'iqs_theta_prec';
 % i=i+1; list_runs{i}= 'iqs';
 % % npar.iqs_prke_interpolation_method=3
@@ -173,6 +175,16 @@ for iconv=1:length(ntimes)
     if should_I_run_this(list_runs,'iqs_elim_prec')
         display('iqs_elim_prec')
         FUNHANDLE = @solve_IQS_diffusion_elim_prec;
+        [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
+        iqs_elim_prec.ampl(iconv)=a;
+        iqs_elim_prec.power_prke_iqs(iconv)=p;
+    end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%% IQS IQS IQS with JFNK and GMRES
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if should_I_run_this(list_runs,'iqs_jfnk')
+        display('iqs_jfnk')
+        FUNHANDLE = @solve_IQS_diffusion_JFNK;
         [a,p] = time_marching_IQS( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
         iqs_elim_prec.ampl(iconv)=a;
         iqs_elim_prec.power_prke_iqs(iconv)=p;
