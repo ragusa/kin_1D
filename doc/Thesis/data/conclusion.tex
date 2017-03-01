@@ -12,11 +12,19 @@
 %%                           SECTION IV
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{\uppercase{Conclusion}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{\uppercase{Conclusions}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tcr{I am not sure but the present tense sounds weird when you conclude. How about a reformation as follows:
+In this work, we analyzed/investigated ....}
 
 The goal of this thesis research is to continue the investigation and development of the improved quasi-static method for the optimization of transient reactor simulations. In pursuit of this goal, three objectives are formulated: establish IQS behavior for various iteration techniques, validate time step convergence for IQS, and apply IQS to multiphysics simulations. The following three sections describe the purpose of each objective, as well as conclusions on their results. 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Iteration Convergence Analysis}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 IQS is a nonlinear system of equations; therefore, either fixed-point or Newton iteration is needed to evaluate shape and amplitude. Through literary review, most IQS applications used fixed-point iteration with various convergence criteria. Previous application of the Newton method is not discussed in detail, nor is any analysis of its convergence presented. Investigating these iteration techniques is important for understanding the behavior of IQS, as well as determining the most appropriate technique for optimal performance. The iteration techniques were applied to a one-dimensional prototype problem for testing. For fixed-point iteration, five different criteria were tested: 
 
@@ -30,15 +38,23 @@ IQS is a nonlinear system of equations; therefore, either fixed-point or Newton 
 
 The results showed that criteria 1-4 had relatively equivalent convergence behavior. However, iteration with the criteria 5 could not converge without a highly-accurate analytical treatment of the precursor equation. This criteria proved to be the most rigorous and thorough convergence criteria and is recommended for any application of IQS.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Time Step Convergence Analysis}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Time step convergence analysis involves evaluating a problem with various refinements in step size and comparing the resulting errors with the time step size. Plotting error versus $\Delta t$ on a log-scale should produce a relatively strait line with a slope equal to the order of the time discretization method. Validating IQS by demonstrating proper error convergence is essential for predicting model error and using time adaptation techniques. Implicit Euler and BDF discretization schemes were applied to the one-dimensional prototype problem. IQS showed proper error convergence up through fourth order BDF schemes. Implicit Euler and second order BDF schemes were applied to the TWIGL benchmark, where IQS showed proper error convergence. Step doubling adaptation was also applied to TWIGL, where IQS performed impressively, reducing the number of diffusion evaluations considerably. The Crank-Nicolson scheme was applied to the LRA benchmark with IQS. IQS again showed proper second order convergence and was able to reduce the number of diffusion evaluations with time adaptation by more than a factor of 6. The results of the TWIGL and LRA benchmarks proved that IQS is capable of proper convergence and time adaptation behavior for more complex problems.
+Time step convergence analysis involves evaluating a problem with various refinements in step size and comparing the resulting errors with the time step size. Plotting error versus $\Delta t$ on a log-scale should produce a relatively strait line with a slope equal to the order of the time discretization method. \tcr{you are describing how to visualize convergence order. This should not be said here, in the conclusions, but before.}
+Validating IQS by demonstrating proper error convergence is essential for predicting model error and using time adaptation techniques. Implicit Euler and BDF discretization schemes were applied to the one-dimensional prototype problem. IQS showed proper error convergence up through fourth order BDF schemes. Implicit Euler and second order BDF schemes were applied to the TWIGL benchmark, where IQS showed proper error convergence. Step doubling adaptation was also applied to TWIGL, where IQS performed impressively, reducing the number of diffusion evaluations considerably. The Crank-Nicholson scheme was applied to the LRA benchmark with IQS. IQS again showed proper second order convergence and was able to reduce the number of diffusion evaluations with time adaptation by more than a factor of 6. The results of the TWIGL and LRA benchmarks proved that IQS is capable of proper convergence and time adaptation behavior for more complex problems.
+\tcr{Popov may balk at the repeated use of proper, but that's ok. If he says nothing, we let it go.}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{IQS Application to Multiphysics}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Full transient reactor simulation requires the implementation of multiphysics solution methods. In order to test IQS with these types of simulations, it was implemented into the MOOSE/Rattlesnake framework and executed using MAMMOTH. The LRA benchmark and a full core TREAT model were evaluated as test cases for multiphysics treatment. These examples involve a adiabatic heat up of the fuel with Doppler broadening feedback of cross-sections. The evaluation of temperature was integrated in the quasi-static process by introducing an intermediate time scale for temperature and PRKE parameter evaluation. The results of the LRA benchmark showed that quasi-static approach to temperature greatly improved the accuracy for a given time step size. However, the increase in computation time due to the extra temperature evaluations was significant. Therefore, for this benchmark, IQS with one update and IQS P-C with four updates is optimal. The results of the TREAT example showed similar behavior, except the updates only produced a marginal increase in accuracy. These examples' results and the dynamical time scale analysis show that performing a variant number of updates during the transient could further improve the performance of this quasi-static process. In conclusion, IQS and the quasi-static treatment of temperature can drastically improve the computational efficiency for burdensome full transient reactor simulations.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Recommendations for Further Research}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 This research intended to investigate IQS performance for transient reactor simulation and develop means for maximizing computational efficiency for these simulations. Further improvement and testing of IQS can be done in the following areas:
 
@@ -48,6 +64,7 @@ This research intended to investigate IQS performance for transient reactor simu
 
 \item Application of IQS to neutron transport was hinted at in \sct{sect:transport}, but diffusion is typically sufficient for reactor simulation. It is recommended that IQS be applied to neutron transport with multiphysics and tested to see if similar performance is observed.
 
-\item The large systems of full reactor models require a linear iteration process, such as GMRES, to evaluate efficiently. These processes usually implement a preconditioner to minimize the number of linear iterations and improve computation time. Investigating of an optimal preconditioner would further improve IQS performance in terms of computational efficiency.
+\item The large systems of full reactor models require a linear iteration process, such as GMRES, to evaluate efficiently. These processes usually implement a preconditioner to minimize the number of linear iterations and improve computation time. Investigating of an optimal preconditioner would \tcr{further} improve IQS performance in terms of computational efficiency.
+\tcr{this reminds me that you may want to describe a bit the types of linear solution techniques (and their associated preconditioners) used when employing Rattlesnake. This is missing from the document I believe}
 
 \end{enumerate}
