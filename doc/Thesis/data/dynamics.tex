@@ -15,15 +15,18 @@
 
 \chapter{DYNAMICS EXAMPLES \label{sect:dyn}}
 
-Reactor dynamics is the study of the time-dependent behavior of reactors as an entire system. This study includes the physical nature of neutrons and their feedback with power generation.  This feedback includes coupling with other physical properties such as temperature, fluids, material dynamics, etc.  This section describes several dynamics examples, including the LRA benchmark and two TREAT experiments.  These examples are of increased complexity from the kinetics examples of \sct{sect:kin}.  This section also analyzes IQS's performance with these, which is vital for verification of IQS in real-world problems.
+Reactor dynamics is the study of the time-dependent behavior of reactors as an entire system. This study includes the physical nature of neutrons and their feedback with power generation.  This feedback includes coupling with other physical properties such as temperature, fluids, material dynamics, etc.  This section describes several dynamics examples, including the LRA benchmark and two TREAT experiments.  These examples are of increased complexity from the kinetics examples of \chpt{sect:kin}.  This Chapter also analyzes IQS's performance with these, which is vital for verification of IQS in real-world problems.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{LRA Benchmark}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The LRA benchmark is a two-dimensional, two-group neutron diffusion problem with adiabatic heat-up and Doppler feedback in thermal reactor \cite{ANL_BPB}.  It is a super prompt-critical transient.  To have better understanding on the cross sections given later, we present the equations here:
+\tcr{ooops, wrong sign on the RHS for neutronics!}
 \begin{subequations}
 \begin{align}
 -\frac{1}{v_1} \frac{\partial \phi_1}{\partial t} &= -\div D_1 \grad\phi_1 + (\Sigma_{a,1} + \Sigma_{s, 1\rightarrow 2})\phi_1 - \nu(1-\beta)S_f  - \sum_{i=1}^2 \lambda_i C_i, \\
--\frac{1}{v_2} \frac{\partial \phi_2}{\partial t} &= -\div D_2 \grad\phi_1 + \Sigma_{a,2}\phi_2 - \Sigma_{s, 1\rightarrow 2}\phi_1, \\
+-\frac{1}{v_2} \frac{\partial \phi_2}{\partial t} &= -\div D_2 \grad\phi_2 + \Sigma_{a,2}\phi_2 - \Sigma_{s, 1\rightarrow 2}\phi_1, \\
 S_f &= \sum_{g=1}^2 \Sigma_{f,g} \phi_g, \\
 \frac{\partial C_i}{\partial t} &= \nu\beta_i f - \lambda_i C_i, \quad i=1,2, \\
 \frac{\partial T}{\partial t} &= \alpha f, \label{eq:lra-temp} \\
@@ -31,11 +34,11 @@ S_f &= \sum_{g=1}^2 \Sigma_{f,g} \phi_g, \\
 P &= \kappa S_f,
 \end{align}
 \end{subequations}
-where $\phi_1$, $\phi_2$ are the fast and thermal fluxes; $v_1, v_2$ are the averaged neutron velocities; $\Sigma_{a,1}, \Sigma_{a,2}$ are the absorption cross sections; $\Sigma_{s,1\rightarrow 2}$ is the fast-to-thermal scattering cross section; $\Sigma_{f,1}, \Sigma_{f,2}$ are the fission cross sections; $\nu$ is the averaged number of neutrons emitted per fission; $\beta_1, \beta_2$ are the delayed neutron precursor fractions and $\beta=\beta_1 + \beta_2$; $C_1, C_2$ are the delayed neutron precursor concentrations; $\lambda_1, \lambda_2$ are the decay constants of the delayed neutron precursors; $S_f$ is the fission reaction rate; $P$ is the power density; $T$ is the temperature; $\kappa$ is the averaged power released per fission; $\alpha$ is the combination of $\kappa$ and the specific heat capacity; $\gamma$ is the Doppler feedback coefficient; $T_0=T(\vec{r}, t=0)$.
+where $\phi_1$, $\phi_2$ are the fast and thermal fluxes; $v_1, v_2$ are the averaged neutron velocities; $\Sigma_{a,1}, \Sigma_{a,2}$ are the absorption cross sections; $\Sigma_{s,1\rightarrow 2}$ is the fast-to-thermal scattering cross section; $\Sigma_{f,1}, \Sigma_{f,2}$ are the fission cross sections; $\nu$ is the averaged number of neutrons emitted per fission; $\beta_1, \beta_2$ are the delayed neutron precursor fractions and $\beta=\beta_1 + \beta_2$; $C_1, C_2$ are the delayed neutron precursor concentrations; $\lambda_1, \lambda_2$ are the decay constants of the delayed neutron precursors; $S_f$ is the fission reaction rate; $P$ is the power density; $T$ is the temperature; $\kappa$ is the averaged power released per fission; $\alpha$ is the combination of $\kappa$ and the specific heat capacity; $\gamma$ is the Doppler feedback coefficient; $T_0(\vec{r})=T(\vec{r}, t=0)$.
 The two-group diffusion equation are solved with zero flux boundary conditions on external surfaces, reflecting conditions at symmetry boundaries and steady state initial conditions which are obtained by solving
 \begin{align}
 -\div D_1 \grad\phi_1 + (\Sigma_{a,1} + \Sigma_{s, 1\rightarrow 2})\phi_1 &= \frac{1}{k}\sum_{g=1}^2 \nu\Sigma_{f,g}\phi_g, \\
--\div D_2 \grad\phi_1 + \Sigma_{a,2}\phi_2 =& \Sigma_{s, 1\rightarrow 2}\phi_1.
+-\div D_2 \grad\phi_2 + \Sigma_{a,2}\phi_2 =& \Sigma_{s, 1\rightarrow 2}\phi_1.
 \end{align}
 The eigenvalue $k$ is used to modify the fission cross section for the transient simulations with $\frac{1}{k}\Sigma_{f,g}, g=1,2$.  The initial flux distribution shall be normalized such that the averaged power density
 \begin{align}
@@ -123,6 +126,7 @@ The transient is initiated by changing the thermal absorption cross section as t
 \end{align}
 where $t$ is time in seconds.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{LRA Multiphysics Time Scale Results}
 
 \fig{fig:lra_profile} shows the baseline power and temperature transient profile for the LRA benchmark. \fig{fig:lra_profile2D} shows the spacial power distribution at the peak power.  The baseline results are compared to the results achieved by Sutton and Aviles in \cite{Sutton_1996} and presented in \tbl{tab:base}.  The relative difference in the magnitude of the peak power ($t\approx1.44 s$) from the baseline was used for error comparison.  \fig{fig:lra_bad} is an error convergence plot comparing the three techniques where temperature is evaluated only on the macro step (1 temperature update).  \fig{fig:lra_mpconv} is an error convergence plot comparing the three techniques where temperature is evaluated 5 times within a macro step (5 temperature updates).  Finally, \fig{fig:mp} shows the effect of various temperature updates. The dashed lines correspond to implicit discretization at different flux step sizes, while the IQS macro step size is kept constant.
@@ -260,6 +264,7 @@ The performance of the quasi-statics can also be explained by the computation of
 \label{fig:LRAtc}
 \end{figure}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{LRA with Time Adaptation}
 
 \fig{fig:lra_dt2} shows the power profile of the LRA with time adaptation of implicit discretization and IQS P-C, and \tbl{tab:lra_dt2} compiles the results. These time adaptation results show the significant decrease in macro time steps required for IQS P-C. These profiles were obtaining with only one temperature update per macro step; so based on previous results, the IQS P-C performance would improve even more with more updates.
@@ -297,14 +302,16 @@ End (3 s) & 109.66 & 2.3650e-4 & 603 & 109.65 & 3.0622e-4 & 97 \\
 \end{table}
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{TREAT Transient-15 Problem}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Transient 15 is a test case based on the TREAT core. The preliminary purpose of this model was to match an early test of TREAT; due to lack of experimental data and procedures, model validation was impossible \cite{mammoth}. Therefore, ultimate purpose of this simulation in Rattlesnake is to test the model's fidelity with the thermal feedback of TREAT, but it is not meant to exactly match any previous experiments.  Nevertheless, the goal of the following simulations is to test IQS and its time scale based treatment of temperature with a more complex model. The model involves a 159-element "small core" configuration of TREAT, shown in \fig{fig:Tran15_config} \cite{Tran15}. \fig{fig:Tran15_mesh} shows the meshing techniques of the model \cite{mammoth}. To ease computation, the fully homogenized version (without air gaps) was used  for the following simulations. Transient 15 involves an 11-energy group diffusion approximation and is discretized into $355,712$ hexahedral continuous finite elements totaling $4,109,523$ degrees of freedom.  The three-second transient involves a linear ramp decrease in the absorption cross section throughout the control rod region. \fig{fig:Tran15} shows a visualization of the flux profile within the core, hidden is the massive amount of graphite surrounding the core.   
-
+\tcr{I do not see/understand the air channel meshing}
 \begin{figure}[htbp!]
 \centering
 \includegraphics[width=0.7\linewidth]{\FiguresDir/Tran15_config.png}
-\caption{Transient 15 159-element small core configuration}
+\caption{Transient-15 159-element small core configuration}
 \label{fig:Tran15_config}
 \end{figure}
 
@@ -320,17 +327,18 @@ Transient 15 is a test case based on the TREAT core. The preliminary purpose of 
 \caption{Fully homogenized fuel elements}
 \label{fig:Tran15_mesh_homo}
 \end{subfigure}
-\caption{Top quarter view of Transient 15 mesh}
+\caption{Top quarter view of Transient-15 mesh}
 \label{fig:Tran15_mesh}
 \end{figure}
 
 \begin{figure}[htbp!]
 \centering
 \includegraphics[width=0.6\linewidth]{\FiguresDir/Tran15_core2.png}
-\caption{Transient 15 core power profile at peak power}
+\caption{Transient-15 core power profile at peak power}
 \label{fig:Tran15}
 \end{figure}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Transient-15 Temperature Feedback}
 
 The Transient-15 model uses a adiabatic temperature feedback mechanism, similar to the one explored by the LRA. \eqt{eq:temp2} describes the heat up of the fuel.  It is very similar, except the specific heat is now dependent on temperature is described by \eqt{eq:cp}.  The temperature evaluation is identical to the one described in LRA section, except a Newton iteration process is employed to resolve the nonlinearity from the specific heat term.  The feedback to the cross-sections are applied using linear interpolation of tabular data provided by INL.
@@ -341,10 +349,11 @@ The Transient-15 model uses a adiabatic temperature feedback mechanism, similar 
 \ee
 
 \be
-c_p = -5.8219\text{e-}10T^3 - 4.3694\text{e-}7T^2 + 2.8369\text{e-}3T -1.009\text{e-}2 \ (J/g/K)
+c_p = -5.8219\times 10^{-10}T^3 - 4.3694\times 10^{-7}T^2 + 2.8369\times 10^{-3}T -1.009\times 10^{-2} \ (J/g/K)
 \label{eq:cp}
 \ee
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Transient-15 Multiphysics Time Scale Results}
 
 In order to test the temperature feedback treatment, six different scenarios were run: a baseline with a very small time step, implicit discretization, IQS with one and 5 temperature updates per macro step, and IQS P-C with one and 5 updates.  \fig{fig:Tran15_profile} shows the baseline power and temperature profile for the Transient-15 example.  \tbl{tab:tran15} shows the error and runtime results.
@@ -352,7 +361,7 @@ In order to test the temperature feedback treatment, six different scenarios wer
 \begin{figure}[htbp!]
 \centering
 \includegraphics[width=\linewidth]{\FiguresDir/Tran15_profile.png}
-\caption{Transient 15 total power and average temperature profile during transient}
+\caption{Transient-15 total power and average temperature profile during transient}
 \label{fig:Tran15_profile}
 \end{figure}
 
@@ -385,10 +394,11 @@ The results from \tbl{tab:tran15} show similar performance of IQS with the tempe
 \begin{figure}[htbp!]
 \centering
 \includegraphics[width=0.7\linewidth]{\FiguresDir/time_constant_tran15.png}
-\caption{Dynamical time scale for the Transient 15 example}
+\caption{Dynamical time scale for the Transient-15 example}
 \label{fig:tran15tc}
 \end{figure}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Transient-15 with Time Adaptation}
 
 \fig{fig:Tran15_dt2} shows the power profile of the LRA with time adaptation of implicit discretization and IQS P-C.  These plots show that IQS P-C requires marginally fewer macro time steps than implicit discretization, but is qualitatively much closer to the baseline profile. Like the LRA step doubling results, IQS P-C only performs one temperature update per macro step. Adding more updates would most likely improve the error, but increase the computation time significantly. 
