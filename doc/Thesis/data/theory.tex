@@ -110,10 +110,9 @@ This equation is also known as the point reactor kinetics equation (PRKE); where
 \label{eq:l}
 \ee 
 \end{subequations}
-The following inner product definition has been used: $\left(\phi^{*g},f\right):=\int_D\phi^{*g}(\vec{r})f(\vec{r})d^3r$.\\  
-\tcr{I vaguely remind something about $\bar{\lambda}$ not being so easy to obtain/derive/or conceptualize. What was that story?}
+The following inner product definition has been used: $\left(\phi^{*g},f\right):=\int_D\phi^{*g}(\vec{r})f(\vec{r})d^3r$.  
 
-Additionally, in order to impose uniqueness on the factorization and to derive the PRKE, the following normalization condition is imposed: $\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right) = \textit{constant}$ \cite{Dulla2008}. \\
+Additionally, in order to impose uniqueness on the factorization and to derive the PRKE, the following normalization condition is imposed: $\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right) = \textit{constant}$ \cite{Dulla2008}.
 
 Solving for the shape in \eqt{eq:shape} can become expensive, especially in two or three dimensions, and even more so when using the transport equations in lieu of the diffusion equations.  Using IQS, one expects the time dependence of the shape to be weaker than that of the flux itself,  thus allowing for larger time step sizes in updating the shape. The PRKE equations form a small ODE system and can be solved using a much smaller time step size. In transients where the shape varies much less than the flux, IQS can thus be very computationally effective. The two-time scale solution process, a micro scale for the PRKE and a macro scale for the shape, is illustrated in \fig{fig:iqsviz}.  
 
@@ -218,7 +217,7 @@ The most obvious convergence criteria is to observe the change in the shape from
 \label{eq:shape_L2}
 \ee 
 
-Where $n$ is the time step, $k$ is the iteration number, and $\epsilon_{\varphi}$ is the numerical criteria provided by a user.  There is no guarantee that the shape converges, so max number of iterations is typically enforced. \tcr{rephrase last bit}
+Where $n$ is the time step, $k$ is the iteration number, and $\epsilon_{\varphi}$ is the numerical criteria provided by a user. Through testing, iterations do not always converge this criteria; in this circumstance, max number of iterations is enforced.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -254,11 +253,10 @@ In order to preserve the uniqueness criteria, it is beneficial to scale the shap
 \varphi^{g}_n = \varphi^{g,(\text{last})}_n \frac{K_0}{K^{(\text{last})}_{n}}
 \label{eq:shape_scale}
 \ee
-\tcr{here, and before, $n$ seems to indicate the current time at which the solution is sought. I believe that later, the unknowns
-will be described as being at $n+1$. this is a slight inconsistency.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Preconditioned Jacobian-Free Newton-Krylov}
+\label{sect:pjfnk}
 
 By far, the most common nonlinear system iteration method in MOOSE is Preconditioned Jacobian-Free Newton-Krylov with Generalized Minimal RESidual method (GMRES) as the linear system solver.  This section only descirbes the methods' application to IQS; a very detailed description of PJFNK is transcribed by Knoll in \cite{PJFNK_Knoll}. Essentially, the IQS system of equations can be described by \eqt{eq:IQSsys}.  Where $A$ is a matrix operator, $\varphi$ is the solution vector, and $F$ is the forcing vector.
 \be
@@ -508,8 +506,7 @@ An extension of implicit discretization is the backward difference formulae (BDF
 \Delta t b_{n+1}\right]
 \label{eq:bdf}
 \ee
-Where $k$ is the order of the error convergence and $\alpha_{ij}$ are coefficients chosen such that the temporal truncation error is minimized.  The benefit of using BDF is that any order of convergence can be applied and are all unconditionally stable, so the IQS approximation can easily be validated for high order discretization.
-\tcr{The $k$ subscript is confusing. It reads like $\alpha_{jk}$ is a matrix entry but the rest of the equation 2.35 is independent of $k$. Something is fishy.}
+Where $k$ is the order of the error convergence and $\alpha_{ij}$ are coefficients chosen such that the temporal truncation error is minimized.  The benefit of using BDF is that any order of convergence can be applied and are all unconditionally stable, so the IQS approximation can easily be validated for high order discretization.S
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Singly-Diagonally-Implicit Runge-Kutta Method}
@@ -703,15 +700,16 @@ In order to evaluate the PRKE coefficients, defined by \eqtss{eq:rmb}{eq:l}, fou
 \subsection{Other Action Systems}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-For simplicity, IQS implementation has only been described for CFEM diffusion.  However, Rattlesnake has other action systems capable of transient simulation, where IQS can be implemented and be effective.  One of these action systems is DFEM diffusion, where the only major difference from CFEM is the diffusion term in \eqts{eq:flux}{eq:shape}.  However, in the derivation for IQS, this term is unaffected between shape and flux evaluation.  So saving the residual for this diffusion kernel in the \texttt{save\_in} variable is the only alteration to this action for IQS to function.\\
+For simplicity, IQS implementation has only been described for CFEM diffusion.  However, Rattlesnake has other action systems capable of transient simulation, where IQS can be implemented and be effective.  One of these action systems is DFEM diffusion, where the only major difference from CFEM is the diffusion term in \eqts{eq:flux}{eq:shape}.  However, in the derivation for IQS, this term is unaffected between shape and flux evaluation.  So saving the residual for this diffusion kernel in the \texttt{save\_in} variable is the only alteration to this action for IQS to function.
+
 Additional action systems involve transport, but it is evident from \sct{sect:transport} that IQS implementation in these is straightforward as well.  The main differences between a diffusion implementation and a transport implementation are outlined below:
+
 \begin{enumerate}
 \item The form of the operators in the shape equations is different, but Rattlesnake has already implemented all the kernels necessary to represent these operators.  So no change is necessary to these kernels is necessary for IQS.  Additionally, the $\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}$ is the same, so both action systems can use the same kernel.
 \item The PRKE parameters also change because of the operators.  For the $(\rho-\bar{\beta})$ parameter, the same post-processor can be used with the \texttt{save\_in} functionality in MOOSE.  The post-processor for $\bar{\beta}_i$ must be re-written for transport, but takes a very similar form as diffusion.
 \end{enumerate}
 
-IQS will be made available \tcr{this is a copy paste from an old report but it is no longer fully accurate, right?}
-to any action system capable of transient simulation, which includes:
+It is possible to implement IQS to any action system capable of transient simulation, which includes:
 \begin{itemize}
 \item CFEM-Diffusion
 \item DFEM-Diffusion
@@ -720,6 +718,7 @@ to any action system capable of transient simulation, which includes:
 \item LS-CFEM-SN
 \item DFEM-SN
 \end{itemize}
+However, for TREAT models and examples simulated in this research, CFEM-Diffusion is a sufficient approximation. Therefore, IQS was only implemented and tested in this action system.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Predictor-Corrector Modification}
@@ -809,4 +808,17 @@ Below is the syntax for the Transfer block to copy the initial and adjoint solut
 []
 \end{lstlisting}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Linear Solution Techniques}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+MOOSE contains a suite of solution techniques to evaluate a linear system generated by the Rattlesnake action system. For most neutronics and reactor applications, direct evaluation of the system is overbearingly expensive, both computationally and by memory usage. Therefore, the most common technique (default in MOOSE) is PJFNK. This technique is briefly described in \sct{sect:pjfnk}. PJFNK entails approximately solving the Jacobian action on the solution with a finite difference approach using GMRES iteration. Each GMRES iteration requires a residual evaluation, which becomes globally expensive with many iterations. Employing a preconditioner on the solution can decrease the number of iterations and save execution time. The purpose of the preconditioner is to resemble the Jacobian (reduce number of iterations), while being easily invertable (preconditioner overhead). MOOSE has four useful assembly methods for building an effective preconditioner:
+
+\begin{enumerate}
+\item Block Diagonal Preconditioning (default)
+\item Single Matrix Preconditioner (SMP)
+\item Finite Difference Preconditioner (FDP)
+\item Physics Based Preconditioner (PBP)
+\end{enumerate}
+
+When developing a kernel in MOOSE, a function is implement that evaluates the Jacobian for each variable it depends on. In a multi-variable system, like multigroup diffusion, the Jacobian contains "blocks" for each variable and the coupling between them. Diagonal blocks contain the variable contribution to itself, i.e. diffusion and removal. The off-diagonal blocks contain variable-to-variable contributions, i.e. scattering and fission. The default method assembles only the diagonal blocks; this preconditioner is relatively easy to invert, but is not optimal for reducing linear iterations. SMP assembles the diagonal blocks and any off-diagonal blocks specified by the user. Assembling more off-diagonal blocks reduces linear iterations (inputting all blocks requires only one GMRES iteration for a linear system), but increases the expense of inverting the preconditioner. Therefore, SMP requires extensive analysis for optimization. FDP simply does a finite difference approximation for the Jacobian based on residual evaluations. This method only requires one GMRES iteration for a linear system, but is impractically expensive. PBP is an advanced adaptation to SMP. This method assembles the preconditioner similarly to SMP, but each block is inverted as a independent system and iteratively communicates with the rest of the blocks. PBP can be effective for a lower block diagonal system, i.e. including only downscattering blocks, because no communication iterations are required. Selecting an effective preconditioner and assembly method is essential for maximizing computational efficiency of large reactor simulations.
