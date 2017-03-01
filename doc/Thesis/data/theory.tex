@@ -111,6 +111,7 @@ This equation is also known as the point reactor kinetics equation (PRKE); where
 \ee 
 \end{subequations}
 The following inner product definition has been used: $\left(\phi^{*g},f\right):=\int_D\phi^{*g}(\vec{r})f(\vec{r})d^3r$.\\  
+\tcr{I vaguely remind something about $\bar{\lambda}$ not being so easy to obtain/derive/or conceptualize. What was that story?}
 
 Additionally, in order to impose uniqueness on the factorization and to derive the PRKE, the following normalization condition is imposed: $\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right) = \textit{constant}$ \cite{Dulla2008}. \\
 
@@ -128,7 +129,7 @@ Solving for the shape in \eqt{eq:shape} can become expensive, especially in two 
 
 For simplicity, the previous section only described the IQS implementation using the neutron diffusion equation. However, deriving the IQS form for other neutron balance equations (e.g., transport, simplified transport, etc.) is very similar. To this end, we re-write the neutron conservation equations in operator form, shown in \eqt{eq:transport}. 
 \be
-\frac{\partial}{\partial t}\left(\frac{\Psi^g}{v^g}\right) = \sum_{g'} \left(H^{g'\to g} + P_p^{g' \to g} \right) \Psi^{g'} - L^g\Psi^g + S_d^g
+\frac{1}{v^g}\frac{\partial \Psi^g}{\partial t} = \sum_{g'} \left(H^{g'\to g} + P_p^{g' \to g} \right) \Psi^{g'} - L^g\Psi^g + S_d^g
 \label{eq:transport}
 \ee
 where $\Psi^g$ is the multigroup neutron flux (angular flux in the case of transport), $H^{g'\to g}$ is the scattering operator, $P_p^{g' \to g}$ is the prompt neutron production operator, $L^g$ is the loss operator, and $S_d^g$ is the delayed neutron source operator. Using \eqt{eq:flux}, the reader may easily obtain the functional form for these operators in the case of a diffusion approximation.
@@ -136,7 +137,7 @@ where $\Psi^g$ is the multigroup neutron flux (angular flux in the case of trans
 %Factorization is defined as $\Psi^g(\vec{r},\vec{\Omega},t)=p(t)\psi^g(\vec{r},\vec{\Omega},t)$ and the resulting shape equation is defined by \eqt{eq:tshape}.  
 Next, the factorization $\Psi^g(\vec{r},\vec{\Omega},t)=p(t)\psi^g(\vec{r},\vec{\Omega},t)$ is introduced, where the shape is denoted by $\psi^g$, leading to the following shape equations, \eqt{eq:tshape}:
 \be
-\frac{\partial}{\partial t}\left(\frac{\psi^g}{v^g}\right) = \sum_{g'} \left(H^{g' \to g} + P_p^{g' \to g}\right) \psi^{g'} - \left( L^g + \frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\right) \psi^g + \frac{1}{p} S_d^g
+\frac{1}{v^g}\frac{\partial \psi^g}{\partial t}  = \sum_{g'} \left(H^{g' \to g} + P_p^{g' \to g}\right) \psi^{g'} - \left( L^g + \frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\right) \psi^g + \frac{1}{p} S_d^g
 \label{eq:tshape}
 \ee
 Finally, the PRKE parameters are defined by \eqts{eq:trmb}{eq:tb}, where 
@@ -217,7 +218,7 @@ The most obvious convergence criteria is to observe the change in the shape from
 \label{eq:shape_L2}
 \ee 
 
-Where $n$ is the time step, $k$ is the iteration number, and $\epsilon_{\varphi}$ is the numerical criteria provided by a user.  There is no guarantee that the shape converges, so max number of iterations is typically enforced.
+Where $n$ is the time step, $k$ is the iteration number, and $\epsilon_{\varphi}$ is the numerical criteria provided by a user.  There is no guarantee that the shape converges, so max number of iterations is typically enforced. \tcr{rephrase last bit}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -253,6 +254,8 @@ In order to preserve the uniqueness criteria, it is beneficial to scale the shap
 \varphi^{g}_n = \varphi^{g,(\text{last})}_n \frac{K_0}{K^{(\text{last})}_{n}}
 \label{eq:shape_scale}
 \ee
+\tcr{here, and before, $n$ seems to indicate the current time at which the solution is sought. I believe that later, the unknowns
+will be described as being at $n+1$. this is a slight inconsistency.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Preconditioned Jacobian-Free Newton-Krylov}
@@ -317,7 +320,7 @@ The advantage to the predictor-corrector method is there is no iteration necessa
 \label{sect:mp}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-IQS is first and foremost a nuclear reactor simulation method.  In nuclear reactors, multiple physics affect the profile of the neutron flux.  The most simple example of mulitphysics reactor simulations is adiabatic heat up with Doppler feedback. The principle of Doppler feedback is that fission in a fuel causes the material to increase temperature and induces a change in the neutronics properties.  The material heat up is described by \eqt{eq:temp}; where $\rho$ is the material density, $c_p$ is the specific heat, $T$ is temperature, and $\kappa_f$ is the energy released per fission \cite{ANL_BPB}. The change in temperature of the material mainly affects the thermal macroscopic absorption cross section described by \eqt{eq:dopp} \cite{ANL_BPB}.
+IQS is first and foremost a nuclear reactor simulation method.  In nuclear reactors, multiple physics affect the profile of the neutron flux.  One of the simplest examples of mulitphysics reactor simulations is adiabatic heat up with Doppler feedback. The principle of Doppler feedback is that fission in a fuel causes the material to increase temperature and induces a change in the neutronics properties.  The material heat up is described by \eqt{eq:temp}; where $\rho$ is the material density, $c_p$ is the specific heat, $T$ is temperature, and $\kappa_f$ is the energy released per fission \cite{ANL_BPB}. The change in temperature of the material mainly affects the thermal macroscopic absorption cross section described by \eqt{eq:dopp} \cite{ANL_BPB}.
 
 \be
 \rho c_p \frac{\partial T(\vec{r},t)}{\partial t} = \kappa_f \sum^G_{g=1}\Sigma_f^g \phi^g(\vec{r},t)
@@ -428,7 +431,7 @@ According to the a priori hypothesis from previous sections, $\tau$ is large for
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Programming Logic}
 
-The couplings between temperature, amplitude, and shape are all nonlinear, so iteration processes are needed for each time scale.  The amplitude and temperature need to be iterated on the middle time scale until convergence on each temperature step.  Then another iterative process needs to occur in the shape time scale on all three variables. \fig{fig:proc} shows the programming diagram implement to execute this process. The time increment of $\Delta t/3$ for the temperature solve is arbitrary and is meant only to match \fig{fig:time}.
+The couplings between temperature, amplitude, and shape are all nonlinear, so iteration processes are needed for each time scale.  The amplitude and temperature need to be iterated on the middle time scale until convergence on each temperature step.  Then another iterative process needs to occur in the shape time scale on all three variables. \fig{fig:proc} shows the programming diagram implement to execute this process. The time increment of $\Delta t/3$ for the temperature solve is arbitrary and is meant only to match \fig{fig:time} where three temperature updates have been used as illustration.
 
 
 \begin{figure}[!htpb]
@@ -497,15 +500,16 @@ Where $n$ is the previous time step and $n+1$ is the time step being evaluated. 
 \ee
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Backward Difference Formulas}
+\subsection{Backward Difference Formulae}
 
-An extension of implicit discretization is the backward difference formulas (BDF) \cite{Gear:2007}.  BDF's can increase the order of error convergence by interpolating solutions from previous time time steps. The general formula for BDF is discribed by \eqt{eq:bdf}.
+An extension of implicit discretization is the backward difference formulae (BDF) \cite{Gear:2007}.  BDF's can increase the order of error convergence by interpolating solutions from previous time time steps. The general formula for BDF is described by \eqt{eq:bdf}.
 \be 
 \varphi_{n+1} = (IV-\Delta t A_{n+1})^{-1}\left[IV\sum_{j=0}^{k-1}\alpha_{jk}\varphi_{n-j} +
 \Delta t b_{n+1}\right]
 \label{eq:bdf}
 \ee
-Where $k$ is the order of the error convergence and $\alpha_{ij}$ are coefficients chosen such that the temporal truncation error is minimized.  The benifit of using BDF is that any order of convergence can be applied and are all unconditionally stable, so the IQS approximation can easily be validated for high order discretization.
+Where $k$ is the order of the error convergence and $\alpha_{ij}$ are coefficients chosen such that the temporal truncation error is minimized.  The benefit of using BDF is that any order of convergence can be applied and are all unconditionally stable, so the IQS approximation can easily be validated for high order discretization.
+\tcr{The $k$ subscript is confusing. It reads like $\alpha_{jk}$ is a matrix entry but the rest of the equation 2.35 is independent of $k$. Something is fishy.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Singly-Diagonally-Implicit Runge-Kutta Method}
@@ -706,7 +710,8 @@ Additional action systems involve transport, but it is evident from \sct{sect:tr
 \item The PRKE parameters also change because of the operators.  For the $(\rho-\bar{\beta})$ parameter, the same post-processor can be used with the \texttt{save\_in} functionality in MOOSE.  The post-processor for $\bar{\beta}_i$ must be re-written for transport, but takes a very similar form as diffusion.
 \end{enumerate}
 
-IQS will be made available to any action system capable of transient simulation, which includes:
+IQS will be made available \tcr{this is a copy paste from an old report but it is no longer fully accurate, right?}
+to any action system capable of transient simulation, which includes:
 \begin{itemize}
 \item CFEM-Diffusion
 \item DFEM-Diffusion
