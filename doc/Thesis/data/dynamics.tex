@@ -15,14 +15,14 @@
 
 \chapter{DYNAMICS EXAMPLES \label{sect:dyn}}
 
-Reactor dynamics is the study of the time-dependent behavior of reactors as an entire system. This study includes the physical nature of neutrons and their feedback with power generation.  This feedback includes coupling with other physical properties such as temperature, fluids, material dynamics, etc.  This section describes several dynamics examples, including the LRA benchmark and two TREAT experiments.  These examples are of increased complexity from the kinetics examples of \chpt{sect:kin}.  This Chapter also analyzes IQS's performance with these, which is vital for verification of IQS in real-world problems.
+Reactor dynamics is the study of the time-dependent behavior of reactors as an entire system. This study includes the physical nature of neutrons and their feedback with power generation.  This feedback includes coupling with other physical properties such as temperature, fluids, material dynamics, etc.  This section describes two dynamics examples, including the LRA benchmark and a TREAT experiment.  These examples are of increased complexity from the kinetics examples of \chpt{sect:kin}.  This Chapter also analyzes IQS's performance with these, which is vital for verification of IQS in real-world problems.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{LRA Benchmark}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The LRA benchmark is a two-dimensional, two-group neutron diffusion problem with adiabatic heat-up and Doppler feedback in thermal reactor \cite{ANL_BPB}.  It is a super prompt-critical transient.  To have better understanding on the cross sections given later, we present the equations here:
-\tcr{ooops, wrong sign on the RHS for neutronics!}
+
 \begin{subequations}
 \begin{align}
 -\frac{1}{v_1} \frac{\partial \phi_1}{\partial t} &= -\div D_1 \grad\phi_1 + (\Sigma_{a,1} + \Sigma_{s, 1\rightarrow 2})\phi_1 - \nu(1-\beta)S_f  - \sum_{i=1}^2 \lambda_i C_i, \\
@@ -45,9 +45,9 @@ The eigenvalue $k$ is used to modify the fission cross section for the transient
 \bar{P} \equiv \frac{\int_{V_{core}} P(\vec{r}, t=0) d\vec{r}}{\int_{V_{core}} d\vec{r}},
 \end{align}
 where $V_{core}$ is the core region with fuels, is equal to $10^{-6} W\cdot cm^{-3}$.
-The initial precursor concentrations are in equilibrium with the initial critical flux distribution.\\
+The initial precursor concentrations are in equilibrium with the initial critical flux distribution.
 
-The geometry is illustrated in~\fig{fig:lra-geometry}.\\
+The geometry is illustrated in~\fig{fig:lra-geometry}.
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.8\linewidth]{\FiguresDir/lra.png}
@@ -60,7 +60,7 @@ $\nu$ is equal to 2.43.
 Axial bulking $B^2 = 10^{-4}$ is applied for both energy groups.
 Delayed neutron data are presented in~\tbl{tab:lra-dnp}.
 All fuel materials have the same delayed neutron data.
-Some scalar data are listed in~\tbl{tab:lra-scalar}.\\
+Some scalar data are listed in~\tbl{tab:lra-scalar}.
 \begin{table}[!htbp]
     \centering
     \caption{LRA benchmark initial two-group constants.\label{tab:lra-xs}}
@@ -306,8 +306,8 @@ End (3 s) & 109.66 & 2.3650e-4 & 603 & 109.65 & 3.0622e-4 & 97 \\
 \section{TREAT Transient-15 Problem}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Transient 15 is a test case based on the TREAT core. The preliminary purpose of this model was to match an early test of TREAT; due to lack of experimental data and procedures, model validation was impossible \cite{mammoth}. Therefore, ultimate purpose of this simulation in Rattlesnake is to test the model's fidelity with the thermal feedback of TREAT, but it is not meant to exactly match any previous experiments.  Nevertheless, the goal of the following simulations is to test IQS and its time scale based treatment of temperature with a more complex model. The model involves a 159-element "small core" configuration of TREAT, shown in \fig{fig:Tran15_config} \cite{Tran15}. \fig{fig:Tran15_mesh} shows the meshing techniques of the model \cite{mammoth}. To ease computation, the fully homogenized version (without air gaps) was used  for the following simulations. Transient 15 involves an 11-energy group diffusion approximation and is discretized into $355,712$ hexahedral continuous finite elements totaling $4,109,523$ degrees of freedom.  The three-second transient involves a linear ramp decrease in the absorption cross section throughout the control rod region. \fig{fig:Tran15} shows a visualization of the flux profile within the core, hidden is the massive amount of graphite surrounding the core.   
-\tcr{I do not see/understand the air channel meshing}
+Transient 15 is a test case based on the TREAT core. The preliminary purpose of this model was to match an early test of TREAT; due to lack of experimental data and procedures, model validation was impossible \cite{mammoth}. Therefore, ultimate purpose of this simulation in Rattlesnake is to test the model's fidelity with the thermal feedback of TREAT, but it is not meant to exactly match any previous experiments.  Nevertheless, the goal of the following simulations is to test IQS and its time scale based treatment of temperature with a more complex model. The model involves a 159-element "small core" configuration of TREAT, shown in \fig{fig:Tran15_config} \cite{Tran15}. \fig{fig:Tran15_mesh} shows the meshing techniques of the model \cite{mammoth}. \fig{fig:Tran15_mesh_zoom} shows the single block mesh for each meshing technique, the red area of \fig{fig:Tran15_mesh_fine_zoom} represents the air gap. To ease computation, the fully homogenized version (without air gaps) was used  for the following simulations. Transient 15 involves an 11-energy group diffusion approximation and is discretized into $355,712$ hexahedral continuous finite elements totaling $4,109,523$ degrees of freedom.  The three-second transient involves a linear ramp decrease in the absorption cross section throughout the control rod region. \fig{fig:Tran15} shows a visualization of the flux profile within the core, hidden is the massive amount of graphite surrounding the core.   
+
 \begin{figure}[htbp!]
 \centering
 \includegraphics[width=0.7\linewidth]{\FiguresDir/Tran15_config.png}
@@ -331,6 +331,22 @@ Transient 15 is a test case based on the TREAT core. The preliminary purpose of 
 \label{fig:Tran15_mesh}
 \end{figure}
 
+\begin{figure}[!htbp]
+\centering
+\begin{subfigure}[!htbp]{0.49\textwidth}
+\includegraphics[width=\textwidth]{\FiguresDir/Tran15_mesh_fine_zoom.png}
+\caption{Explicit meshing of air channels}
+\label{fig:Tran15_mesh_fine_zoom}
+\end{subfigure}
+\begin{subfigure}[!htbp]{0.49\textwidth}
+\includegraphics[width=\textwidth]{\FiguresDir/Tran15_mesh_homo_zoom.png}
+\caption{Fully homogenized fuel elements}
+\label{fig:Tran15_mesh_homo_zoom}
+\end{subfigure}
+\caption{Top single block view of Transient-15 mesh}
+\label{fig:Tran15_mesh_zoom}
+\end{figure}
+
 \begin{figure}[htbp!]
 \centering
 \includegraphics[width=0.6\linewidth]{\FiguresDir/Tran15_core2.png}
@@ -341,7 +357,7 @@ Transient 15 is a test case based on the TREAT core. The preliminary purpose of 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Transient-15 Temperature Feedback}
 
-The Transient-15 model uses a adiabatic temperature feedback mechanism, similar to the one explored by the LRA. \eqt{eq:temp2} describes the heat up of the fuel.  It is very similar, except the specific heat is now dependent on temperature is described by \eqt{eq:cp}.  The temperature evaluation is identical to the one described in LRA section, except a Newton iteration process is employed to resolve the nonlinearity from the specific heat term.  The feedback to the cross-sections are applied using linear interpolation of tabular data provided by INL.
+The Transient-15 model uses a adiabatic temperature feedback mechanism, similar to the one explored by the LRA. \eqt{eq:temp2} describes the heat up of the fuel.  It is very similar, except the specific heat is now dependent on temperature, which is described by \eqt{eq:cp}.  The temperature evaluation is identical to the one described in LRA section, except a Newton iteration process is employed to resolve the nonlinearity from the specific heat term.  The feedback to the cross-sections are applied using linear interpolation of tabular data provided by INL.
 
 \be
 \rho c_p(T) \frac{\partial T(\vec{r},t)}{\partial t} = \kappa_f \sum^G_{g=1}\Sigma_f^g \phi^g(\vec{r},t)
@@ -405,11 +421,11 @@ The results from \tbl{tab:tran15} show similar performance of IQS with the tempe
 
 \begin{figure}[!htbp]
 \centering
-\begin{subfigure}[!htbp]{0.49\textwidth}
+\begin{subfigure}[!htbp]{0.75\textwidth}
 \includegraphics[width=\textwidth]{\FiguresDir/Tran15_DT2.png}
 \caption{Full power profile}
 \end{subfigure}
-\begin{subfigure}[!htbp]{0.49\textwidth}
+\begin{subfigure}[!htbp]{0.75\textwidth}
 \includegraphics[width=\textwidth]{\FiguresDir/Tran15_DT2_peak.png}
 \caption{Peak power profile}
 \end{subfigure}

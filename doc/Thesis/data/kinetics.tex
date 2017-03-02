@@ -15,7 +15,7 @@
 
 \chapter{KINETICS EXAMPLES}\label{sect:kin}
 
-Neutron dynamics is the study of the time-dependent nature of neutrons in a reactor.  More specifically, there is no coupling of neutron behavior with other physics, like thermal hydraulic feedback.  This section describes kinetics examples that IQS is tested with and analysis of its performance.  The examples range in complexity and application.  The first is a one-dimensional problem, designed for the prototype code in MATLAB.  The next four are from the Argonne National Lab (ANL) Benchmark Problem Book (BPB), and are common problems for testing codes and developing methods \cite{ANL_BPB}. 
+Neutron dynamics is the study of the time-dependent nature of neutrons in a reactor.  More specifically, there is no coupling of neutron behavior with other physics, like thermal hydraulic feedback.  This section describes kinetics examples that IQS is tested with and analysis of its performance.  The examples range in complexity and application.  The first is a one-dimensional problem, designed for the prototype code in MATLAB.  The next one is from the Argonne National Lab (ANL) Benchmark Problem Book (BPB), and is a common problem for testing codes and developing methods \cite{ANL_BPB}. 
 
 \section{One Dimensional Prototype Problem}
 
@@ -66,7 +66,7 @@ Region & Material Property & 0.0 s & 0.1 s & 0.6 s & 1.0 s & 1.7 s \\
 \end{center}
 \end{table}
 
-\fig{fig:1D_power} shows the resulting baseline relative power profile of the one-dimensional problem.  The baseline was computed using MATLAB's ode15s function which is a embedded Runge-Kutta time adaptive method for stiff problems, the error tolerance was set very tightly ($10^{-12}$).  This baseline computation is used to compute the error of the other time discretization methods.  \fig{fig:1D_shape} shows the shape profile at various times during the transient.  It is apparent that the shape is very time-dependent, so it is expected that IQS has marginal accuracy gain for a given time step.
+\fig{fig:1D_power} shows the resulting baseline relative power profile of the one-dimensional problem.  The baseline was computed using MATLAB's ode15s function which is a embedded Runge-Kutta time adaptive method for stiff problems, the error tolerance was set very tightly ($10^{-12}$).  This baseline computation is used to compute the error of the other time discretization methods.  \fig{fig:1D_shape} shows the shape profile at various times during the transient.  It is apparent that the shape is very time-dependent, so it is expected that IQS has marginal accuracy gain for a given time step size.
 
 \begin{figure}[!htbp]
 \begin{center}
@@ -125,7 +125,7 @@ Time step convergence analysis involves evaluating a problem with various refine
 
 There are higher discretization order that can be tested, but most practical application do not go beyond second order.  This paper shows an analysis of the first publicized application of IQS with higher than second order discretization, which exposed unforeseen properties of IQS.  When using higher order techniques, the interpolation of PRKE parameters and shape for precursor integration become important to consider.  Every other application that was investigated linearly interpolates parameters for the PRKE evaluation.  Similarly, the shape used for the integration of the ODE for the precursors needs to have higher order interpolation to preserve high order error convergence.  This interpolation was done using Lagragian and Hermite methods, both leading to successful convergence.
 
-The 1D slab problem was also applied to the Rattlesnake implementation of IQS.  \fig{fig:1D_conv_Rat} shows the error convergence for implicit Euler and BDF2 discretization of the three methods.  The results differ slightly from the prototype, especially in the fact that IQS P-C performs better than IQS.  Since Rattlesnake uses a PJFNK solver for the FEM model, number of time steps isn't strictly proportional to the execution time.  \fig{fig:1D_conv_lin} shows the error of the three methods as compared to the number of linear GMRES iterations, which is a better mark for comparison in computation time.  This figure shows that IQS performs worse than implicit discretization for most time-step sizes, but IQS P-C performs significantly better.  This is due to the fact that IQS needs to iterate between amplitude and shape to resolve its nonlinearity.
+The 1D slab problem was also applied to the Rattlesnake implementation of IQS.  \fig{fig:1D_conv_Rat} shows the error convergence for implicit Euler and BDF2 discretization of the three methods.  The results differ slightly from the prototype, especially in the fact that IQS P-C performs better than IQS.  Since Rattlesnake uses a PJFNK solver for the FEM model, the number of time steps isn't strictly proportional to the execution time.  \fig{fig:1D_conv_lin} shows the error of the three methods as compared to the number of linear GMRES iterations, which is a better mark for comparison in computation time.  This figure shows that IQS performs worse than implicit discretization for most time-step sizes, but IQS P-C performs significantly better.  This is due to the fact that IQS needs to iterate between amplitude and shape to resolve its nonlinearity.
 
 \begin{figure}[!htbp]
 \centering

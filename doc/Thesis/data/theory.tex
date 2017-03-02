@@ -42,6 +42,7 @@ where,
 $\phi^g$   			&	$=$	&	Scalar flux in energy group $g$ \\
 $C_i$					  &	$=$	&	Concentration of delayed neutron precursor $i$ \\
 $\Sigma_f^{g}$	&	$=$	&	Fission cross section in energy group $g$ \\
+$k_{eff}$	&	$=$	&	k-eigenvalue of initial flux evaluation \\
 $\Sigma_r^{g}$	&	$=$	&	Removal cross section in energy group $g$ \\
 $\Sigma_s^{g' \to g}$	&	$=$	&	Scattering cross section from energy group $g'$ to $g$ \\
 $v^g$					  &	$=$	&	Neutron velocity in energy group $g$ \\
@@ -80,7 +81,7 @@ We note that the time-dependent shape equation is similar to the time-dependent 
 \item An equation is needed to obtain the amplitude $p$.
 \end{enumerate}
 
-To derive the amplitude equation, the shape/precursors equations are weighted by a space-dependent function and integrated over the phase-space. The weight function is typically the adjoint flux $\phi^{*g}$, which can be proven to minimize truncation error \cite{duderstadt1976nuclear}. The final expressions are given below:
+To derive the amplitude equation, the shape/precursors equations are weighted by a space-dependent function and integrated over the phase-space. The weight function is typically the adjoint flux $\phi^{*g}$ at the initial time, which can be proven to minimize truncation error \cite{duderstadt1976nuclear}. The final expressions are given below:
 \begin{subequations}
 \be
 \frac{dp}{dt}=\left[\frac{\rho-\bar{\beta}}{\Lambda}\right]p+\sum_{i=1}^I\bar{\lambda}_i\xi_i
@@ -200,7 +201,7 @@ This process can be visualized by \fig{fig:picard}.
 \label{fig:picard}
 \end{figure}
 
-The major difference between the methods of these authors is the convergence criteria used.  Sissaoui and Koclas \cite{Sissaoui_1995, Koclas_1996} use fixed point iteration where the criteria is the simply the normalized difference between the last two computed shapes.  Monier in \cite{Monier_diss} also does fixed point iterations with the same criteria, except the solution is scaled by $\frac{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g(t_{n})\right)}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g(t_{n+1})\right)}$ after each iteration.  Devooght in \cite{Devooght_1984} does a Newton-SOR iteration where the residual of the shape function evaluation is the convergence criteria and next iteration's solution is computed using Newton-Raphson method.\\
+The major difference between the methods of these authors is the convergence criteria used.  Sissaoui and Koclas \cite{Sissaoui_1995, Koclas_1996} use fixed point iteration where the criteria is the simply the normalized difference between the last two computed shapes.  Monier in \cite{Monier_diss} also does fixed point iterations with the same criteria, except the solution is scaled by $\frac{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g(t_{n})\right)}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g(t_{n+1})\right)}$ after each iteration.  Devooght in \cite{Devooght_1984} does a Newton-SOR iteration where the residual of the shape function evaluation is the convergence criteria and next iteration's solution is computed using Newton-Raphson method.
 
 These techniques are by no means an exhaustive list of the possible iteration techniques for IQS. Dulla et al. in \cite{Dulla2008} does an in depth analysis of the fixed point iteration technique most similar to Sissaoui and Koclas, involving convergence rates and solution results.  However, no comprehensive analysis of iteration techniques exists, comparing both Newton and fixed-point convergence rates.  The following sections describes each iteration technique investigated by this research.
 
@@ -217,7 +218,7 @@ The most obvious convergence criteria is to observe the change in the shape from
 \label{eq:shape_L2}
 \ee 
 
-Where $n$ is the time step, $k$ is the iteration number, and $\epsilon_{\varphi}$ is the numerical criteria provided by a user. Through testing, iterations do not always converge this criteria; in this circumstance, the maximum number of iterations is reached.
+Where $n$ is the time step, $k$ is the iteration number, and $\epsilon_{\varphi}$ is the numerical criteria provided by a user. Through testing, iterations do not always converge; in this circumstance, the maximum number of iterations is reached.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -500,14 +501,30 @@ Where $n$ is the previous time step and $n+1$ is the time step being evaluated. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Backward Difference Formulae}
 
-An extension of implicit discretization is the backward difference formulae (BDF) \cite{Gear:2007}.  BDF's can increase the order of error convergence by interpolating solutions from previous time time steps. The general formula for BDF is described by \eqt{eq:bdf}.
+An extension of implicit discretization is the backward difference formulae (BDF) \cite{Gear:2007}.  BDF's can increase the order of error convergence by interpolating solutions from previous time steps. The general formula for BDF is described by \eqt{eq:bdf}.
 \be 
-\varphi_{n+1} = (IV-\Delta t A_{n+1})^{-1}\left[IV\sum_{j=0}^{k-1}\alpha_{j}^{k}\varphi_{n-j} +
+\varphi_{n+1} = (IV-\Delta t A_{n+1})^{-1}\left[IV\sum_{j=1}^{k}\alpha_{j}^{k}\varphi_{n-(k-j)} +
 \Delta t \alpha_{k+1}^{k} b_{n+1}\right]
 \label{eq:bdf}
 \ee
-where $k$ is the order of the error convergence and $\alpha_{j}^{k}$ (vector of length $k+1$) are coefficients chosen such that the temporal truncation error is minimized.  The benefit of using BDF is that any order of convergence can be applied and are all unconditionally stable, so the IQS approximation can easily be validated for high order discretization.
-\tcr{I think one term was missing in your eq 2.35. also, it would be good to given the alpha values for the methods you implemented}
+where $k$ is the order of the error convergence and $\alpha_{j}^{k}$ (vector of length $k+1$) are coefficients chosen such that the temporal truncation error is minimized.  \tbl{tab:bdfa} shows the values of $\alpha$ for every order implemented in this thesis. The benefit of using BDF is that any order of convergence can be applied and are unconditionally stable up through fourth order, so the IQS approximation can easily be validated for high order discretization.
+
+\begin{table}
+\centering
+\begin{tabular}{c|lllll}
+\hline
+Order ($k$) & $\alpha_{1}^{k}$ & $\alpha_{2}^{k}$ & $\alpha_{3}^{k}$ & $\alpha_{4}^{k}$ & $\alpha_{5}^{k}$ \\
+\hline
+1 & 1 & 1 & & & \\
+2 & -1/3 & 4/3 & 2/3 & & \\
+3 & 2/11 & -9/11 & 18/11 & 6/11 & \\
+4 & -3/25 & 16/25 & -36/25 & 48/25 & 12/25 \\
+\hline
+\end{tabular}
+\caption{$\alpha$ values for relevant BDF methods}
+\label{tab:bdfa}
+\end{table}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Singly-Diagonally-Implicit Runge-Kutta Method}
 
@@ -629,7 +646,7 @@ C^{n+1} = \frac{1-(1-\theta)\Delta t\lambda}{1+\theta\Delta t\lambda}C^n + \frac
 \label{eq:dnp_theta}
 \ee
 Reporting this value of $C^{n+1}$, one can solve for the shape $\varphi^{n+1}$ as a function of $\varphi^n$ and $C^n$ (and $p^n$, $p^{n+1}$, $dp/dt|_n$ and  $dp/dt|_{n+1}$).
-Once $\varphi^{n+1}$ has been determined, $C^{n+1}$ is updated.  Applying this technique to implicit discretization is done by changing the definition the fission source ($S_f^n=(\nu\Sigma_f)^n\varphi^n$) and eliminating all $p$ terms.
+Once $\varphi^{n+1}$ has been determined, $C^{n+1}$ is updated.  Applying this technique to implicit discretization is done by changing the definition the fission source ($S_f^n=(\nu\Sigma_f)^n\phi^n$) and eliminating all $p$ terms.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Analytical Precursor Integration}
@@ -681,7 +698,7 @@ Error_{IQS}=\left|\frac{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^{g,n}\r
 \subsection{Action System}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The IQS implementation mostly require the specific IQS executioner, described above. However, IQS additional changes are in the Rattlesnake action system in order to support the IQS execution.  First, changes needed to be made in order to evaluate the shape equation.  The shape equation, after some manipulation, is very similar to the time-dependent governing laws that Rattlesnake already solves. Using multigroup diffusion as an example again, we show the various kernels employed and highlight the new or modified kernels.
+The IQS implementation mostly requires the specific IQS executioner, described above. However, IQS additional changes are in the Rattlesnake action system in order to support the IQS execution.  First, changes needed to be made in order to evaluate the shape equation.  The shape equation, after some manipulation, is very similar to the time-dependent governing laws that Rattlesnake already solves. Using multigroup diffusion as an example again, we show the various kernels employed and highlight the new or modified kernels.
 
 \begin{align}
 \frac{\partial}{\partial t}\left(\frac{\varphi^g}{v^g}\right)=&\underbrace{\frac{\chi_p^g}{\keff} \sum_{g'=1}^G (1-\beta) \nu^{g'} \Sigma_f^{g'} \varphi^{g'}}_{Flux Kernel} + \underbrace{\sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'}}_{Flux Kernel} - \underbrace{\left( -\div D^g \grad \right)\varphi^g}_{Flux Kernel} - \underbrace{\Sigma_r^g\varphi^g}_{Flux Kernel} \nonumber \\
@@ -709,7 +726,7 @@ Additional action systems involve transport, but it is evident from \sct{sect:tr
 \item The PRKE parameters also change because of the operators.  For the $(\rho-\bar{\beta})$ parameter, the same post-processor can be used with the \texttt{save\_in} functionality in MOOSE.  The post-processor for $\bar{\beta}_i$ must be re-written for transport, but takes a very similar form as diffusion.
 \end{enumerate}
 
-It is possible to implement IQS to any action system capable of transient simulation, which includes:
+It is possible to implement IQS to any action system capable of transient simulation, which include:
 \begin{itemize}
 \item CFEM-Diffusion
 \item DFEM-Diffusion
@@ -811,10 +828,8 @@ Below is the syntax for the Transfer block to copy the initial and adjoint solut
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Linear Solution Techniques}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\tcr{JFNK is really for nonlinear systems. I would avoid confusing the reader here. I would start with PJFNK and Picard are
-the nonlinear solvers in MOOSE. Each of the nonlinear solvers requires linear solves ... and then you talk about linear solves ...}
 
-MOOSE contains a suite of solution techniques to solve the linear system generated by the Rattlesnake action system. For most neutronics and reactor applications, direct inversion (e.g., LU solve) of the system is overbearingly expensive, both computationally and by memory usage. Therefore, the most common technique (default in MOOSE) is PJFNK. This technique is briefly described in \sct{sect:pjfnk}. PJFNK entails approximately solving the Jacobian action on the solution with a finite difference approach using GMRES iteration. Each GMRES iteration requires a residual evaluation, which becomes globally expensive with many iterations. Employing a preconditioner on the solution can decrease the number of iterations and save execution time. The purpose of the preconditioner is to resemble the Jacobian (reduce number of iterations), while being easily invertable (preconditioner overhead). MOOSE has four useful assembly methods for building an effective preconditioner:
+MOOSE contains a suite of solution techniques to solve the linear system generated by the Rattlesnake action system. For most neutronics and reactor applications, direct inversion (e.g., LU solve) of the system is overbearingly expensive, both computationally and by memory usage. Therefore, the most common technique (default in MOOSE) is GMRES linear iteration. For nonlinear systems, MOOSE employs Picard or PJFNK nonlinear iterations, PJFNK is the default technique in MOOSE and will be the basis of the following discussion. This technique is briefly described in \sct{sect:pjfnk}. PJFNK entails approximately solving the Jacobian action on the solution with a finite difference approach using GMRES iteration. Each GMRES iteration requires a residual evaluation, which becomes globally expensive with many iterations. Employing a preconditioner on the solution can decrease the number of iterations and save execution time. The purpose of the preconditioner is to resemble the Jacobian (reduce number of iterations), while being easily invertable (preconditioner overhead). MOOSE has four useful assembly methods for building an effective preconditioner:
 
 \begin{enumerate}
 \item Block Diagonal Preconditioning (default)

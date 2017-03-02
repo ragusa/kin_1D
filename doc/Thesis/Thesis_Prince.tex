@@ -103,6 +103,7 @@
 %\usepackage{enumitem}
 \usepackage[htt]{hyphenat}
 \usepackage{longtable}
+\usepackage{csvsimple}
 
 \setlength\parindent{24pt}
 
@@ -125,13 +126,20 @@
 \newcommand{\sct}[1]{Section~\ref{#1}}						% section
 \newcommand{\app}[1]{Appendix~\ref{#1}}						% appendix
 
+% vector shortcuts
+\newcommand{\vo}{\vec{\Omega}}
+\newcommand{\vr}{\vec{r}}
+\newcommand{\vn}{\vec{n}}
+\newcommand{\vnk}{\vec{\mathbf{n}}}
+\newcommand{\vj}{\vec{J}}
+
 \newcommand{\bs}[1]{\mathbf{#1}}
 \newcommand{\dd}{\mathrm{d}}
 \newcommand{\keff}{k_\textit{eff}}
+\newcommand{\D}{\ensuremath{\mathcal{D}}}
 
 \newcommand{\be}{\begin{equation}}
 \newcommand{\ee}{\end{equation}}
-\newcommand{\vn}{\vec{n}}
 \newcommand{\vel}{\vec{\mathrm{v}}}
 \newcommand{\adj}{\Phi^\dagger_0}
 \newcommand{\FiguresDir}{./figures}
