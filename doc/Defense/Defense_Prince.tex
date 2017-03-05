@@ -59,6 +59,7 @@
 \usepackage{colortbl}
 %\usepackage{booktabs}
 \usepackage{multicol}
+\usepackage{caption}
 
 %-----------------------------------------------------------
 % NEW  DEFINITIONS
@@ -349,7 +350,7 @@
 \begin{frame}{Bottom Line Up Front}
 
 \begin{block}{Purpose Statement}
-Investigate and develop the improved quasi-static method (IQS) for minimizing computation expense for transient reactor simulations, while maintaining accuracy.
+Investigate and develop the improved quasi-static method (IQS) for minimizing computation expense in transient reactor simulations, while maintaining accuracy.
 \end{block}
 
 \begin{block}{Objectives}
@@ -1555,7 +1556,150 @@ a_2 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)p(t')dt'
 %------------------------------------------------------------------%
 
 %-------------------------------------------------------------------
-\begin{frame}
+\begin{frame}{One Dimensional Example}
+
+\begin{block}{Geometry}
+\begin{figure}
+\begin{center}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{| l | l | l | l | l | l | l | l | l | l | l | l | l | l | l | l | l | l | l | l |}
+\hline \hline \hline
+  &   &   &   &   &   &    &    &   &   &   &   &   &   &   &   &   &   &   &   \\
+1 & 1 & 1 & 1 & 2 & 3 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 4 & 4 & 1 & 1 & 1 & 1 \\
+  &   &   &   &   &   &    &    &   &   &   &   &   &   &   &   &   &   &   &   \\
+\hline \hline \hline
+\end{tabular}}
+\end{center}
+\end{figure}
+\begin{itemize}
+\item Region 2: Ramp $\Sigma_a$ decrease (rod removal)
+\item Region 3: Ramp $\Sigma_a$ decrease then increase (rod removal then insertion)
+\item Region 4: Ramp $\Sigma_a$ increase (rod insertion)
+\end{itemize}
+\end{block}
+
+\begin{block}{Region Perturbations}
+\centering
+\begin{tabular}{llllllll}
+\hline
+Region & Material Property & 0.0 s & 0.1 s & 0.6 s & 1.0 s & 1.7 s \\
+\hline
+2 & $\Sigma_{a} (cm^{-1})$ & 1.1 & 1.1 & 1.095 & 1.095 & 1.095 \\
+3 & $\Sigma_{a} (cm^{-1})$ & 1.1 & 1.1 & 1.09 & 1.09 & 1.1 \\
+4 & $\Sigma_{a} (cm^{-1})$ & 1.1 & 1.1 & 1.105 & 1.105 & 1.105 \\
+\hline
+\end{tabular}
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Baseline Results}
+
+\begin{columns}
+\column{\dimexpr\paperwidth-10pt}
+\begin{figure}
+\includegraphics[width=0.45\linewidth]{figures/1D_flux.png}
+\includegraphics[width=0.55\linewidth]{figures/1D_power_base.png}
+\end{figure}
+\end{columns}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{IQS Results}
+
+\begin{columns}
+\column{\dimexpr\paperwidth-10pt}
+\begin{figure}
+\includegraphics[width=0.45\linewidth]{figures/1D_shape2.png}
+\includegraphics[width=0.55\linewidth]{figures/1D_iqs_power.png}
+\end{figure}
+\end{columns}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Convergence criteria convergence behavior}
+
+\begin{figure}
+\includegraphics[width=\linewidth,height=3in,keepaspectratio]{figures/iter_renorm.png}
+\end{figure}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{IQS converged error with theta integration of precursors}
+
+\begin{figure}
+\includegraphics[width=\linewidth,height=3in,keepaspectratio]{figures/iter_error.png}
+\end{figure}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{IQS converged error with analytical integration of precursors}
+
+\begin{figure}
+\includegraphics[width=\linewidth,height=3in,keepaspectratio]{figures/iter_error_an.png}
+\end{figure}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{First and second order time step error convergence}
+
+\begin{columns}
+\column{\dimexpr\paperwidth-10pt}
+\begin{figure}
+\includegraphics[width=0.5\linewidth]{figures/1D_conv_IE.png}
+\includegraphics[width=0.5\linewidth]{figures/1D_conv_BDF2.png}
+\end{figure}
+\end{columns}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Third and fourth order time step error convergence}
+
+\begin{columns}
+\column{\dimexpr\paperwidth-10pt}
+\begin{figure}
+\includegraphics[width=0.5\linewidth]{figures/1D_conv_BDF3.png}
+\includegraphics[width=0.5\linewidth]{figures/1D_conv_BDF4.png}
+\end{figure}
+\end{columns}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{SDIRK33 time step error convergence}
+
+\begin{figure}
+\includegraphics[width=\linewidth,height=3in,keepaspectratio]{figures/1D_conv_SDIRK33.png}
+\end{figure}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Rattlesnake time step error convergence}
+
+\begin{columns}
+\column{\dimexpr\paperwidth-10pt}
+\begin{figure}
+\includegraphics[width=0.5\linewidth]{figures/1D_conv_Rat.png}
+\includegraphics[width=0.5\linewidth]{figures/1D_conv_lin.png}
+\end{figure}
+\end{columns}
 
 \end{frame}
 %-------------------------------------------------------------------
@@ -1565,7 +1709,124 @@ a_2 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)p(t')dt'
 %------------------------------------------------------------------%
 
 %-------------------------------------------------------------------
-\begin{frame}
+\begin{frame}{TWIGL Benchmark}
+
+\begin{columns}
+\column{\dimexpr\paperwidth-10pt}
+\begin{figure}
+\includegraphics[width=0.5\linewidth]{figures/twigl_geom.png}
+\includegraphics[width=0.5\linewidth]{figures/ndiff_ramp_flux.jpg}
+\end{figure}
+\end{columns}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{TWIGL Power Profile}
+
+\begin{columns}
+
+\column{.6\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/TWIGL_power_plot.png}
+\caption{TWIGL Power Profile}
+\end{figure}
+
+\column{.55\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/TWIGL_power_plot2.png}
+\caption{TWIGL Peak Power Profile}
+\end{figure}
+
+\end{columns}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{TWIGL time step error convergence}
+
+\begin{columns}
+\column{\dimexpr\paperwidth-10pt}
+\begin{figure}
+\includegraphics[width=0.5\linewidth]{figures/TWIGL_convergence.jpg}
+\includegraphics[width=0.5\linewidth]{figures/TWIGL_ramp_lin.png}
+\end{figure}
+\end{columns}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{TWIGL with Time Adaptation}
+
+\begin{columns}
+
+\column{.7\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/TWIGL_power_plot_dt2.png}
+\caption{TWIGL Power Profile}
+\end{figure}
+
+\column{.4\textwidth}
+\begin{table}
+\begin{center}
+\colorbox{white}{\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\multicolumn{5}{|c|}{Implicit Discretization}\\
+\hline
+Test & $e_{tol}$ & Error & Steps & Solves \\
+\hline
+1 &	0.05    &	0.00012677 &	9    &	29 \\
+2 &	0.01    &	3.5555e-05 &	11   &	35 \\
+3 &	0.005   &	4.0364e-05 &	11   &	31  \\
+4 &	0.001   &	0.00294822 &	33   &	122  \\
+5 &	0.0005  &	0.00099778 &	39   &	131  \\
+\hline
+\rowcolor{yellow} 6 &	0.0001  &	0.00019510 &	78   &	236  \\
+\hline
+7 &	5.0e-05 &	0.00018372 &	112  &	342  \\
+8 &	1.0e-05 &	8.0564e-05 &	263  &	794 \\
+\hline
+
+\multicolumn{5}{|c|}{IQS} \\
+\hline
+Test & $e_{tol}$ & Error & Steps & Solves \\
+\hline
+1 &	0.05 	&	0.03380433 &	4   &	20   \\
+2 &	0.01 	&	0.00166991 &	5   &	40  \\
+3 &	0.005  	&	0.00886584 &	5   &	40  \\
+4 &	0.001 	&	0.02976305 &	5   &	36  \\
+5 &	0.0005 	&	0.00143781 &	6   &	55  \\
+\hline
+\rowcolor{yellow} 6 &	0.0001 	&	0.00016175 &	8   &	65  \\
+\hline
+7 &	5.0e-05 &	6.0328e-05 &	12  &	163  \\
+8 &	1.0e-05 &	7.7103e-05 &	379 &	5729 \\
+\hline
+
+\multicolumn{5}{|c|}{IQS P-C} \\
+\hline
+Test & $e_{tol}$ & Error & Steps & Solves \\
+\hline
+1 &	0.05    &	0.03380433 &	4  &	9   \\
+2 &	0.01    &	0.00263068 &	5  &	12  \\
+3 &	0.005   &	0.00160486 &	6  &	21  \\
+\hline
+\rowcolor{yellow} 4 &	0.001   &	1.7527e-05 &	10 &	35  \\
+\hline
+5 &	0.0005  &	1.4185e-05 &	16 &	74  \\
+6 &	0.0001  &	6.2903e-06 &	19 &	78  \\
+7 &	5.0e-05 &	1.5247e-06 &	24 &	92  \\
+8 &	1.0e-05  &	9.8321e-07 &	48 &	210 \\
+\hline
+\end{tabular}}}
+\end{center}
+\end{table}
+
+\end{columns}
 
 \end{frame}
 %-------------------------------------------------------------------
@@ -1575,7 +1836,180 @@ a_2 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)p(t')dt'
 %------------------------------------------------------------------%
 
 %-------------------------------------------------------------------
-\begin{frame}
+\begin{frame}{LRA Benchmark}
+\begin{columns}
+
+\column{0.6\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/lra.png}
+\end{figure}
+
+\column{0.6\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/lra_profile2D.png}
+\end{figure}
+
+\end{columns}
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{LRA Power and Temperature Profile}
+
+\begin{figure}
+\includegraphics[width=\linewidth,height=3in,keepaspectratio]{figures/lra_profile.png}
+\end{figure}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{LRA Time Step Error Convergence}
+\begin{columns}
+
+\column{0.6\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/lra_bad.png}
+\caption{Only one temperature update per macro step}
+\end{figure}
+
+\column{0.6\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/lra_mp_convergence.png}
+\caption{Five temperature updates per macro step}
+\end{figure}
+
+\end{columns}
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Analysis on Temperature Updates}
+
+\begin{columns}
+
+\column{.6\textwidth}
+\begin{figure}
+\includegraphics[width=\textwidth]{figures/lra_mp.png}
+\end{figure}
+
+\column{.5\textwidth}
+\begin{table}
+\captionsetup{font=scriptsize}
+\begin{center}
+\colorbox{white}{\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|ccc|}
+\hline
+\multicolumn{5}{|c|}{Implicit Discretization}\\
+\hline
+Run  &  $\Delta t$ & Error & Runtime (hr) & Linear Iter.\\
+\hline
+1	& 4.0e-3	& 1.407e-2 	& 4.11	& 7.13e4	\\
+2	& 2.0e-3	& 3.174e-3 	& 6.01	& 9.49e4 	\\
+3 	& 1.0e-3 	& 7.690e-4 	& 10.38	& 1.45e5	\\
+4 	& 5.0e-4 	& 1.892e-4 	& 21.91	& 2.08e5	\\
+5 	& 2.5e-4	& 4.590e-5 	& 25.23	& 3.16e5	\\
+\hline
+\end{tabular}}}
+\end{center}
+\end{table}
+\vspace{-7mm}
+
+\begin{table}
+\captionsetup{font=small}
+\begin{center}
+\colorbox{white}{\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|ccc|}
+\hline
+\multicolumn{5}{|c|}{IQS}\\
+\hline
+	&  Temperature 	&  		& Runtime 	& \% Increase	\\
+Run	&  Updates 	& Error & (hr)		& in Runtime$^*$\\
+\hline
+1	& 1		& 2.612e-3 	& 3.96 	& -3.18\%	\\
+2	& 2		& 9.893e-4 	& 6.02	&  47.1\%	\\
+3 	& 4 	& 5.796e-4 	& 7.87	&  92.3\%	\\
+4 	& 8 	& 4.772e-4 	& 12.61	& 207.9\% 	\\
+5 	& 16	& 4.516e-4 	& 22.14	& 440.7\%	\\
+\hline
+\end{tabular}}}
+\end{center}
+\end{table}
+\vspace{-7mm}
+
+\begin{table}
+\captionsetup{font=scriptsize}
+\begin{center}
+\colorbox{white}{\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|ccc|}
+\hline
+\multicolumn{5}{|c|}{IQS P-C}\\
+\hline
+	&  Temperature 	&  		& Runtime 	& \% Increase	\\
+Run	&  Updates 	& Error & (hr)		& in Runtime$^*$\\
+\hline
+1	& 1		& 3.488e-3 	& 2.91 	& -28.9\%	\\
+2	& 2		& 1.349e-3 	& 3.73	& -9.00\%	\\
+3 	& 4 	& 9.161e-4 	& 3.97	& -3.04\%	\\
+4 	& 8 	& 8.052e-4 	& 5.39	&  31.7\%	\\
+5 	& 16	& 7.905e-4 	& 8.19	&  100\%	\\
+\hline
+\end{tabular}}}
+%}
+\\
+\tiny $^*$ runtime difference from $\Delta t = 0.004$ implicit dis.
+\end{center}
+\end{table}
+
+\end{columns}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{LRA Dynamical Time Scale Analysis}
+
+\begin{figure}
+\includegraphics[width=\linewidth,height=3in,keepaspectratio]{figures/time_constant_lra.png}
+\end{figure}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{LRA with Time Adaptation}
+
+\begin{columns}
+
+\column{.6\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/LRA_DT2.png}
+\caption{LRA Power Profile}
+\end{figure}
+
+\column{.6\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/LRA_DT2_peak.png}
+\caption{LRA Peak Power Profile}
+\end{figure}
+
+\end{columns}
+
+\begin{table}
+\begin{center}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|l|l|l|}
+\hline
+ & \multicolumn{3}{|c|}{Brute Force} & \multicolumn{3}{|c|}{IQS P-C} \\
+\hline
+Event & Power (W/cm$^3$) & Error & Steps & Power (W/cm$^3$) & Error & Steps \\
+\hline
+Max Power & 5567.3 & 0.019454 & 423 & 5568.3 & 0.019274 & 47 \\
+End (3 s) & 109.66 & 2.3650e-4 & 603 & 109.65 & 3.0622e-4 & 97 \\
+\hline
+\end{tabular}}
+\end{center}
+\end{table}
 
 \end{frame}
 %-------------------------------------------------------------------
@@ -1585,7 +2019,94 @@ a_2 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)p(t')dt'
 %------------------------------------------------------------------%
 
 %-------------------------------------------------------------------
-\begin{frame}
+\begin{frame}{TREAT: Transient-15 Example}
+\begin{columns}
+
+\column{0.6\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/Tran15_config.png}
+\end{figure}
+
+\column{0.5\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/Tran15_mesh_homo.png}
+\end{figure}
+
+\end{columns}
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Transient-15 Power Profile}
+\begin{columns}
+
+\column{0.6\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/Tran15_core2.png}
+\end{figure}
+
+\column{0.5\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/Tran15_profile.png}
+\end{figure}
+
+\end{columns}
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Transient-15 Results}
+
+\begin{block}{Accuracy and Runtime}
+\begin{center}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{|l|ccccccc|}
+\hline
+ & No.	& Max &	Time at Max &	Max Average &	\% Increase &	Max Power & Linear	\\
+Method & of Steps &	Power (W) &	Power (s) &	Temperature (K) & Runtime$^*$ & Error & Iterations \\
+\hline
+Baseline 			& 3000 	& 3.5039e+08 & 1.901 & 371 &	---		&	---		 & ---		\\
+Implicit Dis. 		& 300 	& 3.5011e+08 & 1.90  & 371 &	---		&	7.875e-4 & 41020	\\
+IQS 				& 300	& 3.5036e+08 & 1.90  & 371 & -11.9\%	&	8.385e-5 & 23949	\\
+IQS (5 updates) 	& 300 	& 3.5040e+08 & 1.90  & 371 &  49.7\%	&	3.687e-5 & 24035	\\
+IQS P-C 			& 300 	& 3.5065e+08 & 1.90  & 371 &  -2.1\%	&	7.527e-4 & 39020	\\
+IQS P-C (5 updates) & 300 	& 3.5043e+08 & 1.90  & 371 &  26.5\%	&	1.227e-4 & 37866	\\
+\hline
+\end{tabular}
+}
+\end{center}
+\vspace{-3mm}
+$^*$ difference in runtime from implicit discretization 
+\end{block}
+
+\begin{block}{Dynamical Time Scale}
+\begin{figure}
+\includegraphics[height=1.5in]{figures/time_constant_tran15.png}
+\end{figure}
+\end{block}
+
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Transient-15 with Time Adaptation}
+
+\begin{columns}
+
+\column{.6\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/Tran15_DT2.png}
+\caption{TREAT Power Profile}
+\end{figure}
+
+\column{.6\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/Tran15_DT2_peak.png}
+\caption{TREAT Peak Power Profile}
+\end{figure}
+
+\end{columns}
 
 \end{frame}
 %-------------------------------------------------------------------
@@ -1595,11 +2116,107 @@ a_2 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)p(t')dt'
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %-------------------------------------------------------------------
-\begin{frame}
+\begin{frame}{Conclusions}
+
+\begin{block}{IQS Iteration}
+IQS was testing with fixed point itertion used the following criteria:
+\begin{enumerate}
+\item $L^\infty$ norm of the change in shape between iterations
+\item $L^2$ norm of the change in shape between iterations
+\item Difference in reactivity between iterations
+\item Difference in amplitude between iterations
+\item IQS uniqueness consistency criteria
+\end{enumerate}
+\begin{itemize}
+\item 1-4 had equivalent behavior
+\item 5 required analytical integration of precursors for reasonable error convergence
+\end{itemize}
+\end{block}
 
 \end{frame}
 %-------------------------------------------------------------------
 
+%-------------------------------------------------------------------
+\begin{frame}{Conclusions (cont.)}
+
+\begin{block}{IQS Time Step Error Convergence}
+\begin{itemize}
+\item Demonstrated proper convergence through order 4
+\item Required higher order interpolation of PRKE parameters for higher order convergence
+\item Effectiveness of error convergence demonstrated through time adaptation
+\item Marginal improvement over implicit discretization for "difficult" 1D problem
+\item Significant improvement for TWIGL and LRA
+\end{itemize}
+\end{block}
+
+\begin{block}{IQS with Temperature Feedback}
+\begin{itemize}
+\item IQS was successfully implemented into the Rattlesnake/MOOSE framework
+\item Incorporation of temperature into the quasi-static process significantly improved computational efficiency
+\item Dynamical time scale analysis demonstrated proof-of-concept for variant time scales
+\end{itemize}
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+
+%-------------------------------------------------------------------
+\begin{frame}{Recommendations for Future Research}
+
+\begin{block}{Multiphysics}
+Test IQS with other reactor physics, including:
+\begin{itemize}
+\item Thermal Hydraulics
+\item Fuel Mechanics
+\item Depletion
+\end{itemize}
+\end{block}
+
+\begin{block}{Transport}
+Apply IQS to other transport models (other Rattlesnake action systems):
+\begin{itemize}
+\item DFEM-Diffusion
+\item SAAF-Sn
+\item SAAF-Pn
+\item LS-Sn
+\end{itemize}
+\end{block}
+
+\begin{block}{PJFNK}
+\begin{itemize}
+\item Investigate PJFNK iteration of IQS
+\item Optimize IQS preconditioning
+\end{itemize}
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Questions?}
+
+\centering
+\includegraphics[width=\linewidth,height=3in,keepaspectratio]{figures/question_mark.jpg}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}
+
+\begin{figure}
+\includegraphics[height=0.5in]{figures/thank_you.png}
+\end{figure}
+
+\begin{figure}
+\includegraphics[height=2.5in]{figures/nuclear_collage.png}
+\hspace{5mm}
+\includegraphics[height=2.5in]{figures/tamu_atom.jpg}
+\end{figure}
+
+\end{frame}
+%-------------------------------------------------------------------
 
 
 %************************************************
