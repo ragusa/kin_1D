@@ -269,6 +269,14 @@
 \newcommand{\M}{\mathbf{M}}
 \renewcommand{\D}{\mathbf{D}}
 
+\newcommand{\backupbegin}{
+   \newcounter{finalframe}
+   \setcounter{finalframe}{\value{framenumber}}
+}
+\newcommand{\backupend}{
+   \setcounter{framenumber}{\value{finalframe}}
+}
+
 % tikz stuff
 \usetikzlibrary{shapes,arrows,positioning}
 \pgfdeclarelayer{background}
@@ -347,28 +355,36 @@
 %-------------------------------------------------------------------
 
 %-------------------------------------------------------------------
-\begin{frame}{Bottom Line Up Front}
+\begin{frame}{Objective}
 
 \begin{block}{Purpose Statement}
 Investigate and develop the improved quasi-static method (IQS) for minimizing computation expense in transient reactor simulations, while maintaining accuracy.
 \end{block}
 
+\begin{block}{What is IQS?}
+\begin{itemize}
+\item Transient neutronics method meant to minimize expensive diffusion evaluations
+\item Non-approximately separates spatial variance and temporal power
+\item Impetus is spatial variance doesn't change much in time, compared to powerb
+\end{itemize}
+\end{block}
+
 \begin{block}{Objectives}
 \begin{itemize}
-\item Establish IQS performance for various nonlinear iteration techniques
-\item Validate time step convergence for IQS with high order discretization schemes
+\item Establish IQS performance for various nonlinear iteration techniques applied to transient neutronics
+\item Validate time step convergence in transient neutronics problems for IQS with high order discretization schemes
 \item Apply IQS to multiphysics simulations
 \end{itemize}
 \end{block}
 
-\begin{block}{Conclusions}
-\begin{itemize}
-\item IQS is an effective method for reducing computational expense of transient reactor simulations
-\item The IQS uniqueness criteria is important to keep consistent through nonlinear iteration and accurate precursor evaluation
-\item IQS demonstrates proper error convergence up through fourth order methods and shows impressive performance with time adaptation
-\item IQS implementation in Rattlesnake was effective and greatly reduced computational expense in TREAT simulations
-\end{itemize}
-\end{block}
+%\begin{block}{Conclusions}
+%\begin{itemize}
+%\item IQS is an effective method for reducing computational expense of transient reactor simulations
+%\item The IQS uniqueness criteria is important to keep consistent through nonlinear iteration and accurate precursor evaluation
+%\item IQS demonstrates proper error convergence up through fourth order methods and shows impressive performance with time adaptation
+%\item IQS implementation in Rattlesnake was effective and greatly reduced computational expense in TREAT simulations
+%\end{itemize}
+%\end{block}
 
 
 \end{frame}
@@ -535,9 +551,9 @@ Shape($\vr,E,t$) & & Amplitude($t$)
 
 \begin{block}{}
 \begin{itemize}
-\item Direct time discretization of these equations is known as "implicit discretization"
+\item Direct time discretization of these equations is termed "implicit discretization"
 \item These equations are particularly stiff due to the large value of $v$
-\item Implicit schemes are necessary with many points of time discretization (time steps)
+\item Implicit schemes are necessary with many time steps
 \end{itemize}
 \end{block}
 
@@ -554,7 +570,7 @@ Shape($\vr,E,t$) & & Amplitude($t$)
 \begin{block}{Factorization}
 Point reactor kinetics involve factorizing flux into space and time dependent components:
 \be
-\phi(\vr,E,t) = \phi(\vr,E)\times p(t)
+\phi^g(\vr,t) = \Phi^g(\vr)\times p(t)
 \ee
 \end{block}
 
@@ -649,7 +665,7 @@ For brevity, the adjoint flux product and integration over domain will be repres
 \begin{block}{Uniqueness of the factorization}
 In order to impose uniqueness of the factorization, one requires:
 \[
-\tcp{K_0} = \sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)= constant
+\tcp{K_0} = \sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\tcb{\varphi^g}\right)= constant
 \]
 \end{block}
 
@@ -673,14 +689,14 @@ In order to impose uniqueness of the factorization, one requires:
 
 \small \be
 \frac{\rho-\bar{\beta}}{\Lambda}=
-\frac{ \sum_{g=1}^G \left(\phi^{*g},\sum_{g'=1}^G\frac{\chi_p^g}{\keff} \nu_p^{g'} \Sigma_f^{g'}\varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'} -\left( -\div D^g \grad  + \Sigma_r^g \right)\varphi^g\right)}
-{\sum_{g=1}^G \left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}
+\frac{ \sum_{g=1}^G \left(\phi^{*g},\sum_{g'=1}^G\frac{\chi_p^g}{\keff} \nu_p^{g'} \Sigma_f^{g'}\tcb{\varphi^{g'}} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \tcb{\varphi^{g'}} -\left( -\div D^g \grad  + \Sigma_r^g \right)\tcb{\varphi^g}\right)}
+{\sum_{g=1}^G \left(\phi^{*g},\frac{1}{v^g}\tcb{\varphi^g}\right)}
 \ee \normalsize
 %%
 \be
 \frac{\bar{\beta}}{\Lambda}=\sum_{i=1}^I\frac{\bar{\beta}_i}{\Lambda}=\frac{1}{\keff}
-\frac{\sum_{i=1}^I\sum_{g=1}^G(\phi^{*g}, \beta_i\nu^{g} \Sigma_f^g \varphi^{g})}
-{\sum_{g=1}^G \left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}
+\frac{\sum_{i=1}^I\sum_{g=1}^G(\phi^{*g}, \beta_i\nu^{g} \Sigma_f^g \tcb{\varphi^{g}})}
+{\sum_{g=1}^G \left(\phi^{*g},\frac{1}{v^g}\tcb{\varphi^g}\right)}
 \ee
 %%
 \be
@@ -703,7 +719,7 @@ In order to impose uniqueness of the factorization, one requires:
 
 %-------------------------------------------------------------------
 \begin{frame}{Quasi-Static Process}
-\vspace{-2mm}
+% \vspace{-2mm}
 
 \begin{block}{Time scales and IQS solution process}
 Because solving for the \tcb{shape} can be expensive, especially in two or three dimensions, it is attractive to make the assumption that the \tcb{shape} is weakly time-dependent so the \tcb{shape} can be computed after a multitude of \tcr{PRKE} calculations:
@@ -712,19 +728,19 @@ Because solving for the \tcb{shape} can be expensive, especially in two or three
 \end{figure}
 \end{block}
 
-\begin{block}{Variable time discretization}
-\begin{itemize}
-\item To ensure stability, only implicit discretization schemes
-\item PRKE error kept constant, so either very small time steps or adaptive methods
-\item Schemes for shape include:
-\begin{itemize}
-\item Implicit Euler
-\item Crank-Nicolson
-\item Backward Difference Formulae (DDF)
-\item Singly-Diagonally-Implicit Runge-Kutta (SDIRK)
-\end{itemize}
-\end{itemize}
-\end{block}
+%\begin{block}{Variable time discretization}
+%\begin{itemize}
+%\item To ensure stability, only implicit discretization schemes
+%\item PRKE error kept constant, so either very small time steps or adaptive methods
+%\item Schemes for shape include:
+%\begin{itemize}
+%\item Implicit Euler
+%\item Crank-Nicolson
+%\item Backward Difference Formulae (DDF)
+%\item Singly-Diagonally-Implicit Runge-Kutta (SDIRK)
+%\end{itemize}
+%\end{itemize}
+%\end{block}
 
 \end{frame}
 %-------------------------------------------------------------------
@@ -758,15 +774,6 @@ Because solving for the \tcb{shape} can be expensive, especially in two or three
 %-------------------------------------------------------------------
 \begin{frame}{IQS is nonlinear}
 
-\begin{block}{Factorization leads to a nonlinear system}
-The \tcr{amplitude} and \tcb{shape} equations form a system of nonlinear coupled equations: 
-\ben
-\item Coefficients appearing in the \tcr{PRKE}'s depend upon the \tcb{shape} solution
-\item \tcb{Shape} equation has a kernel dependent on \tcr{amplitude} and its derivative  
-\item Delayed neutron source term is scaled by the \tcr{amplitude}
-\een
-\end{block}
-
 \begin{block}{Nonlinear systems need an iterative solution process}
 There are two general iteration processes: 
 \begin{enumerate}
@@ -775,82 +782,26 @@ There are two general iteration processes:
 \end{enumerate}
 \end{block}
 
-\end{frame}
-%-------------------------------------------------------------------
-
-%-------------------------------------------------------------------
-\begin{frame}{Fixed-point iteration}
-%\vspace{-10mm}
-
+\begin{block}{Fixed-Point Process}
 \begin{figure}
-\includegraphics[height=1.3in]{figures/fixed_point.png}
+\includegraphics[width=\linewidth]{figures/iqs_iter_proc.png}
 \end{figure}
-%\vspace{-10mm}
-\begin{block}{IQS iteration approach}
-\setlength{\leftmargini}{10mm}
-\begin{itemize}
-\item[\textit{Step 1:}] Compute the PRKE parameters at the end of the macro step using the last computed shape
-\item[\textit{Step 2:}] Linearly interpolate the computed PRKE parameters over the macro step
-\item[\textit{Step 3:}] Solve the PRKE on micro steps over the entire macro step
-\item[\textit{Step 4:}] Solve the shape equation on the macro step using the computed values of $p$ and $dp/dt$.
-\item[\textit{Step 5:}] Check if the shape solution has converged:
-	\begin{itemize}
-	\item \textit{No:} Repeat the same macro time step
-	\item \textit{Yes:} Move on to the next macro time step
-	\end{itemize}
-\end{itemize}
 \end{block}
 
 \end{frame}
 %-------------------------------------------------------------------
 
 %-------------------------------------------------------------------
-\begin{frame}{Fixed-point iteration programming logic}
-
-\begin{figure}[!htpb]
-\centering
-\resizebox{!}{3in}{
-\begin{tikzpicture}[every node/.style = {font=\LARGE}]
-
-\node[greenblock](p1) at (0,0) {Solve shape equations \\ over macro time step};
-\node[greenblock](p2) at (0,-2.5) {Compute PRKE parameters \\ over macro time step};
-\node[greenblock](p3) at (0,-5) {Solve PRKE using micro \\ steps};
-\node[greenblock](p4) at (0,-7.5) {Update $p$ and $\frac{dp}{dt}$};
-\node[blueblock2] (p5) at (0,-11) {Solve other physics \\ components};
-\node[reddiamond] (check) at (0,-15) {Check for \\ convergence};
-\node [above =0.1mm of p1] {\large{IQS Solve:}};
-\node [above =0.1mm of p5] {\large{Multi-physics:}};
-
-\tikzback{p1}{p1}{p4}{p4}{bk1}
-\tikzback{p5}{p5}{p5}{p5}{bk2}
-
-\draw[->,ultra thick](p1.south) -- (p2.north);
-\draw[->,ultra thick](p2.south) -- (p3.north);
-\draw[->,ultra thick](p3.south) -- (p4.north);
-\draw [->,ultra thick] (p4.south)+(0,-0.25) -- node [above] {} (bk2-n);
-\draw[->,ultra thick](p5.south)+(0,-0.25) -- (check.north);
-%\draw[->,ultra thick](check.west) -- (-5,-15) -- node[above,sloped] {\large{no}}(-5,0) -- node[above] {}(bk1-w);
-\draw[->,ultra thick](check.west) -- node[above,sloped] {\LARGE{no}} (-5,-15) |-  node[above] {}(bk1-w);
-\draw[->,ultra thick](check.south) -- node[right] {\LARGE{yes}} ++(0,-2);
-
-\end{tikzpicture}
-}
-\end{figure}
-
-\end{frame}
-%-------------------------------------------------------------------
-
-%-------------------------------------------------------------------
-\begin{frame}{Relevant convergence criteria}
+\begin{frame}{Relevant Picard convergence criteria}
 
 \begin{block}{IQS convergence criteria}
 \begin{itemize}
 \item \tcb{Shape} based convergence:
 \be
-\frac{\text{max}\left|\varphi_{n}^{(k+1)} - \varphi_{n}^{(k)}\right|}{\text{max}\left|\varphi_{n}^{(k+1)}\right|} < \epsilon_{\varphi}
+\frac{\text{max}\left|\tcb{\varphi{n}^{(k+1)}} - \tcb{\varphi_{n}^{(k)}}\right|}{\text{max}\left|\tcb{\varphi{n}^{(k+1)}}\right|} < \epsilon_{\varphi}
 \ee 
 \be
-\frac{\norm{\varphi_{n}^{(k+1)} - \varphi_{n}^{(k)}}}{\norm{\varphi_{n}^{(k+1)}}} < \epsilon_{\varphi}
+\frac{\norm{\tcb{\varphi{n}^{(k+1)}} - \tcb{\varphi_{n}^{(k)}}}}{\norm{\tcb{\varphi_{n}^{(k+1)}}}} < \epsilon_{\varphi}
 \ee 
 
 \item Reactivity based:
@@ -860,7 +811,7 @@ There are two general iteration processes:
 
 \item \tcr{Amplitude} based:
 \be 
-p_n^{k+1} - p_n^{k} < \epsilon_p
+\tcr{p_n^{k+1}} - \tcr{p_n^{k}} < \epsilon_p
 \ee
 
 \item Uniqueness consistency:
@@ -874,37 +825,9 @@ p_n^{k+1} - p_n^{k} < \epsilon_p
 %-------------------------------------------------------------------
 
 %-------------------------------------------------------------------
-\begin{frame}{Newton iteration}
-\vspace{-3mm}
-\begin{figure}
-\includegraphics[height=1.1in]{figures/newton_iter.jpg}
-\end{figure}
-\vspace{-3mm}
-\begin{block}{Jacobian-Free Newton-Krylov Method}
-\bi
-\item Newton system:
-\be
-J\delta\varphi = F(\varphi,p,t) - A(\varphi,p)\varphi \equiv -R(\varphi,p)
-\ee
-\item Where $J$ is the Jacobian and defined as:
-\be
-J_{ij}=\partial R_i/\partial\varphi_j
-\ee
-\item For IQS, the Jacobian is impossible to define so it must be approximated:
-\be
-J\delta\varphi\approx[R(\varphi+\epsilon\delta\varphi,p')-R(\varphi,p)]/\epsilon
-\ee
-\item The resulting system is solved using GMRES iteration
-\ei
-\end{block}
-
-\end{frame}
-%-------------------------------------------------------------------
-
-%-------------------------------------------------------------------
 \begin{frame}{IQS Predictor-Corrector}
 
-%\begin{block}{IQS P-C Linearizes the System}
+\begin{block}{IQS P-C Linearizes the System}
 IQS P-C linearizes the system and avoids iterations on the \tcb{shape}: 
 \ben
 \item Evaluate multigroup diffusion equation to get predicted flux $\phi_{n+1}^{g,\tcr{pred}}$
@@ -922,6 +845,7 @@ IQS P-C linearizes the system and avoids iterations on the \tcb{shape}:
 
  Advantage: No IQS nonlinear iteration is necessary \\
  Disadvantage: Assumes $\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g_{n+1}\right)$ is inherently constant \\
+\end{block}
 
 \end{frame}
 %-------------------------------------------------------------------
@@ -931,104 +855,28 @@ IQS P-C linearizes the system and avoids iterations on the \tcb{shape}:
 %------------------------------------------------------------------%
 
 %-------------------------------------------------------------------
-\begin{frame}{Time Discretization Schemes}
+\begin{frame}{Time Discretization}
 \vspace{-3mm}
 
-\begin{block}{General Equation Form}
-\be 
-IV\frac{\partial \varphi}{\partial t} = A\varphi+b
-\ee
-\end{block}
-\vspace{-3mm}
-
-\begin{block}{Theta Method}
-\be
-\varphi_{n+1} = (IV-\Delta t A_{n+1})^{-1}\left[\Delta t(1-\theta)(A_n\varphi_n+b_n) + \Delta t\theta b_{n+1} + IV\varphi_n\right]
-\ee
+\begin{block}{Time Discretizations}
 \begin{itemize}
-\item Implicit Euler: $\theta=1$ (First Order)
-\item Explicit Euler: $\theta=0$ (First Order)
-\item Crank-Nicolson: $\theta=1/2$ (Second Order)
+\item Implicit Euler - 1st Order
+\item Crank-Nicolson - 2nd Order
+\item Backward Difference Formulae (BDF) - 1st, 2nd, 3rd, 4th Order
+\item Singly-Diagonally-Implicit Runge-Kutta (SDIRK) - 3rd Order (SDIRK33)
 \end{itemize}
 \end{block}
-\vspace{-3mm}
 
-\begin{block}{Backward Difference Formula (BDF)}
-\be 
-\varphi_{n+1} = (IV-\Delta t A_{n+1})^{-1}\left[IV\sum_{j=1}^{k}\alpha_{j}^{k}\varphi_{n-(k-j)} + \Delta t \alpha_{k+1}^{k} b_{n+1}\right]
-\ee
-\centering
-\begin{tabular}{c|lllll}
-\hline
-Order ($k$) & $\alpha_{1}^{k}$ & $\alpha_{2}^{k}$ & $\alpha_{3}^{k}$ & $\alpha_{4}^{k}$ & $\alpha_{5}^{k}$ \\
-\hline
-1 & 1 & 1 & & & \\
-2 & -1/3 & 4/3 & 2/3 & & \\
-3 & 2/11 & -9/11 & 18/11 & 6/11 & \\
-4 & -3/25 & 16/25 & -36/25 & 48/25 & 12/25 \\
-\hline
-\end{tabular}
-\end{block}
-
-\end{frame}
-%-------------------------------------------------------------------
-
-%-------------------------------------------------------------------
-\begin{frame}{Time Discretization Schemes (cont.)}
-
-\begin{block}{Singly-Diagonally-Implicit Runge-Kutta (SDIRK)}
-For a general differential equation $dy/dt=f(t,y)$:
-\be
-y_{n+1} = y_n + \Delta t\sum_{i=1}^s b_ik_i
-\ee
-\be 
-k_i = f(t_n+c_i\Delta t, y_n+\Delta t \sum_{j=1}^{i} a_{ij}k_j)
-\ee
-\resizebox{\linewidth}{!}{
-\begin{tabular}{cc}
-Butcher Tableu: & SDIRK33: \\
-\begin{tabular}{c|cccc}
-$c_1$ & $a_{11}$ & &  & \\
-'$c_2$ & $a_{21}$ & $a_{22}$ & & \\
-$\vdots$ & $\vdots$ & $\vdots$ & $\ddots$ & \\
-$c_s$ & $a_{s1}$ & $a_{s2}$ & $\ldots$ & $a_{ss}$\\
-\hline
-&$b_1$ & $b_2$ & $\ldots$ & $b_s$
-\end{tabular}
-&
-\begin{tabular}{c|ccc}
-$\lambda$ & $\lambda$ & & \\
-$\frac{1}{2}(1+\lambda)$ & $\frac{1}{2}(1-\lambda)$ & $\lambda$ & \\
-$1$ & $\frac{1}{4}(-1+16\lambda-6\lambda^2)$ & $\frac{1}{4}(5-20\lambda+6\lambda^2)$ & $\lambda$\\
-\hline
- & $\frac{1}{4}(-1+16\lambda-6\lambda^2)$ & $\frac{1}{4}(5-20\lambda+6\lambda^2)$ & $\lambda$
-\end{tabular} \\
- & Where $\lambda\approx0.4358665215$ satisfies $1-9\lambda+18\lambda^2-6\lambda^3=0$
-\end{tabular}
-}
-\end{block}
-
-\end{frame}
-%-------------------------------------------------------------------
-
-%-------------------------------------------------------------------
-\begin{frame}{Time Step Error Convergence}
-\vspace{-3mm}
-
-\begin{figure}
-\includegraphics[height=1.8in]{figures/gen_conv.png}
-\end{figure}
-\vspace{-3mm}
-
-\begin{block}{}
+\begin{block}{Time Step Adaptation}
 \begin{itemize}
-\item Validation through error convergence is vital for error quantification and time adaptation
-\item Analysis involves:
-\begin{enumerate}
-\item Running simulation at variant time step sizes
-\item Determining the error in power at time of interest based on baseline (very small time step) calculation
-\item Using least-squares fit to determine the slope of error vs. $\Delta t$ on log scale
-\end{enumerate}
+\item Determining appropriate time step is difficult without prior knowledge of the solution
+\item Some areas of the transient may require smaller time steps for constant accuracy
+\item Time adaptation predicts the local truncation error and computes a time step appropriate for a given tolerance
+\item Examples:
+\begin{itemize}
+\item Step doubling
+\item Embedded Runge-Kutta
+\end{itemize}
 \end{itemize}
 \end{block}
 
@@ -1036,56 +884,9 @@ $1$ & $\frac{1}{4}(-1+16\lambda-6\lambda^2)$ & $\frac{1}{4}(5-20\lambda+6\lambda
 %-------------------------------------------------------------------
 
 %-------------------------------------------------------------------
-\begin{frame}{Time Adaptation Theory}
+\begin{frame}{Step doubling time adaption was chosen for testing}
 
-\begin{block}{Motivation}
-\begin{itemize}
-\item The concept of time adaptation is to have the behavior of some aspect of the evaluation determine the size of the time step.
-\item The computational efficiency of IQS is best demonstrated when time adaptation is applied.
-\item Step doubling adaptation was chosen because it is relatively simple and it utilizes the behavior of the solution to determine step size.
-\end{itemize}
-\end{block}
-
-\begin{block}{Local Truncation Error}
-We can estimate the local truncation error of the latest solve with a Taylor series expansion:
-\be
-\norm{LTE_n} = \Delta t_n^{p+1} \norm{\frac{\phi^{(p+1)}_{n}}{(p+1)!} + \Delta t_n \frac{\phi^{(p+2)}_{n}}{(p+2)!} + ...}
-\ee
-Where $p$ is the time discretization method's order and $\phi_n$ is the solution at time $ = t_n$. $\Delta t_n$ was the latest solves time step and $\Delta t_{n+1}$ is the next solves time step that has a desired error $\norm{LTE_{n+1}}$.  It can be
-\end{block}
-
-\end{frame}
-%-------------------------------------------------------------------
-
-
-%-------------------------------------------------------------------
-\begin{frame}{Step Doubling Theory}
-
-\begin{block}{New Step Size}
-Using the definitions of the local errors:
-\be
-\Delta t_{n+1}^{p+1} \simeq \Delta t_{n}^{p+1} \tcm{\theta} \frac{\tcg{\norm{LTE_{n+1}}}}{\tcm{\norm{LTE_{n}}}}
-\ee
-Where $\tcm{\theta} \equiv 1 + O(\Delta t_n)$. $\tcg{\norm{LTE_{n+1}}}$ is some user defined relative error tolerance (\tcg{$e_{tol}$}) and \tcm{$e_n \equiv \frac{\theta}{\norm{LTE_{n}}}$} is a method's approximation to the last step's local error.  Therefore in practice:
-\be
-\Delta t_{new} = \Delta t_{old} \left[\frac{\tcg{e_{tol}}}{\tcm{e_n}}\right]^{1/(p+1)}
-\ee
-\end{block}
-
-\begin{block}{Step Doubling}
-Step doubling approximates the local error ($\tcg{e_n}$) by taking the difference in the local error of a solution with $\Delta t$ ($\phi_{\Delta t}$) and $\Delta t/2$ ($\phi_{\Delta t/2}$):
-\be
-e_n = \frac{\norm{\phi_{\Delta t/2} - \phi_{\Delta t}}}{\text{max}\left(\norm{\phi_{\Delta t/2}},\norm{\phi_{\Delta t}}\right)}
-\ee
-\end{block}
-
-\end{frame}
-%-------------------------------------------------------------------
-
-%-------------------------------------------------------------------
-\begin{frame}{Step Doubling Solution Process}
-
-\begin{block}{Solution Process with IQS}
+\begin{block}{Step Doubling Solution Process}
 
 \begin{figure}[htpb!]
 \centering
@@ -1163,60 +964,44 @@ Each Step undergoes:
 
 %-------------------------------------------------------------------
 \begin{frame}{Treatment of delayed neutron precursors}
-
-\begin{block}{Solution vector treatment}
-The system of equations for flux/shape and precursors can be solved as a coupled system:
-\be
-\frac{\partial}{\partial t} \begin{bmatrix} \tcb{\varphi} \\ C \end{bmatrix}
-=
-\begin{bmatrix} A & \lambda \\ \nu\Sigma_f \tcr{p} & -\lambda \end{bmatrix}
-\begin{bmatrix} \tcb{\varphi} \\ C \end{bmatrix}
-\ee
-This is unnecessarily expensive and memory intensive because the precursor equation is an ODE
+\vspace{-3mm}
+\begin{block}{Delayed neutron precursor equation is an ODE}
+\begin{equation*}
+\frac{dC_i}{dt} = \tcr{p}\sum_{g=1}^G \beta_i\nu \Sigma_f^g \tcb{\varphi^{g}} - \lambda_iC_i , \quad 1 \le i \le I
+\end{equation*}
 \end{block}
 
-\begin{block}{Precursor Evaluation Using Theta Method Time Discretization}
-The precursor ODE can be integrated in time using the theta method:
+\begin{block}{Time Integration of Precursors}
+\begin{itemize}
+\item Trapezoid Rule:
 \be
-C^{n+1} = \frac{1-(1-\theta)\Delta t\lambda}{1+\theta\Delta t\lambda}C^n + \frac{(1-\theta)\Delta t \beta}{1+\theta\Delta t\lambda}(\nu\Sigma_f\varphi)^n p^n +  \frac{\theta\Delta t \beta}{1+\theta\Delta t\lambda}(\nu\Sigma_f\varphi)^{n+1} p^{n+1}
+C^{n+1}_i = \frac{1-0.5\Delta t\lambda_i}{1+0.5\Delta t\lambda_i}C^n_i + \frac{0.5\Delta t \beta_i}{1+0.5\Delta t\lambda_i}\sum_{g=1}^G\left[(\nu\Sigma_f^g\tcb{\varphi^g})^n \tcr{p^n} +  (\nu\Sigma_f^g\tcb{\varphi^g})^{n+1} \tcr{p^{n+1}}\right]
 \ee
-Where this equation can be plugged into the time discretization of the shape equation
-\end{block}
-
-\end{frame}
-%-------------------------------------------------------------------
-
-%-------------------------------------------------------------------
-\begin{frame}{Semi-analytical treatment of delayed neutron precursors}
-
-\begin{block}{Analytical Precursor Integration}
-For IQS, the profile for the flux is very accurately defined because of the small micro-step PRKE evaluation. So the precursor integration can be represented semi-analytically:
-\be
-C^{n+1} = C^n e^{-\lambda \Delta t} + \left(\hat{a}_2 (\nu\Sigma_f\varphi)^{n+1}+\hat{a}_1 (\nu\Sigma_f\varphi)^n\right)\beta
-\label{eq:dnp_an}
+\item Analytical Integration:
+\be 
+C^{n+1}_i = C^n_i e^{-\lambda_i \Delta t} + \sum_{g=1}^G\left(\hat{a}_{2,i} (\nu\Sigma_f^g\tcb{\varphi^g})^{n+1}+\hat{a}_{1,i} (\nu\Sigma_f^g\tcb{\varphi^g})^n\right)\beta_i
 \ee
-With integration coefficients defined as:
+\vspace{-4mm}
 \begin{align*}
-&\hat{a}_1= \int_{t_n}^{t_{n+1}}\frac{t_{n+1}-t'}{\Delta t}p(t')e^{-\lambda(t_{n+1}-t')}dt' \\
-&\hat{a}_2 = \int_{t_n}^{t_{n+1}}\frac{t'-t_n}{\Delta t}p(t')e^{-\lambda(t_{n+1}-t')}dt'
+&\hat{a}_{1,i}= \int_{t_n}^{t_{n+1}}\frac{t_{n+1}-t'}{\Delta t}\tcr{p(t')}e^{-\lambda_i(t_{n+1}-t')}dt' \\
+&\hat{a}_{2,i} = \int_{t_n}^{t_{n+1}}\frac{t'-t_n}{\Delta t}\tcr{p(t')}e^{-\lambda_i(t_{n+1}-t')}dt'
 \end{align*}
+\end{itemize}
 \end{block}
 
 \end{frame}
 %-------------------------------------------------------------------
-
 
 %------------------------------------------------------------------%
 \subsection{Temperature Feedback}
 %------------------------------------------------------------------%
 
 %-------------------------------------------------------------------
-\begin{frame}{Adiabatic heat-up with absorption cross-section feedback}
+\begin{frame}{Multiphysics: Adiabatic heat-up with absorption cross-section feedback}
 
 \begin{block}{Implemented Form}
-Adiabatic heat-up and feedback that is used takes the following form:
 \be
-\rho c_p \frac{\partial T(\vec{r},t)}{\partial t} = \kappa_f \sum^G_{g=1}\Sigma_f^g \phi^g(\vec{r},t)
+\rho c_p \frac{\partial T(\vec{r},t)}{\partial t} = \kappa_f \sum^G_{g=1}\Sigma_f^g \tcb{\varphi^g(\vec{r},t)}\tcr{p(t)}
 \ee
 \be
 \Sigma_a^{thermal}(\vec{r},t) = \Sigma_a^{thermal}(\vec{r},0)\left[1+\gamma\left(\sqrt{T}-\sqrt{T_0}\right)\right]
@@ -1224,17 +1009,16 @@ Adiabatic heat-up and feedback that is used takes the following form:
 \end{block}
 
 \begin{block}{Analytical temperature integration with IQS}
-Similar to the precursor evaluation:
 \be
-T^{n+1} = T^n + \frac{\kappa_f}{\rho c_p} \left(a_2 \varphi^{n+1} + a_1 \varphi^{n}\right)
+T^{n+1} = T^n + \frac{\kappa_f}{\rho c_p} \sum_{g=1}^G\left(a_2(\Sigma_f^g\tcb{\varphi^g})^{n+1} + a_1(\Sigma_f^g\tcb{\varphi^g})^n\right)
 \label{eq:temp_an}
 \ee
 \be
-a_1 = \int_{t_n}^{t_{n+1}}\left(\frac{t_{n+1}-t'}{\Delta t}\right)p(t')dt'
+a_1 = \int_{t_n}^{t_{n+1}}\left(\frac{t_{n+1}-t'}{\Delta t}\right)\tcr{p(t')}dt'
 \label{eq:a1}
 \ee
 \be
-a_2 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)p(t')dt'
+a_2 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)\tcr{p(t')}dt'
 \label{eq:a2}
 \ee
 \end{block}
@@ -1412,41 +1196,8 @@ a_2 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)p(t')dt'
 \item Theta precursor elimination
 \item Analytical precursor elimination
 \end{itemize}
-\item PRKE
-\begin{itemize}
-\item Parameter calculation using initial flux
-\item Parameter calculation using flux calculated at various time steps
-\end{itemize}
 \end{enumerate}
 \end{multicols}
-\end{block}
-
-\end{frame}
-%-------------------------------------------------------------------
-
-%-------------------------------------------------------------------
-\begin{frame}{MATLAB Kinetics Prototype Code (cont.)}
-
-\begin{block}{Time Discretization Schemes}
-\begin{itemize}
-\item Embedded Rung-Kutta time adaptation with ode15s
-\item Implicit Euler
-\item First-fourth order BDF
-\item Third order SDIRK (SDIRK33)
-\end{itemize}
-\end{block}
-
-\begin{block}{IQS Process}
-\begin{enumerate}
-\item Intial steady-state eigenvalue evaluation
-\item ode15s baseline calculation for error comparison
-\item PRKE parameter calculation at macro steps
-\item ode15s PRKE evaluation using interpolated PRKE parameters for \tcr{amplitude}
-\item Build left- and right-hand-side system for \tcb{shape}
-\item Evaluate \tcb{shape} using backslash operation
-\item Iterate \tcr{amplitude} and \tcb{shape} until convergence
-\item Evaluate precursors
-\end{enumerate}
 \end{block}
 
 \end{frame}
@@ -1466,90 +1217,19 @@ a_2 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)p(t')dt'
 \end{frame}
 %-------------------------------------------------------------------
 
-%-------------------------------------------------------------------
-\begin{frame}{Rattlesnake Structure}
-
-\begin{figure}
-\includegraphics[width=\linewidth,height=\textheight,keepaspectratio]{figures/rattlesnake.png}
-\end{figure}
-
-\end{frame}
-%-------------------------------------------------------------------
-
-%-------------------------------------------------------------------
-\begin{frame}{IQS Implementation in Rattlesnake}
-
-\begin{block}{IQS Components in Rattlesnake}
-\begin{itemize}
-\item IQS Executioner
-	\begin{itemize}
-	\item Convergence criteria for Picard iteration:
-	\be
-	Error_{IQS}=\left|\frac{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^{g,n}\right)}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^{g,0}\right)}-1\right|
-	\ee
-	\item Evaluates PRKE using implicit Euler, Crank-Nicolson, or SDIRK33 with step doubling adaptation for $\frac{1}{p}\frac{dp}{dt}$ term
-	\end{itemize}
-\item PRKE Parameter Postprocessors
-	\begin{itemize}
-	\item Performs integrations for PRKE parameters
-	\item Residuals from kernels are saved for $\rho-\bar{\beta}$ integration
-	\end{itemize}
-\item PRKE User Object
-	\begin{itemize}
-	\item Gathers postprocessor values
-	\end{itemize}
-\item IQS Removal Kernel
-	\begin{itemize}
-	\item Removal kernel for $\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\varphi^g$ term
-	\end{itemize}
-\item Auxkernels
-	\begin{itemize}
-	\item Precursor auxkernel with analytical integration
-	\item Temperature auxkernel with analytical integration
-	\end{itemize}
-\end{itemize}
-\end{block}
-
-\end{frame}
-%-------------------------------------------------------------------
-
-%-------------------------------------------------------------------
-\begin{frame}{IQS Implementation in Rattlesnake (cont.)}
-\vspace{-3mm}
-\begin{block}{IQS Kernels}
-\small
-\begin{align*}
-\frac{1}{v^g}\frac{\partial\varphi^g}{\partial t}=&\underbrace{\frac{\chi_p^g}{\keff} \sum_{g'=1}^G (1-\beta) \nu^{g'} \Sigma_f^{g'} \varphi^{g'}}_{Flux Kernel} + \underbrace{\sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'}}_{Flux Kernel} - \underbrace{\left( -\div D^g \grad \right)\varphi^g}_{Flux Kernel} - \underbrace{\Sigma_r^g\varphi^g}_{Flux Kernel} \nonumber \\
-& - \underbrace{\frac{1}{v^g} \boxed{\overbrace{\frac{1}{p}\frac{dp}{dt}}^{From Executioner}}\varphi^g}_{IQS Kernel}+\underbrace{\frac{1}{p}\sum_{i=1}^I\chi_{d,i}^g\lambda_iC_i}_{Modified Flux Kernel}
-\end{align*}
-\end{block}
-\vspace{-2mm}
-
-\begin{figure}
-\resizebox{!}{1.5in}{
-\begin{tikzpicture}[every node/.style = {shape          = rectangle, rounded corners, fill = blue!60, minimum width  = 1.5cm, minimum height = 0.75cm, align= center, text = white},blue edge/.style  = { -, ultra thick, blue!60, shorten >= 4pt}]
-\node(0;0) at (-1,0) {CFEM \\ Diffusion \\ Action};
-  \node(1;3)  at (2, 1.5) {Neutronic \\ Kernels};   
-  \node(1;1)  at (2, 0.5) {IQS Removal \\ Kernel}; 
-  \node(1;-1)  at (2,-0.5) {PRKE User \\ Object}; 
-  \node(1;-3) at (2,-1.5) {PRKE \\ Parameter \\ Postprocessors}; 
-     \node(2;0)  at (5,0) {Transient \\ Executioner};
-     	\node(3;0)  at (8,0) {IQS Executioner};
-\foreach \j in {-3,-1,1,3}
-  { \draw[blue edge] (0;0.east) -- (1;\j.west); }
-\foreach \j in {-3,-1,1,3}
-  { \draw[blue edge] (1;\j.east) -- (2;0.west);} 
-\draw[blue edge] (2;0.east) -- (3;0.west);         
-\end{tikzpicture}
-}
-\end{figure}
-
-\end{frame}
-%-------------------------------------------------------------------
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%-------------------------------------------------------------------
+\begin{frame}{Results}
+
+\begin{multicols}{2}
+\tableofcontents[currentsection]
+\end{multicols}
+
+\end{frame}
+%-------------------------------------------------------------------
 
 %------------------------------------------------------------------%
 \subsection{One-Dimensional Slab}
@@ -1696,8 +1376,8 @@ Region & Material Property & 0.0 s & 0.1 s & 0.6 s & 1.0 s & 1.7 s \\
 \begin{columns}
 \column{\dimexpr\paperwidth-10pt}
 \begin{figure}
-\includegraphics[width=0.5\linewidth]{figures/1D_conv_Rat.png}
-\includegraphics[width=0.5\linewidth]{figures/1D_conv_lin.png}
+\includegraphics[width=0.5\paperwidth]{figures/1D_conv_Rat.png}
+\includegraphics[width=0.5\paperwidth]{figures/1D_conv_lin.png}
 \end{figure}
 \end{columns}
 
@@ -2056,21 +1736,20 @@ End (3 s) & 109.66 & 2.3650e-4 & 603 & 109.65 & 3.0622e-4 & 97 \\
 
 %-------------------------------------------------------------------
 \begin{frame}{Transient-15 Results}
+\vspace{-3mm}
 
 \begin{block}{Accuracy and Runtime}
 \begin{center}
 \resizebox{\linewidth}{!}{
-\begin{tabular}{|l|ccccccc|}
+\begin{tabular}{|l|ccc|}
 \hline
- & No.	& Max &	Time at Max &	Max Average &	\% Increase &	Max Power & Linear	\\
-Method & of Steps &	Power (W) &	Power (s) &	Temperature (K) & Runtime$^*$ & Error & Iterations \\
+Method & No. of Steps & \% Increase Runtime$^*$ & Max Power Error \\
 \hline
-Baseline 			& 3000 	& 3.5039e+08 & 1.901 & 371 &	---		&	---		 & ---		\\
-Implicit Dis. 		& 300 	& 3.5011e+08 & 1.90  & 371 &	---		&	7.875e-4 & 41020	\\
-IQS 				& 300	& 3.5036e+08 & 1.90  & 371 & -11.9\%	&	8.385e-5 & 23949	\\
-IQS (5 updates) 	& 300 	& 3.5040e+08 & 1.90  & 371 &  49.7\%	&	3.687e-5 & 24035	\\
-IQS P-C 			& 300 	& 3.5065e+08 & 1.90  & 371 &  -2.1\%	&	7.527e-4 & 39020	\\
-IQS P-C (5 updates) & 300 	& 3.5043e+08 & 1.90  & 371 &  26.5\%	&	1.227e-4 & 37866	\\
+Implicit Dis. 		& 300 &	---		&	7.875e-4	\\
+IQS 				& 300 & -11.9\%	&	8.385e-5	\\
+IQS (5 updates) 	& 300 &  49.7\%	&	3.687e-5	\\
+IQS P-C 			& 300 &  -2.1\%	&	7.527e-4	\\
+IQS P-C (5 updates) & 300 &  26.5\%	&	1.227e-4	\\
 \hline
 \end{tabular}
 }
@@ -2152,6 +1831,7 @@ IQS was testing with fixed point itertion used the following criteria:
 \begin{block}{IQS with Temperature Feedback}
 \begin{itemize}
 \item IQS was successfully implemented into the Rattlesnake/MOOSE framework
+\item Added intermediate time scale loop for temperature
 \item Incorporation of temperature into the quasi-static process significantly improved computational efficiency
 \item Dynamical time scale analysis demonstrated proof-of-concept for variant time scales
 \end{itemize}
@@ -2167,9 +1847,9 @@ IQS was testing with fixed point itertion used the following criteria:
 \begin{block}{Multiphysics}
 Test IQS with other reactor physics, including:
 \begin{itemize}
+\item More complex temperature feedback
 \item Thermal Hydraulics
 \item Fuel Mechanics
-\item Depletion
 \end{itemize}
 \end{block}
 
@@ -2218,6 +1898,364 @@ Apply IQS to other transport models (other Rattlesnake action systems):
 \end{frame}
 %-------------------------------------------------------------------
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\backupbegin
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%-------------------------------------------------------------------
+\begin{frame}{Fixed-point iteration}
+%\vspace{-10mm}
+
+\begin{figure}
+\includegraphics[height=1.3in]{figures/fixed_point.png}
+\end{figure}
+%\vspace{-10mm}
+\begin{block}{IQS iteration approach}
+\setlength{\leftmargini}{10mm}
+\begin{itemize}
+\item[\textit{Step 1:}] Compute the PRKE parameters at the end of the macro step using the last computed shape
+\item[\textit{Step 2:}] Linearly interpolate the computed PRKE parameters over the macro step
+\item[\textit{Step 3:}] Solve the PRKE on micro steps over the entire macro step
+\item[\textit{Step 4:}] Solve the shape equation on the macro step using the computed values of $p$ and $dp/dt$.
+\item[\textit{Step 5:}] Check if the shape solution has converged:
+	\begin{itemize}
+	\item \textit{No:} Repeat the same macro time step
+	\item \textit{Yes:} Move on to the next macro time step
+	\end{itemize}
+\end{itemize}
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Fixed-point iteration programming logic}
+
+\begin{figure}[!htpb]
+\centering
+\resizebox{!}{3in}{
+\begin{tikzpicture}[every node/.style = {font=\LARGE}]
+
+\node[greenblock](p1) at (0,0) {Solve shape equations \\ over macro time step};
+\node[greenblock](p2) at (0,-2.5) {Compute PRKE parameters \\ over macro time step};
+\node[greenblock](p3) at (0,-5) {Solve PRKE using micro \\ steps};
+\node[greenblock](p4) at (0,-7.5) {Update $p$ and $\frac{dp}{dt}$};
+\node[blueblock2] (p5) at (0,-11) {Solve other physics \\ components};
+\node[reddiamond] (check) at (0,-15) {Check for \\ convergence};
+\node [above =0.1mm of p1] {\large{IQS Solve:}};
+\node [above =0.1mm of p5] {\large{Multi-physics:}};
+
+\tikzback{p1}{p1}{p4}{p4}{bk1}
+\tikzback{p5}{p5}{p5}{p5}{bk2}
+
+\draw[->,ultra thick](p1.south) -- (p2.north);
+\draw[->,ultra thick](p2.south) -- (p3.north);
+\draw[->,ultra thick](p3.south) -- (p4.north);
+\draw [->,ultra thick] (p4.south)+(0,-0.25) -- node [above] {} (bk2-n);
+\draw[->,ultra thick](p5.south)+(0,-0.25) -- (check.north);
+%\draw[->,ultra thick](check.west) -- (-5,-15) -- node[above,sloped] {\large{no}}(-5,0) -- node[above] {}(bk1-w);
+\draw[->,ultra thick](check.west) -- node[above,sloped] {\LARGE{no}} (-5,-15) |-  node[above] {}(bk1-w);
+\draw[->,ultra thick](check.south) -- node[right] {\LARGE{yes}} ++(0,-2);
+
+\end{tikzpicture}
+}
+\end{figure}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Newton iteration}
+\vspace{-3mm}
+\begin{figure}
+\includegraphics[height=1.1in]{figures/newton_iter.jpg}
+\end{figure}
+\vspace{-3mm}
+\begin{block}{Jacobian-Free Newton-Krylov Method}
+\bi
+\item Newton system:
+\be
+J\delta\varphi = F(\varphi,p,t) - A(\varphi,p)\varphi \equiv -R(\varphi,p)
+\ee
+\item Where $J$ is the Jacobian and defined as:
+\be
+J_{ij}=\partial R_i/\partial\varphi_j
+\ee
+\item For IQS, the Jacobian is impossible to define so it must be approximated:
+\be
+J\delta\varphi\approx[R(\varphi+\epsilon\delta\varphi,p')-R(\varphi,p)]/\epsilon
+\ee
+\item The resulting system is solved using GMRES iteration
+\ei
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Time Discretization Schemes}
+\vspace{-3mm}
+
+\begin{block}{General Equation Form}
+\be 
+IV\frac{\partial \varphi}{\partial t} = A\varphi+b
+\ee
+\end{block}
+\vspace{-3mm}
+
+\begin{block}{Theta Method}
+\be
+\varphi_{n+1} = (IV-\Delta t A_{n+1})^{-1}\left[\Delta t(1-\theta)(A_n\varphi_n+b_n) + \Delta t\theta b_{n+1} + IV\varphi_n\right]
+\ee
+\begin{itemize}
+\item Implicit Euler: $\theta=1$ (First Order)
+\item Explicit Euler: $\theta=0$ (First Order)
+\item Crank-Nicolson: $\theta=1/2$ (Second Order)
+\end{itemize}
+\end{block}
+\vspace{-3mm}
+
+\begin{block}{Backward Difference Formula (BDF)}
+\be 
+\varphi_{n+1} = (IV-\Delta t A_{n+1})^{-1}\left[IV\sum_{j=1}^{k}\alpha_{j}^{k}\varphi_{n-(k-j)} + \Delta t \alpha_{k+1}^{k} b_{n+1}\right]
+\ee
+\centering
+\begin{tabular}{c|lllll}
+\hline
+Order ($k$) & $\alpha_{1}^{k}$ & $\alpha_{2}^{k}$ & $\alpha_{3}^{k}$ & $\alpha_{4}^{k}$ & $\alpha_{5}^{k}$ \\
+\hline
+1 & 1 & 1 & & & \\
+2 & -1/3 & 4/3 & 2/3 & & \\
+3 & 2/11 & -9/11 & 18/11 & 6/11 & \\
+4 & -3/25 & 16/25 & -36/25 & 48/25 & 12/25 \\
+\hline
+\end{tabular}
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Time Discretization Schemes (cont.)}
+
+\begin{block}{Singly-Diagonally-Implicit Runge-Kutta (SDIRK)}
+For a general differential equation $dy/dt=f(t,y)$:
+\be
+y_{n+1} = y_n + \Delta t\sum_{i=1}^s b_ik_i
+\ee
+\be 
+k_i = f(t_n+c_i\Delta t, y_n+\Delta t \sum_{j=1}^{i} a_{ij}k_j)
+\ee
+\resizebox{\linewidth}{!}{
+\begin{tabular}{cc}
+Butcher Tableu: & SDIRK33: \\
+\begin{tabular}{c|cccc}
+$c_1$ & $a_{11}$ & &  & \\
+'$c_2$ & $a_{21}$ & $a_{22}$ & & \\
+$\vdots$ & $\vdots$ & $\vdots$ & $\ddots$ & \\
+$c_s$ & $a_{s1}$ & $a_{s2}$ & $\ldots$ & $a_{ss}$\\
+\hline
+&$b_1$ & $b_2$ & $\ldots$ & $b_s$
+\end{tabular}
+&
+\begin{tabular}{c|ccc}
+$\lambda$ & $\lambda$ & & \\
+$\frac{1}{2}(1+\lambda)$ & $\frac{1}{2}(1-\lambda)$ & $\lambda$ & \\
+$1$ & $\frac{1}{4}(-1+16\lambda-6\lambda^2)$ & $\frac{1}{4}(5-20\lambda+6\lambda^2)$ & $\lambda$\\
+\hline
+ & $\frac{1}{4}(-1+16\lambda-6\lambda^2)$ & $\frac{1}{4}(5-20\lambda+6\lambda^2)$ & $\lambda$
+\end{tabular} \\
+ & Where $\lambda\approx0.4358665215$ satisfies $1-9\lambda+18\lambda^2-6\lambda^3=0$
+\end{tabular}
+}
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Time Step Error Convergence}
+\vspace{-3mm}
+
+\begin{figure}
+\includegraphics[height=1.8in]{figures/gen_conv.png}
+\end{figure}
+\vspace{-3mm}
+
+\begin{block}{}
+\begin{itemize}
+\item Validation through error convergence is vital for error quantification and time adaptation
+\item Analysis involves:
+\begin{enumerate}
+\item Running simulation at variant time step sizes
+\item Determining the error in power at time of interest based on baseline (very small time step) calculation
+\item Using least-squares fit to determine the slope of error vs. $\Delta t$ on log scale
+\end{enumerate}
+\end{itemize}
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Time Adaptation Theory}
+
+\begin{block}{Motivation}
+\begin{itemize}
+\item The concept of time adaptation is to have the behavior of some aspect of the evaluation determine the size of the time step.
+\item The computational efficiency of IQS is best demonstrated when time adaptation is applied.
+\item Step doubling adaptation was chosen because it is relatively simple and it utilizes the behavior of the solution to determine step size.
+\end{itemize}
+\end{block}
+
+\begin{block}{Local Truncation Error}
+We can estimate the local truncation error of the latest solve with a Taylor series expansion:
+\be
+\norm{LTE_n} = \Delta t_n^{p+1} \norm{\frac{\phi^{(p+1)}_{n}}{(p+1)!} + \Delta t_n \frac{\phi^{(p+2)}_{n}}{(p+2)!} + ...}
+\ee
+Where $p$ is the time discretization method's order and $\phi_n$ is the solution at time $ = t_n$. $\Delta t_n$ was the latest solves time step and $\Delta t_{n+1}$ is the next solves time step that has a desired error $\norm{LTE_{n+1}}$.  It can be
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+
+%-------------------------------------------------------------------
+\begin{frame}{Step Doubling Theory}
+
+\begin{block}{New Step Size}
+Using the definitions of the local errors:
+\be
+\Delta t_{n+1}^{p+1} \simeq \Delta t_{n}^{p+1} \tcm{\theta} \frac{\tcg{\norm{LTE_{n+1}}}}{\tcm{\norm{LTE_{n}}}}
+\ee
+Where $\tcm{\theta} \equiv 1 + O(\Delta t_n)$. $\tcg{\norm{LTE_{n+1}}}$ is some user defined relative error tolerance (\tcg{$e_{tol}$}) and \tcm{$e_n \equiv \frac{\theta}{\norm{LTE_{n}}}$} is a method's approximation to the last step's local error.  Therefore in practice:
+\be
+\Delta t_{new} = \Delta t_{old} \left[\frac{\tcg{e_{tol}}}{\tcm{e_n}}\right]^{1/(p+1)}
+\ee
+\end{block}
+
+\begin{block}{Step Doubling}
+Step doubling approximates the local error ($\tcg{e_n}$) by taking the difference in the local error of a solution with $\Delta t$ ($\phi_{\Delta t}$) and $\Delta t/2$ ($\phi_{\Delta t/2}$):
+\be
+e_n = \frac{\norm{\phi_{\Delta t/2} - \phi_{\Delta t}}}{\text{max}\left(\norm{\phi_{\Delta t/2}},\norm{\phi_{\Delta t}}\right)}
+\ee
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{MATLAB Kinetics Prototype Code (cont.)}
+
+\begin{block}{Time Discretization Schemes}
+\begin{itemize}
+\item Embedded Rung-Kutta time adaptation with ode15s
+\item Implicit Euler
+\item First-fourth order BDF
+\item Third order SDIRK (SDIRK33)
+\end{itemize}
+\end{block}
+
+\begin{block}{IQS Process}
+\begin{enumerate}
+\item Intial steady-state eigenvalue evaluation
+\item ode15s baseline calculation for error comparison
+\item PRKE parameter calculation at macro steps
+\item ode15s PRKE evaluation using interpolated PRKE parameters for \tcr{amplitude}
+\item Build left- and right-hand-side system for \tcb{shape}
+\item Evaluate \tcb{shape} using backslash operation
+\item Iterate \tcr{amplitude} and \tcb{shape} until convergence
+\item Evaluate precursors
+\end{enumerate}
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{Rattlesnake Structure}
+
+\begin{figure}
+\includegraphics[width=\linewidth,height=\textheight,keepaspectratio]{figures/rattlesnake.png}
+\end{figure}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{IQS Implementation in Rattlesnake}
+
+\begin{block}{IQS Components in Rattlesnake}
+\begin{itemize}
+\item IQS Executioner
+	\begin{itemize}
+	\item Convergence criteria for Picard iteration:
+	\be
+	Error_{IQS}=\left|\frac{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^{g,n}\right)}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^{g,0}\right)}-1\right|
+	\ee
+	\item Evaluates PRKE using implicit Euler, Crank-Nicolson, or SDIRK33 with step doubling adaptation for $\frac{1}{p}\frac{dp}{dt}$ term
+	\end{itemize}
+\item PRKE Parameter Postprocessors
+	\begin{itemize}
+	\item Performs integrations for PRKE parameters
+	\item Residuals from kernels are saved for $\rho-\bar{\beta}$ integration
+	\end{itemize}
+\item PRKE User Object
+	\begin{itemize}
+	\item Gathers postprocessor values
+	\end{itemize}
+\item IQS Removal Kernel
+	\begin{itemize}
+	\item Removal kernel for $\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\varphi^g$ term
+	\end{itemize}
+\item Auxkernels
+	\begin{itemize}
+	\item Precursor auxkernel with analytical integration
+	\item Temperature auxkernel with analytical integration
+	\end{itemize}
+\end{itemize}
+\end{block}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{IQS Implementation in Rattlesnake (cont.)}
+\vspace{-3mm}
+\begin{block}{IQS Kernels}
+\small
+\begin{align*}
+\frac{1}{v^g}\frac{\partial\varphi^g}{\partial t}=&\underbrace{\frac{\chi_p^g}{\keff} \sum_{g'=1}^G (1-\beta) \nu^{g'} \Sigma_f^{g'} \varphi^{g'}}_{Flux Kernel} + \underbrace{\sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'}}_{Flux Kernel} - \underbrace{\left( -\div D^g \grad \right)\varphi^g}_{Flux Kernel} - \underbrace{\Sigma_r^g\varphi^g}_{Flux Kernel} \nonumber \\
+& - \underbrace{\frac{1}{v^g} \boxed{\overbrace{\frac{1}{p}\frac{dp}{dt}}^{From Executioner}}\varphi^g}_{IQS Kernel}+\underbrace{\frac{1}{p}\sum_{i=1}^I\chi_{d,i}^g\lambda_iC_i}_{Modified Flux Kernel}
+\end{align*}
+\end{block}
+\vspace{-2mm}
+
+\begin{figure}
+\resizebox{!}{1.5in}{
+\begin{tikzpicture}[every node/.style = {shape          = rectangle, rounded corners, fill = blue!60, minimum width  = 1.5cm, minimum height = 0.75cm, align= center, text = white},blue edge/.style  = { -, ultra thick, blue!60, shorten >= 4pt}]
+\node(0;0) at (-1,0) {CFEM \\ Diffusion \\ Action};
+  \node(1;3)  at (2, 1.5) {Neutronic \\ Kernels};   
+  \node(1;1)  at (2, 0.5) {IQS Removal \\ Kernel}; 
+  \node(1;-1)  at (2,-0.5) {PRKE User \\ Object}; 
+  \node(1;-3) at (2,-1.5) {PRKE \\ Parameter \\ Postprocessors}; 
+     \node(2;0)  at (5,0) {Transient \\ Executioner};
+     	\node(3;0)  at (8,0) {IQS Executioner};
+\foreach \j in {-3,-1,1,3}
+  { \draw[blue edge] (0;0.east) -- (1;\j.west); }
+\foreach \j in {-3,-1,1,3}
+  { \draw[blue edge] (1;\j.east) -- (2;0.west);} 
+\draw[blue edge] (2;0.east) -- (3;0.west);         
+\end{tikzpicture}
+}
+\end{figure}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\backupend
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %************************************************
 
