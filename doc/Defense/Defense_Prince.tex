@@ -654,14 +654,6 @@ To obtain the \tcr{amplitude} equation, we multiply the shape equations with a w
 function (initial adjoint flux, $\phi^{*g}$), then integrate over domain.  
 \end{block}
 
-\begin{block}{Notation}
-For brevity, the adjoint flux product and integration over domain will be represented with parenthetical notation:
-\[
-\int_D\phi^{*g}(\vec{r})f(\vec{r})dr^3=\left(\phi^{*g},f\right)
-\]
-\end{block}
-
-
 \begin{block}{Uniqueness of the factorization}
 In order to impose uniqueness of the factorization, one requires:
 \[
@@ -669,6 +661,11 @@ In order to impose uniqueness of the factorization, one requires:
 \]
 \end{block}
 
+\begin{block}{Notation}
+\[
+\left(\phi^{*g},f\right) = \int_D\phi^{*g}(\vec{r})f(\vec{r})dr^3
+\]
+\end{block}
 
 \end{frame}
 %-------------------------------------------------------------------
@@ -2249,6 +2246,37 @@ e_n = \frac{\norm{\phi_{\Delta t/2} - \phi_{\Delta t}}}{\text{max}\left(\norm{\p
 \end{tikzpicture}
 }
 \end{figure}
+
+\end{frame}
+%-------------------------------------------------------------------
+
+%-------------------------------------------------------------------
+\begin{frame}{SDIRK Convergence Problems}
+
+\begin{block}{Manufactured Solution}
+\be 
+\phi(x,t) = x(1-x)(1+t)^4 \qq 0 \leq x \leq 1
+\ee
+\be 
+\frac{1}{v}\frac{\partial\phi}{\partial t} = \alpha\phi + \frac{\beta}{v}4(1+t)^3 + \gamma(1+t)^4
+\ee
+\end{block}
+
+\begin{columns}
+
+\column{.6\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/sdirk_mms1.png}
+\caption{SDIRK33 vs. BDF convergence with $v=1e5$}
+\end{figure}
+
+\column{.6\textwidth}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/sdirk_mms2.png}
+\caption{SDIRK33 convergence with different velocities}
+\end{figure}
+
+\end{columns}
 
 \end{frame}
 %-------------------------------------------------------------------
