@@ -1,11 +1,13 @@
-clear all; close all; clc;
+clear all; 
+% close all; 
+clc;
 
 bf=@(x)4*x.*(1-x);
 a=integral(@(x)bf(x).*bf(x),0,1);
 b=integral(@(x)bf(x),0,1);
 g=integral(@(x)(4*(1-2*x)).^2,0,1);
 D=1;
-v=1e4;
+v=1e-1;
 nsf=1.1;sa=1;
 p=4;
 
@@ -15,14 +17,14 @@ S =@(t) a/4/v*p*(1+t).^(p-1) + (1+t).^p*((sa-nsf)*a/4+2*D*b);
 ex=@(t)(1+t).^p/4;
 
 yinit=0.25;
-tend=55;
+tend=10;
 
-do_bdf2=true;
-do_bdf3=true;
+do_bdf2=false;
+do_bdf3=false;
 
-ntimes=[10 20 40 80 500 1000 5000 1e4]; % 5e4 1e5];% 5e5];% 5e5];
+ntimes=[10 20 40 80 160 320 640];% 5000 1e4]; % 5e4 1e5];% 5e5];% 5e5];
 
-time_integration='sdirk4a';
+time_integration='sdirk3';
 switch time_integration
     case 'sdirk3'
         rk.nstages=3;
@@ -106,7 +108,8 @@ for iconv=1:length(ntimes)
     err(iconv)=abs(yn-ex(tend));
 end
 
-plot( log10(tend./ntimes), log10(err), '+-' )
+% plot( log10(tend./ntimes), log10(err), '+-' )
+loglog( (tend./ntimes), (err), '+-' )
 % slope_err = polyfit(log10(tend./ntimes), log10(err),1)
 % reference line y=Cx^s log(y) = log(C) + s log(x)
 % we pick one value of (x,y) to get C
@@ -115,9 +118,11 @@ nn=1; %
 nn=length(err);
 s=rk.order; C=0.5*err(nn)/(tend/ntimes(nn))^s;
 y=C*(tend./ntimes).^s;
-hold all;plot(log10(tend./ntimes), log10(y), 'r-')
+% hold all;plot(log10(tend./ntimes), log10(y), 'r-')
+hold all;loglog((tend./ntimes), (y), 'r-')
 leg=char(time_integration); 
-leg=char(leg,sprintf('slope %d',s)); 
+% leg=char(leg,sprintf('slope %d',s)); 
+leg=char(leg,sprintf('v = %g',v)); 
 
 
 if do_bdf2
@@ -145,7 +150,8 @@ if do_bdf2
         err(iconv)=abs(yn-ex(tend));
     end
     
-    plot( log10(tend./ntimes), log10(err), 'o-' )
+%     plot( log10(tend./ntimes), log10(err), 'o-' )
+    loglog( (tend./ntimes), (err), 'o-' )
     % slope_err = polyfit(log10(tend./ntimes), log10(err),1)
     % reference line y=Cx^s log(y) = log(C) + s log(x)
     % we pick one value of (x,y) to get C
@@ -154,7 +160,8 @@ if do_bdf2
     nn=length(err);
     s=2; C=0.5*err(nn)/(tend/ntimes(nn))^s;
     y=C*(tend./ntimes).^s;
-    hold all;plot(log10(tend./ntimes), log10(y), 'r-')
+%     hold all;plot(log10(tend./ntimes), log10(y), 'r-')
+    hold all;loglog((tend./ntimes), (y), 'r-')
     
 end
 
@@ -190,7 +197,8 @@ if do_bdf3
         err(iconv)=abs(yn-ex(tend));
     end
     
-    plot( log10(tend./ntimes), log10(err), 's-' )
+%     plot( log10(tend./ntimes), log10(err), 's-' )
+    loglog( (tend./ntimes), (err), 's-' )
     % slope_err = polyfit(log10(tend./ntimes), log10(err),1)
     % reference line y=Cx^s log(y) = log(C) + s log(x)
     % we pick one value of (x,y) to get C
@@ -199,8 +207,9 @@ if do_bdf3
     nn=length(err);
     s=3; C=0.5*err(nn)/(tend/ntimes(nn))^s;
     y=C*(tend./ntimes).^s;
-    hold all;plot(log10(tend./ntimes), log10(y), 'r-')
+%     hold all;plot(log10(tend./ntimes), log10(y), 'r-')
+    hold all;loglog((tend./ntimes), (y), 'r-')
     
 end
 
-legend(leg)
+% legend(leg)
