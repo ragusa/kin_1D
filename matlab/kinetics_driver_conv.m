@@ -2,7 +2,7 @@ function kinetics_driver_conv
 
 clc;
 % clear all;
-% close all;
+close all;
 clear global;
 % turn off warning due to interp1
 warning('OFF','MATLAB:interp1:ppGriddedInterpolant')
@@ -56,7 +56,7 @@ t_end = 2.0;
 if pbID==12
     amplitude_norm_ref = 0;
 else
-    amplitude_norm_ref = reference_solution( t_end, u0);
+%     amplitude_norm_ref = reference_solution( t_end, u0);
 end
 
 nn=1;
@@ -100,10 +100,11 @@ i=0;
 % not to be used for conv. studies % i=i+1; list_runs{i}= 'brute_force_matlab';
 % i=i+1; list_runs{i}= 'brute_force';
 % i=i+1; list_runs{i}= 'brute_force_elim_prec';
+% i=i+1; list_runs{i}= 'brute_force_jfnk';
 % i=i+1; list_runs{i}= 'brute_force_an_prec';
-% i=i+1; list_runs{i}= 'iqs_an_prec';
+i=i+1; list_runs{i}= 'iqs_an_prec';
 % i=i+1; list_runs{i}= 'iqs_elim_prec';
-i=i+1; list_runs{i}= 'iqs_jfnk';
+% i=i+1; list_runs{i}= 'iqs_jfnk';
 % i=i+1; list_runs{i}= 'iqsPC_an_prec';
 % i=i+1; list_runs{i}= 'iqsPC_elim_prec';
 % i=i+1; list_runs{i}= 'iqs_theta_prec';
@@ -156,6 +157,15 @@ for iconv=1:length(ntimes)
     if should_I_run_this(list_runs,'brute_force_elim_prec')
         display('brute_force_elim_prec')
         FUNHANDLE = @solve_TD_diffusion_elim_prec;
+        [brute_force_elim_prec.ampl(iconv)]=time_marching_BF( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
+    end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%% brute force discretization of
+    %%%   the TD neutron diffusion eq with JFNK
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if should_I_run_this(list_runs,'brute_force_JFNK')
+        display('brute_force_JFNK')
+        FUNHANDLE = @solve_TD_diffusion_JFNK;
         [brute_force_elim_prec.ampl(iconv)]=time_marching_BF( dt(iconv), ntimes(iconv), u0, FUNHANDLE);
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -289,7 +299,7 @@ if should_I_run_this(list_runs,'brute_force_an_prec')
     legend(leg,'Location','Best');
     hold all;
 end
-if should_I_run_this(list_runs,'brute_force_elim_prec')
+if should_I_run_this(list_runs,'brute_force_elim_prec') || should_I_run_this(list_runs,'brute_force_JFNK')
     error_ = abs( brute_force_elim_prec.ampl - amplitude_norm_ref );
     curr_leg = 'Implicit Dis.';
     loglog(dt,error_,'+-');
