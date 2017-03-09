@@ -1,0 +1,194 @@
+\documentclass[11pt]{tamurmemo} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{graphics}
+\usepackage{float}
+\usepackage{subfigure}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amstext}
+\usepackage{amsbsy}
+\usepackage{xspace}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% operators
+\renewcommand{\div}{\vec{\nabla}\! \cdot \!}
+\newcommand{\grad}{\vec{\nabla}}
+% latex shortcuts
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\bal}{\begin{align}}
+\newcommand{\eali}{\end{align}}
+\newcommand{\bi}{\begin{itemize}}
+\newcommand{\ei}{\end{itemize}}
+\newcommand{\ben}{\begin{enumerate}}
+\newcommand{\een}{\end{enumerate}}
+% DGFEM commands
+\newcommand{\jmp}[1]{[\![#1]\!]}                     % jump
+\newcommand{\mvl}[1]{\{\!\!\{#1\}\!\!\}}             % mean value
+\newcommand{\kef}{\ensuremath{k_{\textit{eff}}}}
+%\newcommand{\keff}{{\text{k}$_\textit{eff}$}\xspace}
+\newcommand{\keff}{\kef\xspace}
+% shortcut for domain notation
+%\newcommand{\D}{\mathcal{D}}
+% vector shortcuts
+\newcommand{\vo}{\vec{\Omega}}
+\newcommand{\vr}{\vec{r}}
+\newcommand{\vn}{\vec{n}}
+\newcommand{\vnk}{\vec{\mathbf{n}}}
+\newcommand{\vj}{\vec{J}}
+% extra space
+\newcommand{\qq}{\quad\quad}
+% common reference commands
+\newcommand{\eqt}[1]{Eq.~(\ref{#1})}                     % equation
+\newcommand{\fig}[1]{Fig.~\ref{#1}}                      % figure
+\newcommand{\tbl}[1]{Table~\ref{#1}}                     % table
+
+\newcommand{\ud}{\,\mathrm{d}}
+\newcommand{\mt}[1]{\marginpar{\tiny #1}}
+\newcommand{\D}{\ensuremath{\mathcal{D}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%   BEGIN DOCUMENT
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%---------------------------------------------------------------------------%%
+%% OPTIONS FOR NOTE
+%%---------------------------------------------------------------------------%%
+
+\toms{Distribution}
+\subject{Coupled ODE-PDE in MOOSE}
+
+%-------NO CHANGES
+\collegename{Dwight Look College of Engineering}
+\deptname{Department of Nuclear Engineering}
+\fromms{J.\ C.\ Ragusa}
+\originator{jcr}
+\typist{jcr}
+\date{\today}
+%-------NO CHANGES
+
+%-------OPTIONS
+%\reference{NPB Star Reimbursable Project}
+%\thru{}
+%\enc{list}      
+%\attachments{list}
+\cy{File}
+%\encas
+%\attachmentas
+%\attachmentsas 
+%-------OPTIONS
+
+%%---------------------------------------------------------------------------%%
+%% DISTRIBUTION LIST
+%%---------------------------------------------------------------------------%%
+
+\distribution {
+John Peterson, INL, {\em jw.peterson@inl.gov},\\
+Yaqi Wang, INL, {\em yaqi.wang@inl.gov},\\
+Zach Prince, TAMU, {\em zachmprince@tamu.edu}
+}
+
+%%---------------------------------------------------------------------------%%
+%% BEGIN NOTE
+%%---------------------------------------------------------------------------%%
+
+\opening
+
+%%---------------------------------------------------------------------------%%
+\section{Governing laws}
+%%---------------------------------------------------------------------------%%
+Assume I have a coupled PDE-ODE system (for simplicity, the PDE is a time-dependent 
+diffusion)
+\be
+\frac{\partial \mathcal{U}}{\partial t} - \nabla^2  \mathcal{U} = \mathcal{V}
+\ee
+\be
+\frac{d \mathcal{V}}{dt} = - \mathcal{V} + \mathcal{U}
+\ee
+$\mathcal{V}$ depends on space but there are no spatial operators in the ODE.
+
+
+%%---------------------------------------------------------------------------%%
+\section{FEM formulation}
+%%---------------------------------------------------------------------------%%
+We seek $\mathcal{U}$ as a FEM solution
+\be
+\mathcal{U}(\vr) \approx \sum_j u_j \varphi_j(\vr)
+\ee
+We test the diffusion equation against all basis functions $ \varphi_i(\vr)$ and get (ignore boundary terms for simplicity):
+\be
+M \frac{dU}{dt} + K U = V
+\ee
+where the entries of the mass and stiffness matrices are
+\be
+M_{ij} = \int \varphi_i(\vr) \varphi_j(\vr)
+\quad
+K_{ij} = \int \grad \varphi_i(\vr) \cdot \grad\varphi_j(\vr)
+\ee
+Vector $U$ is simply
+\be
+U =
+\begin{bmatrix}
+u_1 \\
+\ldots \\
+u_i  \\
+\ldots \\
+u_N 
+\end{bmatrix}
+\ee
+while the entries of $V$ are 
+\be
+V =
+\begin{bmatrix}
+v_1 \\
+\ldots \\
+v_i  \\
+\ldots \\
+v_N 
+\end{bmatrix}
+\quad
+\text{ where }
+v_i = \int \mathcal{V}(\vr)\varphi_i(\vr)
+\ee
+{\bf I stress that we do not need to expand $\mathcal{V}$ as a FEM solution}. What are the
+equations satisfied by the $v_i$'s ???? See below.
+
+\bigskip
+
+We simply test the ODE against each of the $\varphi_i(\vr)$ are integrate over space.
+\be
+\int \varphi_i(\vr) \frac{d \mathcal{V}}{dt} = - \int \varphi_i(\vr) \mathcal{V} + \int \varphi_i(\vr)\mathcal{U}
+\ee
+Some simple algebra yields ($\mathcal{U}$ is a FEM solution, hence the mass matrix):
+\be
+\frac{dV}{dt} = - V + MU
+\ee
+{\bf Clearly, the only thing that matters are the $v_i$'s, the entries of $V$.}
+
+%%---------------------------------------------------------------------------%%
+\section{How does this work in MOOSE?}
+%%---------------------------------------------------------------------------%%
+
+I would like to have a vector $V$ and to be able to add it to the residual of
+the diffusion equation. 
+
+There are as many $v_i$'s are there are DOFs in the vector $U$. I never need to 
+think of $\mathcal{V}$ at quadrature points as with a material or an auxvar. I 
+just want a vector $V$. Is this possible?
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\closing
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -41,3 +41,15 @@
 *ep.txt
 testing*.vtk
 *.mat
+*.m~
+untitled*.m
+*.fls
+*.o
+*.avi
+*.mpg
+*.ppm
+*.e
+
+doc\presentation-NEAMS_2015\*Agenda*.pdf
+doc/presentation-NEAMS_2015/*Agenda*.pdf
+

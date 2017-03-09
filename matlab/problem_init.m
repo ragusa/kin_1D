@@ -2,15 +2,16 @@ function problem_init(problem_ID,nbr_refinements_per_region)
 % load the data structure with info pertaining to the physical problem
 
 % make the problem data a global variable
-global dat npar 
+global dat npar
+
+% save pb ID for later use
+dat.PbID = problem_ID;
 
 % rod mov times
-dat.rod_mov.t_beg_1=0.1; 
-dat.rod_mov.t_end_1=0.6;
-dat.rod_mov.t_beg_2=1.; 
-dat.rod_mov.t_end_2=2.7;
+dat.rod_mov.t_beg_1=0.1; dat.rod_mov.t_end_1=0.6;
+dat.rod_mov.t_beg_2=1.0; dat.rod_mov.t_end_2=2.7;
 
-% kinetic parameters 
+% kinetic parameters
 dat.beta_tot=600e-5;
 dat.lambda=0.1;
 dat.invvel=1e-3;
@@ -19,7 +20,7 @@ dat.invvel=1e-3;
 switch problem_ID
     
     case 1
-        % one material, constant in space and time   
+        % one material, constant in space and time
         
         b=dat.beta_tot;
         iv=dat.invvel;
@@ -30,15 +31,15 @@ switch problem_ID
         dat.nusigf_d{1}= create_material_prop('constant_in_time',1.1*b    ,[],'constant_in_space',0);
         dat.inv_vel{1} = create_material_prop('constant_in_time',iv       ,[],'constant_in_space',0);
         dat.ext_src{1} = create_material_prop('constant_in_time',0        ,[],'constant_in_space',0);
-
+        
         n_regions=1;
         region_width=400;
         dat.width = region_width * n_regions;
-
+        
         imat = ones(n_regions,1);
-
+        
     case 2
-        % one material, constant in space      
+        % one material, constant in space, ramp in time 
         
         b=dat.beta_tot;
         iv=dat.invvel;
@@ -50,36 +51,36 @@ switch problem_ID
         dat.nusigf_d{1}= create_material_prop('constant_in_time',1.1*b    ,[],'constant_in_space',0);
         dat.inv_vel{1} = create_material_prop('constant_in_time',iv       ,[],'constant_in_space',0);
         dat.ext_src{1} = create_material_prop('constant_in_time',0        ,[],'constant_in_space',0);
-
+        
         n_regions=1;
         region_width=400;
         dat.width = region_width * n_regions;
-
+        
         imat = ones(n_regions,1);
-
+        
     case 3
-        % one material, constant in space      
+        % one material, constant in space, ramp2 in time 
         
         b=dat.beta_tot;
         iv=dat.invvel;
         dat.cdiff{1}   = create_material_prop('constant_in_time',1        ,[],'constant_in_space',0);
         times = [dat.rod_mov.t_beg_1 dat.rod_mov.t_end_1 ...
-                 dat.rod_mov.t_beg_2 dat.rod_mov.t_end_2 ]/10;
+            dat.rod_mov.t_beg_2 dat.rod_mov.t_end_2 ]/10;
         dat.siga{1}    = create_material_prop('ramp2_in_time' ,[1 0.98 1],times,'constant_in_space',0);
         dat.nusigf{1}  = create_material_prop('constant_in_time',1.1      ,[],'constant_in_space',0);
         dat.nusigf_p{1}= create_material_prop('constant_in_time',1.1*(1-b),[],'constant_in_space',0);
         dat.nusigf_d{1}= create_material_prop('constant_in_time',1.1*b    ,[],'constant_in_space',0);
         dat.inv_vel{1} = create_material_prop('constant_in_time',iv       ,[],'constant_in_space',0);
         dat.ext_src{1} = create_material_prop('constant_in_time',0        ,[],'constant_in_space',0);
-
+        
         n_regions=1;
         region_width=400;
         dat.width = region_width * n_regions;
-
+        
         imat = ones(n_regions,1);
-
+        
     case 10
-        % have material identifiers 
+        % have material identifiers: 20 regions. 4 materials. 3 rod movements
         n_regions = 20; % assumption: each region has the same width
         region_width=400/n_regions;
         dat.width = region_width * n_regions;
@@ -98,7 +99,7 @@ switch problem_ID
         dat.nusigf_d{1}= create_material_prop('constant_in_time',1.1*b    ,[],'constant_in_space',0);
         dat.inv_vel{1} = create_material_prop('constant_in_time',iv       ,[],'constant_in_space',0);
         dat.ext_src{1} = create_material_prop('constant_in_time',0        ,[],'constant_in_space',0);
-        % copy material properties
+        % copy material properties that remain unchanged
         for id=2:4
             dat.cdiff{id}    = dat.cdiff{1}   ;
             dat.nusigf{id}   = dat.nusigf{1}  ;
@@ -111,15 +112,45 @@ switch problem_ID
         dat.siga{2} = create_material_prop('ramp_in_time',[1.1 1.095],times,'constant_in_space',0);
         dat.siga{4} = create_material_prop('ramp_in_time',[1.1 1.105],times,'constant_in_space',0);
         times = [dat.rod_mov.t_beg_1 dat.rod_mov.t_end_1 ...
-                 dat.rod_mov.t_beg_2 dat.rod_mov.t_end_2 ];
+            dat.rod_mov.t_beg_2 dat.rod_mov.t_end_2 ];
         dat.siga{3} = create_material_prop('ramp2_in_time',[1.1 1.09 1.1],times,'constant_in_space',0);
+        
+    case 11
+        % have material identifiers: 20 regions. 2 materials. 1 rod movement
+        n_regions = 20; % assumption: each region has the same width
+        region_width=400/n_regions;
+        dat.width = region_width * n_regions;
+        
+        imat = ones(n_regions,1);
+        imat(5) = 2;
+        
+        b=dat.beta_tot;
+        iv=dat.invvel;
+        dat.cdiff{1}   = create_material_prop('constant_in_time',1        ,[],'constant_in_space',0);
+        dat.siga{1}    = create_material_prop('constant_in_time',1.1      ,[],'constant_in_space',0);
+        dat.nusigf{1}  = create_material_prop('constant_in_time',1.1      ,[],'constant_in_space',0);
+        dat.nusigf_p{1}= create_material_prop('constant_in_time',1.1*(1-b),[],'constant_in_space',0);
+        dat.nusigf_d{1}= create_material_prop('constant_in_time',1.1*b    ,[],'constant_in_space',0);
+        dat.inv_vel{1} = create_material_prop('constant_in_time',iv       ,[],'constant_in_space',0);
+        dat.ext_src{1} = create_material_prop('constant_in_time',0        ,[],'constant_in_space',0);
+        % copy material properties that remain unchanged
+        for id=2:max(imat) 
+            dat.cdiff{id}    = dat.cdiff{1}   ;
+            dat.nusigf{id}   = dat.nusigf{1}  ;
+            dat.nusigf_p{id} = dat.nusigf_p{1};
+            dat.nusigf_d{id} = dat.nusigf_d{1};
+            dat.inv_vel{id}  = dat.inv_vel{1} ;
+            dat.ext_src{id}  = dat.ext_src{1}    ;
+        end
+        times = [dat.rod_mov.t_beg_1 dat.rod_mov.t_beg_2];
+        dat.siga{2} = create_material_prop('ramp_in_time',[1.1 1.08],times,'constant_in_space',0);
         
     otherwise
         error('unknown problem ID ',problem_ID);
 end
 
 
-bc.left.type=2; %0=neumann, 1=robin, 2=dirichlet
+bc.left.type=2; % 0=neumann, 1=robin, 2=dirichlet
 bc.left.C=0; % (that data is C in: -Ddu/dn=C // u/4+D/2du/dn=C // u=C)
 bc.rite.type=2;
 bc.rite.C=0;
@@ -131,7 +162,7 @@ npar.keff=1.;
 % load the numerical parameters, npar, structure pertaining to numerics
 % nbr of cells/region = nbr_refinements_per_region
 % elem_to_mat = [];
-% for ireg=1:dat.n_regions 
+% for ireg=1:dat.n_regions
 %     elem_to_mat = [elem_to_mat imat(ireg)*ones(nbr_refinements_per_region,1)];
 % end
 % npar.elem_to_mat = elem_to_mat; clear elem_to_mat
@@ -171,7 +202,7 @@ npar.tol_newton_lin = 1e-5;
 % 4=matfree + Gmres
 % 5=matfree + Precond Gmres
 npar.newton_solve_option = 1;
-myoptP=1; 
+myoptP=1;
 optP=0;  if(npar.newton_solve_option==3 || npar.newton_solve_option==5), optP=myoptP; end
 npar.prec_opt=optP;
 
@@ -195,123 +226,53 @@ npar.x_dofs=linspace(0,dat.width,npar.ndofs(1));
 npar.add_zero_on_diagonal=true;
 npar.add_ones_on_diagonal=~npar.add_zero_on_diagonal;
 
+% IQS options
+npar.solve_prke_compute_rho_each_time = false;
+npar.prke_solve = 'matlab' ;
+npar.int_order = 3;
+% npar.prke_solve = 'no' ;
+npar.max_iter_iqs = 6;
+npar.tol_iqs      = 1e-11;
+npar.iqs_prke_interpolation_method=2;
+
+if ~strcmpi(npar.prke_solve,'matlab')
+    npar.n_micro=10;
+    npar.freq_react=1;
+end
+
+% movie options
+dat.max_y_val_movie = 2.;
+
+% time integration
+time_integration=3;
+switch time_integration
+    case 1
+        nstages=1;
+        a=zeros(nstages,nstages);
+        b=zeros(nstages,1); c=b;
+        a(1,1)=1;
+        c=sum(a,2);
+        b(1)=1;
+        
+    case 3
+        nstages=3;
+        g=0.43586652150845899941601945119356;
+        a=[g 0 0; ...
+            ((1-g)/2) g 0;...
+            (-(6*g^2-16*g+1)/4) ((6*g^2-20*g+5)/4) g];
+        c=sum(a,2);
+        b=a(nstages,:);
+    otherwise
+        error('time integration %d not yet implemented',time_integration);
+end
+npar.rk.s=nstages;
+npar.rk.a=a; npar.rk.b=b; npar.rk.c=c;
+
 return
 end
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [u]=solve_ss_fem()
-
-% perform the Newton solve
-u = newton();
-
-
-return
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-function  T=newton()
-
-global dat npar prt
-
-% initial guess
-T=ones(sum(npar.ndofs),1)*400;
-T=linspace(1000,400,sum(npar.ndofs))';
-T=T/npar.scale;
-
-curr_time=0;
-% compute the residual
-resi = dat.myfunc(curr_time,T);
-% compute its norm
-norm_resi=norm(resi);
-% compute stopping criterion
-tol_newton = npar.atol_newton + npar.rtol_newton*norm_resi;
-
-eigstudy=false;
-if(npar.newton_solve_option>3),eigstudy=false;end
-
-inewton=0;
-while (inewton<npar.max_newton && norm_resi>tol_newton)
-    inewton=inewton+1;
-    if(prt.lev>=0), fprintf('Newton iteration %i, ',inewton); end
-    % compute the jacobian matrix
-    J = dat.myjac(curr_time,T,resi);
-    P = dat.myprec(curr_time,T);
-    if(eigstudy)
-%         P = compute_precond(T,npar,dat,1);
-        figure(2)
-        subplot(2,1,1);
-        eigplot(full(J),2);
-        subplot(2,1,2);
-        JiP=J*inv(P);
-        eigplot(full(JiP),2);
-        fprintf('\n\tEst. of cond number for J: %g, \t for JiP: %g\n',condest(J),condest(JiP));
-        figure(3);
-        subplot(2,1,1);   spy(J);
-        subplot(2,1,2);   spy(JiP);
-    end
-    % newton solve
-    switch npar.newton_solve_option
-        case {1}
-            dT = -J\resi;
-        case{2,3}
-            % gmres(A,b,restart,tol,maxit,M1,M2,x0)
-            restart=[];
-            tol_newton_lin=npar.tol_newton_lin;
-            [dT,flag,relres,iter,resvec] = gmres(J,-resi,restart,tol_newton_lin,[],P,[],[]);
-            if(prt.lev>=0 || flag==0)
-                switch flag
-                    case{0}
-                        fprintf('\tgmres converged');
-                    case{1}
-                        fprintf('\tgmres did not converge');
-                    case{2}
-                        fprintf('\tgmres: ill-conditioned');
-                    case{3}
-                        fprintf('\tgmres stagnation');
-                end
-            end
-            if(prt.lev>=0), fprintf('\titer statistics in gmres: %i, %i\n',iter(1),iter(2)); end
-        case {4,5}
-            restart=10;
-            tol_newton_lin=npar.tol_newton_lin;
-            [w,flag,relres,iter,resvec] = gmres(@Jv,-resi,restart,tol_newton_lin,150,[],[],[],... % the next line is for @afun arguments
-                T,resi,dat.myfunc,P,curr_time);
-            if(prt.lev>=0 || flag==0)
-                switch flag
-                    case{0}
-                        fprintf('\tgmres converged');
-                    case{1}
-                        fprintf('\tgmres did not converge');
-                    case{2}
-                        fprintf('\tgmres: ill-conditioned');
-                    case{3}
-                        fprintf('\tgmres stagnation');
-                end
-            end
-            if(prt.lev>=0), fprintf('\titer statistics in gmres: %i, %i\n',iter(1),iter(2)); end
-            dT=P\w;    
-    end
-    % new Newton iterate
-    T=T+dT;        
-    % compute the residual
-    resi = dat.myfunc(curr_time,T);
-    % compute its norm
-    norm_resi=norm(resi);
-    if(prt.lev>=0)
-        if(norm_resi<tol_newton)
-            fprintf(' CONVERGED with ');
-        end
-        fprintf('Nonlinear residual error=%g, delta solution %g \n\n',norm_resi,norm(dT));
-    end
-end
-% re-scale
-T=T*npar.scale;
-
-return
-end
 
 
