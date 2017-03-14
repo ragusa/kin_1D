@@ -66,22 +66,39 @@ Region & Material Property & 0.0 s & 0.1 s & 0.6 s & 1.0 s & 1.7 s \\
 \end{center}
 \end{table}
 
-\fig{fig:1D_power} shows the resulting baseline relative power profile of the one-dimensional problem.  The baseline was computed using MATLAB's ode15s function which is a embedded Runge-Kutta time adaptive method for stiff problems, the error tolerance was set very tightly ($10^{-12}$).  This baseline computation is used to compute the error of the other time discretization methods.  \fig{fig:1D_shape} shows the shape profile at various times during the transient.  It is apparent that the shape is very time-dependent, so it is expected that IQS has marginal accuracy gain for a given time step size.
+\fig{fig:1D_flux} shows the resulting baseline flux and relative power profile of the one-dimensional problem.  The baseline was computed using MATLAB's ode15s function which is a embedded Runge-Kutta time adaptive method for stiff problems, the error tolerance was set very tightly ($10^{-12}$).  The flux distribution shows that the core is relatively large, thus different regions are weakly coupled. This baseline computation is used to compute the error of the other time discretization methods.  \fig{fig:1D_shape} shows the shape profile at various times during the transient.  It is apparent that the shape is very time-dependent, so it is expected that IQS has marginal accuracy gain for a given time step size.
 
 \begin{figure}[!htbp]
-\begin{center}
+\centering
+\begin{subfigure}[b]{0.49\textwidth}
+\centering
+\includegraphics[width=\linewidth]{\FiguresDir/1D_flux.png}
+\caption{Flux profile at various times}
+\end{subfigure}
+\begin{subfigure}[b]{0.49\textwidth}
+\centering
 \includegraphics[width=\linewidth]{\FiguresDir/1D_power_base.png}
-\caption{Baseline total power level for the 1D slab test case}
-\label{fig:1D_power}
-\end{center}
+\caption{Power profile over transient}
+\end{subfigure}
+\caption{Baseline flux and power distribution}
+\label{fig:1D_flux}
 \end{figure}
 
 \begin{figure}[!htbp]
-\begin{center}
-\includegraphics[width=\linewidth]{\FiguresDir/1D_shape.png}
-\caption{Flux profile of 1D slab at various times}
-\label{fig:1D_shape}
-\end{center}
+\centering
+\begin{subfigure}[b]{0.49\textwidth}
+\centering
+\includegraphics[width=\linewidth]{\FiguresDir/1D_shape2.png}
+\caption{Shape profile at various times}
+\label{1D_shape}
+\end{subfigure}
+\begin{subfigure}[b]{0.49\textwidth}
+\centering
+\includegraphics[width=\linewidth]{\FiguresDir/1D_iqs_power.png}
+\caption{Power and reactivity profile over transient}
+\end{subfigure}
+\caption{IQS flux and power distribution}
+\label{fig:1D_res}
 \end{figure}
 
 \subsection{IQS Iteration Convergence}
@@ -172,6 +189,41 @@ The 1D slab problem was also applied to the Rattlesnake implementation of IQS.  
 \caption{Error convergence plots of implicit discretization, IQS, and IQS P-C vs. number of GMRES iterations}
 \label{fig:1D_conv_lin}
 \end{center}
+\end{figure}
+
+
+\subsection{One-Dimensional Mini-Core Problem}
+
+This problem is exactly the same as the previous one-dimensional problem, except the the core was reduced to 80 cm in length. The purpose of testing this problem is to determine if a more tightly coupled core will yield better performance for IQS. \fig{fig:1Dmini_flux} shows the resulting baseline flux and relative power profile of the one-dimensional mini-core problem. This plot shows that the perturbed regions affect the domain more evidently. \fig{fig:1Dmini_shape} shows the shape profile at various times during the transient. This plot shows that the shape is much less time-dependent than the previous large core. \fig{fig:1Dmini_conv} shows that IQS performs significantly better with this example than the large core.
+
+\begin{figure}[!htbp]
+\centering
+\begin{subfigure}[b]{0.49\textwidth}
+\centering
+\includegraphics[width=\linewidth]{\FiguresDir/1Dmini_flux.png}
+\caption{Flux profile at various times}
+\end{subfigure}
+\begin{subfigure}[b]{0.49\textwidth}
+\centering
+\includegraphics[width=\linewidth]{\FiguresDir/1Dmini_power_base.png}
+\caption{Power profile over transient}
+\end{subfigure}
+\caption{Mini-core baseline flux and power distribution}
+\label{fig:1Dmini_flux}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.7\linewidth]{\FiguresDir/1Dmini_shape.png}
+\caption{Shape profile at various times for one-dimensional mini-core}
+\label{fig:1Dmini_shape}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.7\linewidth]{\FiguresDir/1Dmini_conv_IE.png}
+\caption{Time step convergence for one-dimensional mini-core with implicit Euler discretization}
+\label{fig:1Dmini_conv}
 \end{figure}
 
 \pagebreak
