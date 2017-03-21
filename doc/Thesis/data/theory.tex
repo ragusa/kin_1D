@@ -119,7 +119,7 @@ Solving for the shape in \eqt{eq:shape} can become expensive, especially in two 
 
 \begin{figure}[!htbp]
 \includegraphics[width=\linewidth]{\FiguresDir/IQS_visualization.jpg}
-\caption{IQS method visualization}
+\caption{IQS method visualization \cite{PrincePHYSOR2016}}
 \label{fig:iqsviz}
 \end{figure}
 
@@ -259,7 +259,7 @@ In order to preserve the uniqueness criteria, it is beneficial to scale the shap
 \subsection{Preconditioned Jacobian-Free Newton-Krylov}
 \label{sect:pjfnk}
 
-By far, the most common nonlinear system iteration method in MOOSE is Preconditioned Jacobian-Free Newton-Krylov with Generalized Minimal RESidual method (GMRES) as the linear system solver.  This section only descirbes the methods' application to IQS; a very detailed description of PJFNK is transcribed by Knoll in \cite{PJFNK_Knoll}. Essentially, the IQS system of equations can be described by \eqt{eq:IQSsys}.  Where $A$ is a matrix operator, $\varphi$ is the solution vector, and $F$ is the forcing vector.
+By far, the most common nonlinear system iteration method in MOOSE is Preconditioned Jacobian-Free Newton-Krylov with Generalized Minimal RESidual method (GMRES) as the linear system solver.  This section only describes the methods' application to IQS; a very detailed description of PJFNK is transcribed by Knoll in \cite{PJFNK_Knoll}. Essentially, the IQS system of equations can be described by \eqt{eq:IQSsys}.  Where $A$ is a matrix operator, $\varphi$ is the solution vector, and $F$ is the forcing vector.
 \be
 A(\varphi(p))\varphi=F(\varphi,p,t)
 \label{eq:IQSsys}
@@ -336,7 +336,7 @@ IQS is first and foremost a nuclear reactor simulation method.  In nuclear react
 
 Temperature evaluation (\eqt{eq:temp}) is quite similar to the evaluation of the delayed neutron precursors from \sct{sect:dnp}. A typical implicit solver would simply use the interpolated flux at end of the temperature time step for the right hand side of the equation, a theta-method discretization.  However, IQS has much more information about the profile of the flux along the time step because of the micro-step amplitude evaluation.  Therefore, it is possible to solve for temperature using a semi-analytical approach, shown by \eqt{eq:temp_an}.
 \be
-T^{n+1} = T^n + \frac{\kappa_f}{\rho c_p} \left(a_2 \varphi^{n+1} + a_1 \varphi^{n}\right)
+T^{n+1} = T^n + \frac{\kappa_f}{\rho c_p} \sum_{g=1}^G\left(a_2(\Sigma_f^g\varphi^g)^{n+1} + a_1(\Sigma_f^g\varphi^g)^n\right)
 \label{eq:temp_an}
 \ee
 Where $n$ corresponds to the beginning of the temperature step.  $a_1$ and $a_2$ are integration coefficients defined by \eqt{eq:a1} and \eqt{eq:a2}.  Any interpolation of the amplitude along the micro steps is possible for the integration, this application uses piece-wise linear.
@@ -373,7 +373,7 @@ For IQS, this temperature feedback affects both the shape equation and the react
 \draw[shift={(\x,1)},color=black] (0pt,4pt) -- (0pt,-4pt);
 \draw[shift={(0,1)},color=black] (0pt,0pt) -- (0pt,-6pt) node[below] {$t_n$};
 \draw[shift={(6,1)},color=black] (0pt,0pt) -- (0pt,-6pt) node[below] {$t_{n+1}$};
-\node(temp) at (-.75,1) {$T \rightarrow \rho, \bar{\beta}, \bar{\lambda}, \Lambda$:};
+\node(temp) at (-.4,1) {$T, \rho$:};
 
 % PRKE
 \draw[] (0,0) -- (6,0) ;
@@ -385,7 +385,7 @@ For IQS, this temperature feedback affects both the shape equation and the react
 \draw[shift={(\x,0)},color=black] (0pt,2pt) -- (0pt,-2pt);
 \draw[shift={(0,0)},color=black] (0pt,0pt) -- (0pt,-6pt) node[below] {$t_n$};
 \draw[shift={(6,0)},color=black] (0pt,0pt) -- (0pt,-6pt) node[below] {$t_{n+1}$};
-\node(prke) at (-.5,0) {$p, \frac{dp}{dt}:$};
+\node(prke) at (-.2,0) {$p:$};
 
 \draw (0,0) edge[out=45,in=135,->,thick] node[above,sloped] {Step 2} (2,0);
 \draw (2,0) edge[out=45,in=135,->,thick] node[above,sloped] {Step 4} (4,0);
@@ -401,7 +401,8 @@ For IQS, this temperature feedback affects both the shape equation and the react
 \draw (4,1) edge[out=-135,in=135,->,thick] node[below,sloped] {$\rho$} (4,0);
 \draw (4,0) edge[out=45,in=-45,->,thick] node[below,sloped] {$p$} (4,1);
 \draw (6,1) edge[out=-135,in=135,->,thick] node[below,sloped] {$\rho$} (6,0);
-\draw (6,0) edge[out=45,in=0,->,thick] node[below,sloped] {$p, \frac{dp}{dt}$} (6,2);
+\draw (6,1) edge[out=45,in=-45,->,thick] node[below,sloped] {$T$} (6,2);
+\draw (6,0) edge[out=30,in=0,->,thick] node[below,sloped] {$p, \frac{dp}{dt}$} (6,2);
 
 \end{tikzpicture}
 \caption{Time scales and process of IQS with temperature feedback}
@@ -430,7 +431,7 @@ According to the a priori hypothesis from previous sections, $\tau$ is large for
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Programming Logic}
 
-The couplings between temperature, amplitude, and shape are all nonlinear, so iteration processes are needed for each time scale.  The amplitude and temperature need to be iterated on the middle time scale until convergence on each temperature step.  Then another iterative process needs to occur in the shape time scale on all three variables. \fig{fig:proc} shows the programming diagram implement to execute this process. The time increment of $\Delta t/3$ for the temperature solve is arbitrary and is meant only to match \fig{fig:time} where three temperature updates have been used as illustration.
+The couplings between temperature, amplitude, and shape are all nonlinear, so iteration processes are needed for each time scale.  The amplitude and temperature need to be iterated on the middle time scale until convergence on each temperature step.  Then another iterative process needs to occur in the shape time scale on all three variables. \fig{fig:proc} shows the programming diagram implement to execute this process. The time increment of $\Delta t^T$ corresponds to the time step that the temperature is evaluated.
 
 
 \begin{figure}[!htpb]
@@ -443,10 +444,10 @@ The couplings between temperature, amplitude, and shape are all nonlinear, so it
 \node[blueblock2](p4) at (0,-7.5) {Solve Temperature};
 \node[greenblock] (p5) at (0,-10) {Update PRKE Params};
 \node[greenblock] (p6) at (0,-12.5) {Solve PRKE};
-\node[reddiamond] (check1) at (0,-17.5) {Check for \\ convergence ($p$)};
+\node[reddiamond] (check1) at (0,-17.5) {Check for \\ convergence ($p,T$)};
 \node[reddiamond] (check2) at (7,-12) {If $t=t_{n+1}$};
 \node[greenblock] (p7) at (8,-6) {Shape Solve};
-\node[reddiamond] (check3) at (8,-2.5) {Check for \\ convergence ($\varphi$)};
+\node[reddiamond] (check3) at (8,-2.5) {Check for \\ convergence ($\varphi,K_{n+1}$)};
 %\node [above =0.1mm of p1] {\large{IQS Solve:}};
 %\node [above =0.1mm of p5] {\large{Multi-physics:}};
 
@@ -454,14 +455,14 @@ The couplings between temperature, amplitude, and shape are all nonlinear, so it
 %\tikzback{p5}{p5}{p5}{p5}{bk2}
 
 \draw[->,ultra thick](p1.south) -- node[right] {$t=t_{n+1}$}(p2.north);
-\draw[->,ultra thick](p2.south) -- node[right] {$t=t_{n}+\Delta t/3$}(p3.north);
+\draw[->,ultra thick](p2.south) -- node[right] {$t=t_{n}+\Delta t^T$}(p3.north);
 \draw[->,ultra thick](p3.south) -- (p4.north);
 \draw [->,ultra thick] (p4.south)-- (p5.north);
 \draw[->,ultra thick](p5.south) -- (p6.north);
 \draw[->,ultra thick](p6.south) -- (check1.north);
 \draw[->,ultra thick](check1.west) -- node[above,sloped] {\large{no}} (-5,-17.5) |-  (p4.west);
 \draw[->,ultra thick](check1.east) -| node[right] {\large{yes}} (check2.south);
-\draw[->,ultra thick](check2.west) -- node[above,sloped] {\large{no}\small \qq $t=t+\Delta t/3$} (4,-5) -- (p3.east);
+\draw[->,ultra thick](check2.west) -- node[above,sloped] {\large{no}\small \qq $t=t+\Delta t^T$} (4,-5) -- (p3.east);
 \draw[->,ultra thick](check2.north) --  (8,-10) -- node[right] {\large{yes}} (p7.south);
 \draw[->,ultra thick](p7.north) -- (check3.south);
 \draw[->,ultra thick](check3.west) -- node[above] {no} (p2.east);
@@ -478,7 +479,7 @@ The couplings between temperature, amplitude, and shape are all nonlinear, so it
 \label{sect:dt}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-A vital part of the verification and validation for IQS is analyzing error convergence.  Since any time discretization scheme is capable of being applied to the shape equation of IQS, it is important to investigate IQS's performance to a variety of these schemes.  There is lack of literature that applies IQS to schemes other than implicit Euler; higher order schemes are never rigorously tested.  This research intends to apply a variety of schemes, including implicit Euler, Crank-Nicholson, backward difference formula (BDF), and diagonally implicit Runge-Kutta (DIRK), to test stability and error convergence.  For brevity in the following sections, the shape-diffusion equation is represented by a general operator notation, described by \eqt{eq:shape_mat}.
+A vital part of the verification and validation for IQS is analyzing error convergence.  Since any time discretization scheme can be applied to the shape equation of IQS, it is important to investigate IQS's performance to a variety of these schemes.  There is lack of literature that applies IQS to schemes other than implicit Euler; higher order schemes are never rigorously tested.  This research intends to apply a variety of schemes, including implicit Euler, Crank-Nicholson, backward difference formula (BDF), and diagonally implicit Runge-Kutta (DIRK), to test stability and error convergence.  For brevity in the following sections, the shape-diffusion equation is represented by a general operator notation, described by \eqt{eq:shape_mat}.
 \be 
 IV\frac{\partial \varphi}{\partial t} = A\varphi+b
 \label{eq:shape_mat}
@@ -507,7 +508,7 @@ An extension of implicit discretization is the backward difference formulae (BDF
 \Delta t \alpha_{k+1}^{k} b_{n+1}\right]
 \label{eq:bdf}
 \ee
-where $k$ is the order of the error convergence and $\alpha_{j}^{k}$ (vector of length $k+1$) are coefficients chosen such that the temporal truncation error is minimized.  \tbl{tab:bdfa} shows the values of $\alpha$ for every order implemented in this thesis. The benefit of using BDF is that any order of convergence can be applied and are unconditionally stable up through fourth order, so the IQS approximation can easily be validated for high order discretization.
+where $k$ is the order of the error convergence and $\alpha_{j}^{k}$ (vector of length $k+1$) are coefficients chosen such that the temporal truncation error is minimized.  \tbl{tab:bdfa} shows the values of $\alpha$ for every order implemented in this thesis. The benefit of using BDF is that any order of convergence can be applied and are practically stable up through fourth order, so the IQS approximation can easily be validated for high order discretization.
 
 \begin{table}
 \centering
@@ -638,22 +639,21 @@ This section presents the time-integration method used to solve coupled flux/sha
 
 A common precursor evaluation technique is using the theta method, described in \sct{sect:theta}. Applying this to \eqt{eq:prec}:
 \be
-\frac{C^{n+1}-C^n}{\Delta t}=(1-\theta)\beta S_f^np^n-(1-\theta)\lambda C^n + \theta\beta S_f^{n+1}p^{n+1}-\theta\lambda C^{n+1}
+\frac{C^{n+1}_i-C^n_i}{\Delta t}=(1-\theta)\beta_i S_f^np^n-(1-\theta)\lambda_i C^n_i + \theta\beta_i S_f^{n+1}p^{n+1}-\theta\lambda_i C^{n+1}_i
 \ee
-Where $S_f$ is the fission source equivalent for shape ($S_f^n=(\nu\Sigma_f)^n\varphi^n$). Rearranging to solve for the precursor at the end of the time step yields
+Where $S_f$ is the fission source equivalent for shape ($S_f^n=\sum_{g=1}^G(\nu\Sigma_f^g\varphi^g)^n$). Rearranging to solve for the precursor at the end of the time step yields
 \be
-C^{n+1} = \frac{1-(1-\theta)\Delta t\lambda}{1+\theta\Delta t\lambda}C^n + \frac{(1-\theta)\Delta t \beta}{1+\theta\Delta t\lambda}S_f^n p^n +  \frac{\theta\Delta t \beta}{1+\theta\Delta t\lambda}S_f^{n+1} p^{n+1}
+C^{n+1}_i = \frac{1-(1-\theta)\Delta t\lambda_i}{1+\theta\Delta t\lambda_i}C^n_i + \frac{(1-\theta)\Delta t \beta_i}{1+\theta\Delta t\lambda_i}S_f^n p^n +  \frac{\theta\Delta t \beta_i}{1+\theta\Delta t\lambda_i}S_f^{n+1} p^{n+1}
 \label{eq:dnp_theta}
 \ee
-Reporting this value of $C^{n+1}$, one can solve for the shape $\varphi^{n+1}$ as a function of $\varphi^n$ and $C^n$ (and $p^n$, $p^{n+1}$, $dp/dt|_n$ and  $dp/dt|_{n+1}$).
-Once $\varphi^{n+1}$ has been determined, $C^{n+1}$ is updated.  Applying this technique to implicit discretization is done by changing the definition the fission source ($S_f^n=(\nu\Sigma_f)^n\phi^n$) and eliminating all $p$ terms.
+Reporting this value of $C^{n+1}_i$, one can solve for the shape $\varphi^{n+1,g}$ as a function of $\varphi^{n,g}$ and $C^n_i$ (and $p^n$, $p^{n+1}$, $dp/dt|_n$ and  $dp/dt|_{n+1}$). Once $\varphi^{n+1,g}$ has been determined, $C^{n+1}_i$ is updated.  Applying this technique to implicit discretization is done by changing the definition the fission source ($S_f^n=\sum_{g=1}^G(\nu\Sigma_f^g\phi^g)^n$) and eliminating all $p$ terms.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Analytical Precursor Integration}
 
 Another technique to evaluating the precursor equation is to use a exponential operator and integrate the time derivative analytically.  Applying this operation to \eqt{eq:prec} yields:
 \be
-C^{n+1} =  C^n e^{-\lambda (t_{n+1} - t_n) }  + \int_{t_n}^{t_{n+1}} \beta(t') S_f(t') p(t')e^{-\lambda (t_{n+1}-t')}dt'
+C^{n+1}_i =  C^n_i e^{-\lambda_i (t_{n+1} - t_n) }  + \int_{t_n}^{t_{n+1}} \beta_i(t') S_f(t') p(t')e^{-\lambda_i (t_{n+1}-t')}dt'
 \label{eq:prec_an}
 \ee
 Again, this can be applied to implicit discretization by altering the definition of the fission source and eliminating $p$.  Because $S_f$ is not known continuously over the time step, the integration can be done using any schemet (Riemann, trapezoid, Simpson's, etc.). However, there is a very accurate representation of $p(t)$ over the macro step from the PRKE solve. In order to utilize this information, another possibility is to interpolate $S_f$ linearly over the macro step.  Such that:
@@ -662,13 +662,13 @@ S_f(t) = \frac{t_{n+1}-t}{t_{n+1}-t_n}S_f^n  + \frac{t-t_n}{t_{n+1}-t_n}S_f^{n+1
 \ee
 Applying this to \eqt{eq:prec_an} yields:
 \be
-C^{n+1} = C^n e^{-\lambda \Delta t} + \left(\hat{a}_2 S_f^{n+1}+\hat{a}_1 S_f^n\right)\beta
+C^{n+1}_i = C^n_i e^{-\lambda_i \Delta t} + \left(\hat{a}_{2,i} S_f^{n+1}+\hat{a}_{1,i} S_f^n\right)\beta_i
 \label{eq:dnp_an}
 \ee
 With integration coefficients defined as:
 \begin{align}
-&\hat{a}_1= \int_{t_n}^{t_{n+1}}\frac{t_{n+1}-t'}{\Delta t}p(t')e^{-\lambda(t_{n+1}-t')}dt' \\
-&\hat{a}_2 = \int_{t_n}^{t_{n+1}}\frac{t'-t_n}{\Delta t}p(t')e^{-\lambda(t_{n+1}-t')}dt'
+&\hat{a}_{1,i}= \int_{t_n}^{t_{n+1}}\frac{t_{n+1}-t'}{\Delta t}p(t')e^{-\lambda_i(t_{n+1}-t')}dt' \\
+&\hat{a}_{2,i} = \int_{t_n}^{t_{n+1}}\frac{t'-t_n}{\Delta t}p(t')e^{-\lambda_i(t_{n+1}-t')}dt'
 \end{align}
 The amplitude $(p)$ is included in the integration coefficient because it has been highly accurately calculated in the micro step scheme, so a piecewise interpolation (linear, cubic, etc.) between those points can be done to maximize accuracy.
 

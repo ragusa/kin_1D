@@ -29,7 +29,7 @@ Multigroup diffusion equation with delayed neutron precrusors:
 \end{align}
 \be
 \frac{dC_i}{dt} = \beta_i\sum_{g=1}^G \frac{\nu^{g'} \Sigma_f^{g'}}{\keff} \phi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
-\label{eq:prec}
+\label{eq:precA}
 \ee
 
 With reflecting and vacuum boundary conditions:
@@ -42,7 +42,7 @@ With reflecting and vacuum boundary conditions:
 \text{with } \partial\D=\partial\D_2\cup\partial\D_3 \nonumber
 \ee
 
-Multiplying Equation~\ref{eq:diffusion} by the adjoint solution $\phi^{*g}$ and Equation~\ref{eq:prec} by $C^*=\sum_{g=1}^G\phi^{*g} \chi_{d,i}^g$ for test functions and integrating in space:
+Multiplying Equation~\ref{eq:diffusion} by the adjoint solution $\phi^{*g}$ and Equation~\ref{eq:precA} by $C^*=\sum_{g=1}^G\phi^{*g} \chi_{d,i}^g$ for test functions and integrating in space:
 \begin{align}
 \frac{d}{dt}\left(\phi^{*g},\frac{1}{v^g}\phi^g\right)_\D =& \left(\phi^{*g}\chi_p^g(1-\beta),\sum_{g'=1}^G \frac{\nu^{g'} \Sigma_f^{g'}}{\keff} \phi^{g'}\right)_\D + \left(\grad \phi^{*g},D^g \grad \phi^g\right)_\D - \frac{1}{2}\left\langle\phi^{*g},\phi^{g}\right\rangle_{\partial \D_3} \nonumber \\
 & - \left(\phi^{*g},\Sigma_r^g\phi^g\right)_\D + \sum_{g'\neq g}^G\left(\phi^{*g},\Sigma_s^{g'\to g} \phi^{g'}\right)_\D + \sum_{i=1}^I \left(\phi^{*g}\chi_{d,i}^g,\lambda_i C_i\right)_\D

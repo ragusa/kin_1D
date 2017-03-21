@@ -15,7 +15,7 @@
 
 \chapter{KINETICS EXAMPLES}\label{sect:kin}
 
-Neutron dynamics is the study of the time-dependent nature of neutrons in a reactor.  More specifically, there is no coupling of neutron behavior with other physics, like thermal hydraulic feedback.  This section describes kinetics examples that IQS is tested with and analysis of its performance.  The examples range in complexity and application.  The first is a one-dimensional problem, designed for the prototype code in MATLAB.  The next one is from the Argonne National Lab (ANL) Benchmark Problem Book (BPB), and is a common problem for testing codes and developing methods \cite{ANL_BPB}. 
+Neutron kinetics is the study of the time-dependent nature of neutrons in a reactor.  More specifically, there is no coupling of neutron behavior with other physics, like thermal hydraulic feedback.  This section describes kinetics examples that IQS is tested with and analysis of its performance.  The examples range in complexity and application.  The first is a one-dimensional problem, designed for the prototype code in MATLAB.  The next one is from the Argonne National Lab (ANL) Benchmark Problem Book (BPB), and is a common problem for testing codes and developing methods \cite{ANL_BPB}. 
 
 \section{One Dimensional Prototype Problem}
 
@@ -30,14 +30,14 @@ This example is very simple and computes quickly; it entails a one dimensional, 
   &   &   &   &   &   &    &    &   &   &   &   &   &   &   &   &   &   &   &   \\
 \hline \hline \hline
 \end{tabular}
-\caption{1-D slab region identification}
+\caption{1-D slab region identification \cite{PrincePHYSOR2016}}
 \label{fig:slab}
 \end{center}
 \end{figure}
 
 \begin{table}[!htbp]
 \begin{center}
-\caption{1-D slab material properties and problem parameters}
+\caption{1-D slab material properties and problem parameters \cite{PrincePHYSOR2016}}
 \label{tab:1Dmat}
 \begin{tabular}{llllll}
 \hline
@@ -52,7 +52,7 @@ $D (cm)$ & $\Sigma_a (cm^{-1})$ & $\nu \Sigma_f (cm^{-1})$ & $v (cm/s)$ & $\beta
 
 \begin{table}[!htbp]
 \begin{center}
-\caption{1-D slab absorption cross-section at times of interest}
+\caption{1-D slab absorption cross-section at times of interest \cite{PrincePHYSOR2016}}
 \label{tab:1Dslope}
 \begin{tabular}{llllllll}
 \hline
@@ -90,7 +90,7 @@ Region & Material Property & 0.0 s & 0.1 s & 0.6 s & 1.0 s & 1.7 s \\
 \centering
 \includegraphics[width=\linewidth]{\FiguresDir/1D_shape2.png}
 \caption{Shape profile at various times}
-\label{1D_shape}
+\label{fig:1D_shape}
 \end{subfigure}
 \begin{subfigure}[b]{0.49\textwidth}
 \centering
@@ -234,13 +234,13 @@ This benchmark problem originates from the Argonne National Lab Benchmark Proble
 \begin{figure}[!htbp]
 \begin{center}
 \includegraphics[width=0.75\textwidth]{\FiguresDir/TWIGL_regions.jpg}
-\caption{TWIGL benchmark problem description}
+\caption{TWIGL benchmark problem description \cite{Ban_2012}}
 \label{fig:TWIGL_reg}
 \end{center}
 \end{figure}
 \begin{table}[!htbp]
 \begin{center}
-\caption{TWIGL benchmark material properties and slope perturbation}
+\caption{TWIGL benchmark material properties and slope perturbation \cite{Ban_2012}}
 \label{tab:TWIGL_mat}
 \begin{tabular}{llllllll}
 \hline
@@ -268,7 +268,7 @@ Material & Group & $D (cm)$ & $\Sigma_a (cm^{-1})$ & $\nu\Sigma_f (cm^{-1})$ & $
 \subsection{TWIGL Convergence Analysis}
 
 
-Figs. \ref{fig:TWIGL_power} and \ref{fig:TWIGL_plots} show the IQS  solution as compared with the implicit discretization solution.  It is important to note the IQS shape plot is scaled differently than the Brute Force flux plot (\fig{fig:TWIGL_plots}) because the amplitude term is not included, but the gradients of colors is comparable. These plots show that IQS is consistent in more complex, higher dimensional problems in Rattlesnake. These plots also serve to illustrate that IQS has a much more accurate solution, even at a significantly larger time step than the implicit discretization. In order to demonstrate asymptotic convergence of IQS, implicit Euler (IE) and second order BDF (BDF2) were applied to the TWIGL simulation. \fig{fig:TWIGL_conv} plots the error convergence of IQS and the implicit discretization methods.  The curves show the impressive convergence of IQS for the highly transient TWIGL example. The slope indicated in the legend are the linear slope of curves on the log plot, these slopes should be similar to the order of the method (1 for IE and 2 for BDF2).  IQS shows a increased order because the PRKE is performing much of accuracy convergence and it is computed using SDIRK33, a third order method.
+Figs. \ref{fig:TWIGL_power} and \ref{fig:TWIGL_plots} show the IQS  solution as compared with the implicit discretization solution.  It is important to note the IQS shape plot is scaled differently than the implicit discretization flux plot (\fig{fig:TWIGL_plots}) because the amplitude term is not included, but the gradients of colors is comparable. These plots show that IQS is consistent in more complex, higher dimensional problems in Rattlesnake. These plots also serve to illustrate that IQS has a much more accurate solution, even at a significantly larger time step than the implicit discretization. In order to demonstrate asymptotic convergence of IQS, implicit Euler (IE) and second order BDF (BDF2) were applied to the TWIGL simulation. \fig{fig:TWIGL_conv} plots the error convergence of IQS and the implicit discretization methods.  The curves show the impressive convergence of IQS for the highly transient TWIGL example. The slope indicated in the legend are the linear slope of curves on the log plot, these slopes should be similar to the order of the method (1 for IE and 2 for BDF2).  IQS shows a increased order because the PRKE is performing much of accuracy convergence and it is computed using SDIRK33, a third order method.
 
 \begin{figure}[!htbp]
 \centering
@@ -295,7 +295,7 @@ Figs. \ref{fig:TWIGL_power} and \ref{fig:TWIGL_plots} show the IQS  solution as 
 \includegraphics[width=\textwidth]{\FiguresDir/iqs_ramp_shape.jpg}
 \caption{IQS Shape}
 \end{subfigure}
-\caption{TWIGL Benchmark flux/shape comparison at $t=0.2$}
+\caption{TWIGL Benchmark flux/shape comparison at $t=0.2$ \cite{PrincePHYSOR2016}}
 \label{fig:TWIGL_plots}
 \end{center}
 \end{figure}

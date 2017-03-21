@@ -51,7 +51,7 @@ The geometry is illustrated in~\fig{fig:lra-geometry}.
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.8\linewidth]{\FiguresDir/lra.png}
-\caption{LRA benchmark geometry with region assignment.}
+\caption{LRA benchmark geometry with region assignment \cite{ANL_BPB}}
 \label{fig:lra-geometry}
 \end{figure}
 
@@ -63,7 +63,7 @@ All fuel materials have the same delayed neutron data.
 Some scalar data are listed in~\tbl{tab:lra-scalar}.
 \begin{table}[!htbp]
     \centering
-    \caption{LRA benchmark initial two-group constants.\label{tab:lra-xs}}
+    \caption{LRA benchmark initial two-group constants \cite{ANL_BPB} \label{tab:lra-xs}}
     \resizebox{\textwidth}{!}{
       \begin{tabular}{|c|c|c|c|l|l|l|l|l|}
       \hline
@@ -134,19 +134,21 @@ where $t$ is time in seconds.
 \begin{figure}[htbp!]
 \centering
 \includegraphics[width=\linewidth]{\FiguresDir/lra_profile.png}
-\caption{LRA baseline temperature and power profile}
+\caption{LRA baseline temperature and power profile \cite{PrinceMC2017}}
 \label{fig:lra_profile}
 \end{figure}
 
 \begin{figure}[htbp!]
 \centering
 \includegraphics[width=\linewidth]{\FiguresDir/lra_profile2D.png}
-\caption{LRA baseline spacial power profile at $t=1.44 s$}
+\caption{LRA baseline spacial power profile at $t=1.44 s$ \cite{PrinceMC2017}}
 \label{fig:lra_profile2D}
 \end{figure}
 
 \begin{table}[!htbp]
 \begin{center}
+\caption{LRA baseline verification}
+\label{tab:base}
 %\resizebox{\linewidth}{!}{
 \begin{tabular}{|l|cc|}
 \hline
@@ -161,8 +163,6 @@ Peak Power (W/cm$^3$) 	& 5456 		& 5461 \\
 \end{tabular}
 %}
 \end{center}
-\caption{LRA baseline verification}
-\label{tab:base}
 \end{table}
 
 \begin{figure}[!htbp]
@@ -177,13 +177,13 @@ Peak Power (W/cm$^3$) 	& 5456 		& 5461 \\
 \caption{Five temperature updates per macro step}
 \label{fig:lra_mpconv}
 \end{subfigure}
-\caption{LRA error convergence plots}
+\caption{LRA error convergence plots \cite{PrinceMC2017}}
 \end{figure}
 
 \begin{figure}[htbp!]
 \centering
 \includegraphics[width=\linewidth]{\FiguresDir/lra_mp.png}
-\caption{Error plot with various temperature updates per macro step}
+\caption{Error plot with various temperature updates per macro step \cite{PrinceMC2017}}
 \label{fig:mp}
 \end{figure}
 
@@ -191,6 +191,8 @@ The convergence plots show that updating temperature and the PRKE parameters wit
 
 \begin{table}[!htbp]
 \begin{center}
+\caption{Implicit discretization run time results}
+\label{tab:ndiff_lra}
 %\resizebox{\linewidth}{!}{
 \begin{tabular}{|l|l|ccc|}
 \hline
@@ -205,12 +207,12 @@ Run  &  $\Delta t$ & Error & Runtime (hr) & Linear Iter.\\
 \end{tabular}
 %}
 \end{center}
-\caption{Implicit discretization run time results}
-\label{tab:ndiff_lra}
 \end{table}
 
 \begin{table}[!htbp]
 \begin{center}
+\caption{IQS run time results with $\Delta t = 0.004$}
+\label{tab:iqs_lra}
 %\resizebox{\linewidth}{!}{
 \begin{tabular}{|l|l|ccc|}
 \hline
@@ -227,13 +229,13 @@ Run	&  Updates 	& Error & (hr)		& in Runtime$^*$\\
 %}
 \\
 $^*$ difference in runtime from $\Delta t = 0.004$ implicit discretization 
-\caption{IQS run time results with $\Delta t = 0.004$}
-\label{tab:iqs_lra}
 \end{center}
 \end{table}
 
 \begin{table}[!htbp]
 \begin{center}
+\caption{IQS PC run time results with $\Delta t = 0.004$}
+\label{tab:iqspc_lra}
 %\resizebox{\linewidth}{!}{
 \begin{tabular}{|l|l|ccc|}
 \hline
@@ -250,8 +252,6 @@ Run	&  Updates 	& Error & (hr)		& in Runtime$^*$\\
 %}
 \\
 $^*$ difference in runtime from $\Delta t = 0.004$ implicit discretization 
-\caption{IQS PC run time results with $\Delta t = 0.004$}
-\label{tab:iqspc_lra}
 \end{center}
 \end{table}
 
@@ -260,7 +260,7 @@ The performance of the quasi-statics can also be explained by the computation of
 \begin{figure}[htbp!]
 \centering
 \includegraphics[width=\linewidth]{\FiguresDir/time_constant_lra.png}
-\caption{Dynamical time scale for LRA benchmark}
+\caption{Dynamical time scale for LRA benchmark \cite{PrinceMC2017}}
 \label{fig:LRAtc}
 \end{figure}
 
@@ -285,6 +285,8 @@ The performance of the quasi-statics can also be explained by the computation of
 
 \begin{table}
 \begin{center}
+\caption{LRA step doubling adaptation results with implicit discretization and IQS P-C}
+\label{tab:lra_dt2}
 \resizebox{\textwidth}{!}{
 \begin{tabular}{|l|l|l|l|l|l|l|}
 \hline
@@ -297,8 +299,6 @@ End (3 s) & 109.66 & 2.3650e-4 & 603 & 109.65 & 3.0622e-4 & 97 \\
 \hline
 \end{tabular}}
 \end{center}
-\caption{LRA step doubling adaptation results with implicit discretization and IQS P-C}
-\label{tab:lra_dt2}
 \end{table}
 
 
@@ -311,7 +311,7 @@ Transient 15 is a test case based on the TREAT core. The preliminary purpose of 
 \begin{figure}[htbp!]
 \centering
 \includegraphics[width=0.7\linewidth]{\FiguresDir/Tran15_config.png}
-\caption{Transient-15 159-element small core configuration}
+\caption{Transient-15 159-element small core configuration \cite{mammoth}}
 \label{fig:Tran15_config}
 \end{figure}
 
@@ -327,7 +327,7 @@ Transient 15 is a test case based on the TREAT core. The preliminary purpose of 
 \caption{Fully homogenized fuel elements}
 \label{fig:Tran15_mesh_homo}
 \end{subfigure}
-\caption{Top quarter view of Transient-15 mesh}
+\caption{Top quarter view of Transient-15 mesh \cite{mammoth}}
 \label{fig:Tran15_mesh}
 \end{figure}
 
@@ -343,14 +343,14 @@ Transient 15 is a test case based on the TREAT core. The preliminary purpose of 
 \caption{Fully homogenized fuel elements}
 \label{fig:Tran15_mesh_homo_zoom}
 \end{subfigure}
-\caption{Top single block view of Transient-15 mesh}
+\caption{Top single block view of Transient-15 mesh \cite{mammoth}}
 \label{fig:Tran15_mesh_zoom}
 \end{figure}
 
 \begin{figure}[htbp!]
 \centering
 \includegraphics[width=0.6\linewidth]{\FiguresDir/Tran15_core2.png}
-\caption{Transient-15 core power profile at peak power}
+\caption{Transient-15 core power profile at peak power \cite{PrinceMC2017}}
 \label{fig:Tran15}
 \end{figure}
 
@@ -377,12 +377,14 @@ In order to test the temperature feedback treatment, six different scenarios wer
 \begin{figure}[htbp!]
 \centering
 \includegraphics[width=\linewidth]{\FiguresDir/Tran15_profile.png}
-\caption{Transient-15 total power and average temperature profile during transient}
+\caption{Transient-15 total power and average temperature profile during transient \cite{PrinceMC2017}}
 \label{fig:Tran15_profile}
 \end{figure}
 
 \begin{table}[htb]
 \begin{center}
+\caption{Transient-15 Error and Runtime Results}
+\label{tab:tran15}
 \resizebox{\linewidth}{!}{
 \begin{tabular}{|l|ccccccc|}
 \hline
@@ -401,8 +403,6 @@ IQS P-C (5 updates) & 300 	& 3.5043e+08 & 1.90  & 371 &  26.5\%	&	1.227e-4 & 378
 \end{center}
 \vspace{-3mm}
 $^*$ difference in runtime from implicit discretization 
-\caption{Transient-15 Error and Runtime Results}
-\label{tab:tran15}
 \end{table}
 
 The results from \tbl{tab:tran15} show similar performance of IQS with the temperature updates as the LRA. Again, the number of linear GMRES iterations is shown as a measure of computational expense. However, these iterations do not consider the temperature updates, so the iterations of the simulations with multiple updates should be taken with a grain of salt. IQS with 1 temperature update shows a performance that reduces the error to approximately a tenth of the implicit discretization error, and reduces the execution time by about 12\%.  This shows that IQS was able to resolve the nonlinearity between flux and temperature with significantly fewer diffusion evaluations.  Having IQS with 5 updates significantly increased the execution time for the same time step, but the error was reduced.  Comparing this error to a similar implicit discretization error at a smaller time step could show that the runtime was reduced. IQS P-C performed not nearly as well as it did with the LRA benchmark, but still proved to be effective.  Having 5 updates for IQS P-C increased the runtime marginally, but decreased the error significantly.  The transient profile of the variables' dynamical time scales is shown in \fig{fig:tran15tc}.  This plot exhibits a similar response to that of the LRA. The response of temperature shows that the updates are a computational frugal treatment of the feedback and adaptation of the number of updates is vital for optimization. \\
@@ -410,7 +410,7 @@ The results from \tbl{tab:tran15} show similar performance of IQS with the tempe
 \begin{figure}[htbp!]
 \centering
 \includegraphics[width=0.7\linewidth]{\FiguresDir/time_constant_tran15.png}
-\caption{Dynamical time scale for the Transient-15 example}
+\caption{Dynamical time scale for the Transient-15 example \cite{PrinceMC2017}}
 \label{fig:tran15tc}
 \end{figure}
 
