@@ -90,7 +90,7 @@ Some scalar data are listed in~\tbl{tab:lra-scalar}.
 
 \begin{table}[!htbp]
     \centering
-    \caption{LRA benchmark delayed neutron data.\label{tab:lra-dnp}}
+    \caption{LRA benchmark delayed neutron data\label{tab:lra-dnp}}
       \begin{tabular}{|c|l|l|l|l|}
       \hline
       Group i & $\beta_i$ & $\lambda_i$ ($s^{-1}$) & $\chi_{d,i,1}$ & $\chi_{d,i,2}$ \\
@@ -103,7 +103,7 @@ Some scalar data are listed in~\tbl{tab:lra-scalar}.
 
 \begin{table}[!htbp]
     \centering
-    \caption{LRA benchmark scalar values.\label{tab:lra-scalar}}
+    \caption{LRA benchmark scalar values\label{tab:lra-scalar}}
       \begin{tabular}{|l|c|l|}
       \hline
       Meaning & Notation & value \\
@@ -364,10 +364,11 @@ The Transient-15 model uses a adiabatic temperature feedback mechanism, similar 
 \label{eq:temp2}
 \ee
 
-\be
-c_p = -5.8219\times 10^{-10}T^3 - 4.3694\times 10^{-7}T^2 + 2.8369\times 10^{-3}T -1.009\times 10^{-2} \ (J/g/K)
+\begin{align}
+c_p = -5.8219\times 10^{-10}T^3 &- 4.3694\times 10^{-7}T^2 \nonumber \\
+&+ 2.8369\times 10^{-3}T -1.009\times 10^{-2} \ (J/g/K)
 \label{eq:cp}
-\ee
+\end{align}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Transient-15 Multiphysics Time Scale Results}
@@ -383,7 +384,7 @@ In order to test the temperature feedback treatment, six different scenarios wer
 
 \begin{table}[htb]
 \begin{center}
-\caption{Transient-15 Error and Runtime Results}
+\caption{Transient-15 error and runtime results}
 \label{tab:tran15}
 \resizebox{\linewidth}{!}{
 \begin{tabular}{|l|ccccccc|}
@@ -432,5 +433,3 @@ The results from \tbl{tab:tran15} show similar performance of IQS with the tempe
 \caption{Transient-15 step doubling adaptation results with implicit discretization and IQS P-C}
 \label{fig:Tran15_dt2}
 \end{figure}
-
-%\section{TREAT M8-CAL Problem}

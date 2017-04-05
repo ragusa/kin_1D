@@ -44,8 +44,8 @@ With reflecting and vacuum boundary conditions:
 
 Multiplying Equation~\ref{eq:diffusion} by the adjoint solution $\phi^{*g}$ and Equation~\ref{eq:precA} by $C^*=\sum_{g=1}^G\phi^{*g} \chi_{d,i}^g$ for test functions and integrating in space:
 \begin{align}
-\frac{d}{dt}\left(\phi^{*g},\frac{1}{v^g}\phi^g\right)_\D =& \left(\phi^{*g}\chi_p^g(1-\beta),\sum_{g'=1}^G \frac{\nu^{g'} \Sigma_f^{g'}}{\keff} \phi^{g'}\right)_\D + \left(\grad \phi^{*g},D^g \grad \phi^g\right)_\D - \frac{1}{2}\left\langle\phi^{*g},\phi^{g}\right\rangle_{\partial \D_3} \nonumber \\
-& - \left(\phi^{*g},\Sigma_r^g\phi^g\right)_\D + \sum_{g'\neq g}^G\left(\phi^{*g},\Sigma_s^{g'\to g} \phi^{g'}\right)_\D + \sum_{i=1}^I \left(\phi^{*g}\chi_{d,i}^g,\lambda_i C_i\right)_\D
+&\frac{d}{dt}\left(\phi^{*g},\frac{1}{v^g}\phi^g\right)_\D = \left(\phi^{*g}\chi_p^g(1-\beta),\sum_{g'=1}^G \frac{\nu^{g'} \Sigma_f^{g'}}{\keff} \phi^{g'}\right)_\D + \left(\grad \phi^{*g},D^g \grad \phi^g\right)_\D \nonumber \\
+& - \frac{1}{2}\left\langle\phi^{*g},\phi^{g}\right\rangle_{\partial \D_3} - \left(\phi^{*g},\Sigma_r^g\phi^g\right)_\D + \sum_{g'\neq g}^G\left(\phi^{*g},\Sigma_s^{g'\to g} \phi^{g'}\right)_\D + \sum_{i=1}^I \left(\phi^{*g}\chi_{d,i}^g,\lambda_i C_i\right)_\D
 \label{eq:diffweak}
 \end{align}
 \be
@@ -81,9 +81,10 @@ Rewriting the flux and precursor equations:
 \ee
 
 Doing IQS factorization:
-\be
-\frac{d}{dt} T(\phi^{*},\varphi) = F(\phi^{*},\varphi) - \sum_{i=1}^I F_{d,i}(\phi^*,\varphi) - L(\phi^{*},\varphi) - \frac{1}{p}\frac{dp}{dt}T(\phi^{*},\varphi) + S(\phi^{*},\varphi) + \frac{1}{p}\sum_{i=1}^I S_{d,i}(\phi^*,\phi)
-\ee
+\begin{align}
+\frac{d}{dt} T(\phi^{*},\varphi) = F(\phi^{*},\varphi) - \sum_{i=1}^I F_{d,i}(\phi^*,\varphi) &- L(\phi^{*},\varphi) - \frac{1}{p}\frac{dp}{dt}T(\phi^{*},\varphi) \nonumber \\
+& + S(\phi^{*},\varphi) + \frac{1}{p}\sum_{i=1}^I S_{d,i}(\phi^*,\phi)
+\end{align}
 \be
 \frac{\partial}{\partial t} C_i(C^*,C_i) = P_i(C^*,\varphi)p - D_i(C^*,C_i)
 \ee
@@ -134,10 +135,10 @@ There has been a reoccurring question that if shape and amplitude have same time
 &- \frac{1}{p^{n+1}}\frac{p^{n+1} - p^n}{\Delta t}T^{n+1}(\phi^{*},\varphi) + S^{n+1}(\phi^{*},\varphi) + \frac{1}{p^{n+1}}\sum_{i=1}^I S_{d,i}^{n+1}(\phi^{*},C_i)
 \end{align}
 
-Where $n$ is the index for the previous time step and $n+1$ is the next one.  Multiplying both sides by $p^{n+1}$:
+where $n$ is the index for the previous time step and $n+1$ is the next one.  Multiplying both sides by $p^{n+1}$:
 \begin{align}
-p^{n+1}&\frac{T^{n+1}(\phi^{*},\varphi)-T^{n}(\phi^{*},\varphi)}{\Delta t} = F^{n+1}(\phi^{*},\varphi)p^{n+1} - \sum_{i=1}^I F_{d,i}^{n+1}(\phi^{*},\varphi)p^{n+1} - L^{n+1}(\phi^{*},\varphi)p^{n+1} -  \nonumber \\
-&- \frac{p^{n+1} - p^n}{\Delta t}T^{n+1}(\phi^{*},\varphi) + S^{n+1}(\phi^{*},\varphi)p^{n+1} + \sum_{i=1}^I S_{d,i}^{n+1}(\phi^{*},C_i)
+&p^{n+1}\frac{T^{n+1}(\phi^{*},\varphi)-T^{n}(\phi^{*},\varphi)}{\Delta t} = F^{n+1}(\phi^{*},\varphi)p^{n+1} - \sum_{i=1}^I F_{d,i}^{n+1}(\phi^{*},\varphi)p^{n+1} \nonumber \\
+& - L^{n+1}(\phi^{*},\varphi)p^{n+1} - \frac{p^{n+1} - p^n}{\Delta t}T^{n+1}(\phi^{*},\varphi) + S^{n+1}(\phi^{*},\varphi)p^{n+1} + \sum_{i=1}^I S_{d,i}^{n+1}(\phi^{*},C_i)
 \end{align}
 
 Notice that for any bilinear form with $\varphi$, when multiplied by $p^{n+1}$ is the same form, but with $\phi$ instead. So:
@@ -156,10 +157,11 @@ Now the full flux equation is discretized the same way:
 
 Notice that Equations~\ref{eq:dshape}~and~\ref{eq:dflux} have the same right hand side. So the left hand side of each equation can be equated, while converting the left hand side of Equation \ref{eq:dflux} to amplitude and flux:
 
-\be
-\frac{p^{n+1}T^{n+1}(\phi^{*},\varphi)-p^nT^{n}(\phi^{*},\varphi)}{\Delta t} = p^{n+1}\frac{T^{n+1}(\phi^{*},\varphi)-T^{n}(\phi^{*},\varphi)}{\Delta t} + \frac{p^{n+1} - p^n}{\Delta t}T^{n+1}(\phi^{*},\varphi)
+\begin{align}
+\frac{p^{n+1}T^{n+1}(\phi^{*},\varphi)-p^nT^{n}(\phi^{*},\varphi)}{\Delta t} &= p^{n+1}\frac{T^{n+1}(\phi^{*},\varphi)-T^{n}(\phi^{*},\varphi)}{\Delta t} \nonumber \\
+&+ \frac{p^{n+1} - p^n}{\Delta t}T^{n+1}(\phi^{*},\varphi)
 \label{eq:neq}
-\ee
+\end{align}
 
 From Equation~\ref{eq:p}:
 \be
@@ -180,10 +182,11 @@ Notice how the right hand side of Equation~\ref{eq:dprke} is equal to the right 
 
 Substituting this into the last term on the right hand side of Equation~\ref{eq:neq}:
 
-\be
-\frac{p^{n+1}T^{n+1}(\phi^{*},\varphi)-p^nT^{n}(\phi^{*},\varphi)}{\Delta t} = p^{n+1}\frac{T^{n+1}(\phi^{*},\varphi)-T^{n}(\phi^{*},\varphi)}{\Delta t} + \frac{p^{n+1}T^{n+1}(\phi^{*},\varphi)-p^nT^{n}(\phi^{*},\varphi)}{\Delta t}
+\begin{align}
+\frac{p^{n+1}T^{n+1}(\phi^{*},\varphi)-p^nT^{n}(\phi^{*},\varphi)}{\Delta t} &= p^{n+1}\frac{T^{n+1}(\phi^{*},\varphi)-T^{n}(\phi^{*},\varphi)}{\Delta t} \nonumber \\
+&+ \frac{p^{n+1}T^{n+1}(\phi^{*},\varphi)-p^nT^{n}(\phi^{*},\varphi)}{\Delta t}
 \label{eq:neq2}
-\ee
+\end{align}
 
 Which can be written as:
 \be
@@ -194,11 +197,44 @@ Which can be written as:
  
 To show this result numerically, the discretized scheme was applied to the one-group, one-dimensional example and five Picard iterations were done each time step for IQS.  The compiled results are shown in Table \ref{tab:neq} by comparing the difference in the volumetric integral of the flux. The results show that there is an average 1\% difference between the full flux solution and IQS.
 
+%\begin{table}
+%\centering
+%\caption{Numerical results for inequality proof where the compared value is $(1,\phi)$}
+%\label{tab:neq}
+%\begin{tabular}{llll}
+%\csvautotabular{\FiguresDir/inequality_results.csv}
+%\end{tabular}
+%\end{table}
+
 \begin{table}
-\caption{Numerical Results for Inequality Proof where the compared value is $(1,\phi)$}
-\label{tab:neq}
 \centering
-\begin{tabular}{llll}
-\csvautotabular{\FiguresDir/inequality_results.csv}
+\caption{Numerical results for inequality proof where the compared value is $(1,\phi)$}
+\label{tab:neq}
+\begin{tabular}{|llll|}
+\hline
+Time(s) &	Full Flux Solve &	IQS Solve &	Relative Difference \\
+\hline
+0.0	&	0.90903993 &	0.90903993 &	0		\\
+0.1 &	0.91253395 &	0.90903993 &	0.00383 \\
+0.2 &	0.92068212 &	0.91341921 &	0.00789 \\
+0.3 &	0.93564944 &	0.92419479 &	0.01224 \\
+0.4 &	0.96072564 &	0.94502984 &	0.01634 \\
+0.5 &	1.00132530 &	0.98193047 &	0.01937 \\
+0.6 &	1.06731452 &	1.04589052 &	0.02007 \\
+0.7 &	1.13375988 &	1.11085442 &	0.0202 \\
+0.8 &	1.19865931 &	1.17468271 &	0.02 \\
+0.9 &	1.26133943 &	1.23659429 &	0.01962 \\
+1.0 &	1.32173672 &	1.29643586 &	0.01914 \\
+1.1 &	1.33970601 &	1.31604696 &	0.01766 \\
+1.2 &	1.32132462 &	1.30051903 &	0.01575 \\
+1.3 &	1.27831729 &	1.26067046 &	0.0138 \\
+1.4 &	1.22290272 &	1.20822518 &	0.012 \\
+1.5 &	1.16481963 &	1.15274011 &	0.01037 \\
+1.6 &	1.11035980 &	1.10047097 &	0.00891 \\
+1.7 &	1.06269788 &	1.05460529 &	0.00762 \\
+1.8 &	1.03149816 &	1.02465437 &	0.00663 \\
+1.9 &	1.01107465 &	1.00511526 &	0.00589 \\
+2.0 &	0.99776339 &	0.99243083 &	0.00534 \\
+\hline
 \end{tabular}
 \end{table}

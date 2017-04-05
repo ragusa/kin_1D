@@ -13,7 +13,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\chapter{Improved Quasi-Static Method}
+\chapter{\uppercase{Improved Quasi-Static Method}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Theory}
 \label{sect:theory}
@@ -96,7 +96,7 @@ This equation is also known as the point reactor kinetics equation (PRKE); where
 \begin{subequations}
 \be
 \frac{\rho-\bar{\beta}}{\Lambda} = 
-\frac{ \sum_{g=1}^G\left(\phi^{*g},\frac{\chi_p^g}{\keff}(1-\beta)\sum_{g'=1}^G \nu^{g'} \Sigma_f^{g'}\varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'} -\left( -\div D^g \grad  + \Sigma_r^g \right)\varphi^g\right)}
+\frac{ \sum_{g=1}^G\left(\phi^{*g},\frac{\chi_p^g}{\keff}\sum_{g'=1}^G \nu^{g'}_p \Sigma_f^{g'}\varphi^{g'} + \sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'} +\left( \div D^g \grad  - \Sigma_r^g \right)\varphi^g\right)}
 {\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)}
 \label{eq:rmb}
 \ee
@@ -218,7 +218,7 @@ The most obvious convergence criteria is to observe the change in the shape from
 \label{eq:shape_L2}
 \ee 
 
-Where $n$ is the time step, $k$ is the iteration number, and $\epsilon_{\varphi}$ is the numerical criteria provided by a user. Through testing, iterations do not always converge; in this circumstance, the maximum number of iterations is reached.
+where $n$ is the time step, $k$ is the iteration number, and $\epsilon_{\varphi}$ is the numerical criteria provided by a user. Through testing, iterations do not always converge; in this circumstance, the maximum number of iterations is reached.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -238,7 +238,7 @@ p_n^{k+1} - p_n^{k} < \epsilon_p
 \label{eq:K_conv}
 \ee
 
-Where $K$ is the IQS uniqueness expression:
+where $K$ is the IQS uniqueness expression:
 \be 
 K_n^{(k+1)} = \sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi_n^{g,(k+1)}\right)
 \label{eq:K}
@@ -268,7 +268,7 @@ Applying the residual based Newton-method yields:
 \be
 J\delta\varphi = -R(\varphi,p)
 \ee 
-Where $J$ is the Jacobian matrix defined as $J_{ij}=\partial R_i/\partial\varphi_j$, $\delta\varphi$ is the error in the iterating solution, and $R$ is the residual vector defined as $A\varphi-F$ (most methods simply define the residual instead of evaluating this expression).  For IQS, a residual evaluation entails a PRKE parameter evaluation and the PRKE evaluation over the entire macro-step.  Applying a preconditioner $P$ yields:
+where $J$ is the Jacobian matrix defined as $J_{ij}=\partial R_i/\partial\varphi_j$, $\delta\varphi$ is the error in the iterating solution, and $R$ is the residual vector defined as $A\varphi-F$ (most methods simply define the residual instead of evaluating this expression).  For IQS, a residual evaluation entails a PRKE parameter evaluation and the PRKE evaluation over the entire macro-step.  Applying a preconditioner $P$ yields:
 \be 
 (JP^{-1})(P\delta\varphi)=-R(\varphi,p)
 \ee
@@ -289,7 +289,7 @@ Solving \eqt{eq:PJFNK_1} requires the evaluation of Jacobian operator, which is 
 This Jacobian operation is a finite difference approach.  $\epsilon$ is a perturbation scalar and $p'$ is the amplitude computed with PRKE parameters calculated from the perturbed shape.  For IQS, the PRKE and its parameters must be evaluated for the perturbed and original system, although the unperturbed residual is stored from the beginning of the PJFNK iteration.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Predictor-Corrector version of IQS (IQS P-C)}
+\section{Predictor-Corrector IQS (IQS P-C)}
 \label{sect:pc}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -339,7 +339,7 @@ Temperature evaluation (\eqt{eq:temp}) is quite similar to the evaluation of the
 T^{n+1} = T^n + \frac{\kappa_f}{\rho c_p} \sum_{g=1}^G\left(a_2(\Sigma_f^g\varphi^g)^{n+1} + a_1(\Sigma_f^g\varphi^g)^n\right)
 \label{eq:temp_an}
 \ee
-Where $n$ corresponds to the beginning of the temperature step.  $a_1$ and $a_2$ are integration coefficients defined by \eqt{eq:a1} and \eqt{eq:a2}.  Any interpolation of the amplitude along the micro steps is possible for the integration, this application uses piece-wise linear.
+where $n$ corresponds to the beginning of the temperature step.  $a_1$ and $a_2$ are integration coefficients defined by \eqt{eq:a1} and \eqt{eq:a2}.  Any interpolation of the amplitude along the micro steps is possible for the integration, this application uses piece-wise linear.
 \be
 a_1 = \int_{t_n}^{t_{n+1}}\left(\frac{t_{n+1}-t'}{\Delta t}\right)p(t')dt'
 \label{eq:a1}
@@ -356,6 +356,7 @@ For IQS, this temperature feedback affects both the shape equation and the react
 
 \begin{figure}[htpb!]
 \centering
+\resizebox{\linewidth}{!}{
 \begin{tikzpicture}[scale=2]
 %Shape
 \draw[] (0,2) -- (6,2) ;
@@ -404,7 +405,7 @@ For IQS, this temperature feedback affects both the shape equation and the react
 \draw (6,1) edge[out=45,in=-45,->,thick] node[below,sloped] {$T$} (6,2);
 \draw (6,0) edge[out=30,in=0,->,thick] node[below,sloped] {$p, \frac{dp}{dt}$} (6,2);
 
-\end{tikzpicture}
+\end{tikzpicture}}
 \caption{Time scales and process of IQS with temperature feedback}
 \label{fig:time}
 \end{figure}
@@ -436,6 +437,7 @@ The couplings between temperature, amplitude, and shape are all nonlinear, so it
 
 \begin{figure}[!htpb]
 \centering
+\resizebox{\linewidth}{!}{
 \begin{tikzpicture}[every node/.style = {font=\normalsize}]
 
 \node[greenblock](p1) at (0,0) {Save Old Solution};
@@ -468,7 +470,7 @@ The couplings between temperature, amplitude, and shape are all nonlinear, so it
 \draw[->,ultra thick](check3.west) -- node[above] {no} (p2.east);
 \draw[->,ultra thick](check3.north) -- node[right] {yes} (8,0) -- node[above] {$t_n=t_{n+1}$} (p1.east);
 
-\end{tikzpicture}
+\end{tikzpicture}}
 \caption{Visualization of fixed-point iteration and temperature update process for IQS}
 \label{fig:proc}
 \end{figure}
@@ -484,7 +486,7 @@ A vital part of the verification and validation for IQS is analyzing error conve
 IV\frac{\partial \varphi}{\partial t} = A\varphi+b
 \label{eq:shape_mat}
 \ee
-Where $IV$ is the inverse velocity operator, $A$ contains all the operations on $\varphi$ from the left-hand-side of \eqt{eq:shape}, and $b$ is the source from the precursors. 
+where $IV$ is the inverse velocity operator, $A$ contains all the operations on $\varphi$ from the left-hand-side of \eqt{eq:shape}, and $b$ is the source from the precursors. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Theta Method Time Discretization}
@@ -494,7 +496,7 @@ A fairly simple way to evaluate the shape equation is to employ the $\theta$-sch
 \be
 \frac{u^{n+1}-u^n}{\Delta t}=(1-\theta)f(u^n,t) + \theta f(u^{n+1},t) \,.
 \ee
-Where $n$ is the previous time step and $n+1$ is the time step being evaluated. Applying this to \eqt{eq:shape_mat} yields:
+where $n$ is the previous time step and $n+1$ is the time step being evaluated. Applying this to \eqt{eq:shape_mat} yields:
 \be
 \varphi_{n+1} = (IV-\Delta t A_{n+1})^{-1}\left[\Delta t(1-\theta)(A_n\varphi_n+b_n) + \Delta t\theta b_{n+1} + IV\varphi_n\right]
 \ee
@@ -534,7 +536,7 @@ Singly-Diagonally-Implicit Runge-Kutta Method (SDIRK) is a powerful discretizati
 y_{n+1} = y_n + \Delta t\sum_{i=1}^s b_ik_i
 \label{eq:sdirk}
 \ee
-Where,
+where,
 \be 
 k_i = f(t_n+c_i\Delta t, y_n+\Delta t \sum_{j=1}^{i} a_{ij}k_j)
 \ee
@@ -559,7 +561,7 @@ $1$ & $\frac{1}{4}(-1+16\lambda-6\lambda^2)$ & $\frac{1}{4}(5-20\lambda+6\lambda
  & $\frac{1}{4}(-1+16\lambda-6\lambda^2)$ & $\frac{1}{4}(5-20\lambda+6\lambda^2)$ & $\lambda$
 \end{tabular}
 \end{center}
-Where $\lambda\approx0.4358665215$ satisfies $1-9\lambda+18\lambda^2-6\lambda^3=0$.
+where $\lambda\approx0.4358665215$ satisfies $1-9\lambda+18\lambda^2-6\lambda^3=0$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Time Adaptation}
@@ -576,7 +578,7 @@ If the error is smaller than the user-specified tolerance, $e_{tol}$, the time s
 \Delta t_{new} = S \Delta t \left(\frac{e_{tol}}{e_n}\right)^{\frac{1}{1+q}}
 \label{eq:dt2}
 \ee
-Where $q$ is the convergence order of the time integration scheme being used and $S\simeq 0.8$ is a safety factor. If the error is larger than the user-specified tolerance, the time step is rejected. A new time step size is estimated using  \eqt{eq:edt2} as well. This process can be visualized by \figs{fig:dt2_1}{fig:dt2_2}.  Where a step involves a full convergence of shape, amplitude, and any multiphysics on the respective time step.
+where $q$ is the convergence order of the time integration scheme being used and $S\simeq 0.8$ is a safety factor. If the error is larger than the user-specified tolerance, the time step is rejected. A new time step size is estimated using  \eqt{eq:edt2} as well. This process can be visualized by \figs{fig:dt2_1}{fig:dt2_2}.  Where a step involves a full convergence of shape, amplitude, and any multiphysics on the respective time step.
 
 To investigate IQS's performance with step-doubling time adaptation, the adaptation will be applied to implicit discretization method, traditional IQS, and IQS P-C.  Each of these methods will be applied to several diffusion problems; the number of time steps taken and the resulting error will be used to compare the methods.
 
@@ -602,6 +604,7 @@ To investigate IQS's performance with step-doubling time adaptation, the adaptat
 
 \begin{figure}[!htpb]
 \centering
+\resizebox{\linewidth}{!}{
 \begin{tikzpicture}[every node/.style = {font=\large},scale=0.75]
 
 \node[blueblock](p1) at (-6,3) {Step 1} ;
@@ -622,7 +625,7 @@ To investigate IQS's performance with step-doubling time adaptation, the adaptat
 \draw[->,thick](p7.west) -| (-10,0) -- (p2.west);
 \draw[->,thick](p7.west) -| (-10,0) |- (p1.west);
 
-\end{tikzpicture}
+\end{tikzpicture}}
 \caption{Visualization of step doubling process with coding logic}
 \label{fig:dt2_2}
 \end{figure}
@@ -641,7 +644,7 @@ A common precursor evaluation technique is using the theta method, described in 
 \be
 \frac{C^{n+1}_i-C^n_i}{\Delta t}=(1-\theta)\beta_i S_f^np^n-(1-\theta)\lambda_i C^n_i + \theta\beta_i S_f^{n+1}p^{n+1}-\theta\lambda_i C^{n+1}_i
 \ee
-Where $S_f$ is the fission source equivalent for shape ($S_f^n=\sum_{g=1}^G(\nu\Sigma_f^g\varphi^g)^n$). Rearranging to solve for the precursor at the end of the time step yields
+where $S_f$ is the fission source equivalent for shape ($S_f^n=\sum_{g=1}^G(\nu\Sigma_f^g\varphi^g)^n$). Rearranging to solve for the precursor at the end of the time step yields
 \be
 C^{n+1}_i = \frac{1-(1-\theta)\Delta t\lambda_i}{1+\theta\Delta t\lambda_i}C^n_i + \frac{(1-\theta)\Delta t \beta_i}{1+\theta\Delta t\lambda_i}S_f^n p^n +  \frac{\theta\Delta t \beta_i}{1+\theta\Delta t\lambda_i}S_f^{n+1} p^{n+1}
 \label{eq:dnp_theta}
@@ -708,7 +711,7 @@ The IQS implementation mostly requires the specific IQS executioner, described a
 To enable Rattlesnake to solve this equation, an IQS removal kernel was created to evaluate $\sum_{g=1}^G\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}\varphi^g$ and added when the IQS executioner is called.  Also, the precursor kernel was modified to include the $\frac{1}{p}$ term. Finally, the precursor auxkernel that evaluates \eqt{eq:prec} using the analytical integration method described in \sct{sect:dnp}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{PRKE coefficients}
+\subsection{PRKE Coefficients}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In order to evaluate the PRKE coefficients, defined by \eqtss{eq:rmb}{eq:l}, four postprocessors were created.  The parameter calculations were separated by $\frac{\bar{\beta}_i}{\Lambda}$ numerator, $\bar{\lambda}_i$ numerator/denominator, $\frac{\rho-\bar{\beta}}{\Lambda}/\frac{\bar{\beta}}{\Lambda}$ denominator, and $\frac{\rho-\bar{\beta}}{\Lambda}$ numerator. The first three are relatively simple, only relying on material properties and solution quantities, then computing the elemental integral.  The $\frac{\rho-\bar{\beta}}{\Lambda}$ numerator requires the use of the MOOSE \texttt{save\_in} feature. This feature saves the residual from a calculated kernel or boundary contribution in the shape evaluation to an auxiliary variable.  The postprocessor then computes the inner product of this variable and the initial adjoint solution.  After each of these postprocessors are evaluated, a user object pulls together all the values and performs the numerator/denominator divisions.  The resulting values are then passed to the executioner for the PRKE solve.
