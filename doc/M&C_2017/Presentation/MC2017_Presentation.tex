@@ -335,7 +335,7 @@
 \author[Zachary M. Prince]{\underline{Zachary M. Prince} and Jean C. Ragusa}
 \institute{Department of Nuclear Engineering, Texas A\&M University, College Station, TX}
 
-\logo{\includegraphics[height=0.8cm]{figures/IUP_Logo.jpeg}\includegraphics[height=0.8cm]{figures/TAM-logo.png}}
+%\logo{\includegraphics[height=0.8cm]{figures/IUP_Logo.jpeg}\includegraphics[height=0.8cm]{figures/TAM-logo.png}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -908,6 +908,7 @@ a_2 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)\tcr{p(t')}dt'
 \end{figure}
 
 \column{.5\textwidth}
+\vspace{-5mm}
 \begin{table}
 \captionsetup{font=scriptsize}
 \begin{center}
@@ -919,8 +920,11 @@ a_2 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)\tcr{p(t')}dt'
 Run  &  $\Delta t$ & Error & Runtime (hr) & Linear Iter.\\
 \hline
 1	& 4.0e-3	& 1.407e-2 	& 4.11	& 7.13e4	\\
-2	& 2.0e-3	& 3.174e-3 	& 6.01	& 9.49e4 	\\
-3 	& 1.0e-3 	& 7.690e-4 	& 10.38	& 1.45e5	\\
+\hline
+\rowcolor{yellow} 2	& 2.0e-3	& 3.174e-3 	& 6.01	& 9.49e4 	\\
+\hline
+\rowcolor{green} 3 	& 1.0e-3 	& 7.690e-4 	& 10.38	& 1.45e5	\\
+\hline
 4 	& 5.0e-4 	& 1.892e-4 	& 21.91	& 2.08e5	\\
 5 	& 2.5e-4	& 4.590e-5 	& 25.23	& 3.16e5	\\
 \hline
@@ -940,7 +944,8 @@ Run  &  $\Delta t$ & Error & Runtime (hr) & Linear Iter.\\
 	&  Temperature 	&  		& Runtime 	& \% Increase	\\
 Run	&  Updates 	& Error & (hr)		& in Runtime$^*$\\
 \hline
-1	& 1		& 2.612e-3 	& 3.96 	& -3.18\%	\\
+\rowcolor{yellow} 1	& 1		& 2.612e-3 	& 3.96 	& -3.18\%	\\
+\hline
 2	& 2		& 9.893e-4 	& 6.02	&  47.1\%	\\
 3 	& 4 	& 5.796e-4 	& 7.87	&  92.3\%	\\
 4 	& 8 	& 4.772e-4 	& 12.61	& 207.9\% 	\\
@@ -964,7 +969,9 @@ Run	&  Updates 	& Error & (hr)		& in Runtime$^*$\\
 \hline
 1	& 1		& 3.488e-3 	& 2.91 	& -28.9\%	\\
 2	& 2		& 1.349e-3 	& 3.73	& -9.00\%	\\
-3 	& 4 	& 9.161e-4 	& 3.97	& -3.04\%	\\
+\hline
+\rowcolor{green} 3 	& 4 	& 9.161e-4 	& 3.97	& -3.04\%	\\
+\hline
 4 	& 8 	& 8.052e-4 	& 5.39	&  31.7\%	\\
 5 	& 16	& 7.905e-4 	& 8.19	&  100\%	\\
 \hline
@@ -1042,10 +1049,13 @@ Run	&  Updates 	& Error & (hr)		& in Runtime$^*$\\
 Method & No. of Steps & \% Increase Runtime$^*$ & Max Power Error \\
 \hline
 Implicit Dis. 		& 300 &	---		&	7.875e-4	\\
-IQS 				& 300 & -11.9\%	&	8.385e-5	\\
+\hline
+\rowcolor{yellow} IQS 				& 300 & -11.9\%	&	8.385e-5	\\
+\hline
 IQS (5 updates) 	& 300 &  49.7\%	&	3.687e-5	\\
 IQS P-C 			& 300 &  -2.1\%	&	7.527e-4	\\
-IQS P-C (5 updates) & 300 &  26.5\%	&	1.227e-4	\\
+\hline
+\rowcolor{green} IQS P-C (5 updates) & 300 &  26.5\%	&	1.227e-4	\\
 \hline
 \end{tabular}
 }
@@ -1111,16 +1121,23 @@ $^*$ difference in runtime from implicit discretization
 %-------------------------------------------------------------------
 
 %-------------------------------------------------------------------
-\begin{frame}
+\begin{frame}{Acknowledgments}
 
+\begin{block}{}
+\begin{itemize}
+\item This material is based upon work supported under an Integrated University Program Graduate Fellowship
 \begin{figure}
-\includegraphics[height=0.5in]{figures/thank_you.png}
+\includegraphics[height=0.5in]{figures/IUP_Logo.jpeg}
 \end{figure}
+\item Any opinions, findings, conclusions or recommendations expressed in this publication are those of the author(s) and do not necessarily reflect the views of the Department of Energy Office of Nuclear Energy
+\end{itemize}
+\end{block}
 
 \begin{figure}
-\includegraphics[height=2.5in]{figures/nuclear_collage.png}
-\hspace{5mm}
-\includegraphics[height=2.5in]{figures/tamu_atom.jpg}
+\includegraphics[height=0.5in]{figures/tamune_logo.png}
+\end{figure}
+\begin{figure}
+\includegraphics[height=0.5in]{figures/INL_logo.png}
 \end{figure}
 
 \end{frame}
