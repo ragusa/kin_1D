@@ -1,32 +1,18 @@
 %----------------------------------------------------------------------------------------
 
-\documentclass[twoside,twocolumn]{article}
+\documentclass{elsarticle}
 
-\usepackage[english]{babel} % Language hyphenation and typographical rules
 \usepackage{amsmath}
-\usepackage[T1]{fontenc}
-\usepackage{txfonts}
-\usepackage[text={7in,9in},centering,columnsep=18pt]{geometry} % Document margins
-\usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption} % Custom captions under/above floats in tables or figures
+\usepackage{bm}
+\usepackage{subcaption}
 \usepackage{booktabs} % Horizontal rules in tables
 \usepackage{enumitem} % Customized lists
-\usepackage{abstract} % Allows abstract customization
-\renewcommand{\abstractnamefont}{\normalfont\bfseries} % Set the "Abstract" text to bold
-\usepackage{titling} % Customizing the title section
-\usepackage[hidelinks]{hyperref} % For hyperlinks in the PDF
-\usepackage[numbers,sort&compress]{natbib}[2010/09/13]
-\usepackage{bm}
 \usepackage{graphicx} 
-\usepackage{tikz} 
+\usepackage{natbib}%[2010/09/13]
 \usepackage{changepage}
-\usepackage{subcaption}
+\usepackage{tikz} 
 
-\setlength{\abovecaptionskip}{0.25\baselineskip}
-\setlength{\belowcaptionskip}{0.25\baselineskip}
-\setlength{\textfloatsep}{0.5\baselineskip}
-\setlength{\intextsep}{0.5\baselineskip}
-\renewcommand{\bottomfraction}{0.9}
-\renewcommand{\topfraction}{0.9}
+%%%%%%%%%%%% new commands
 
 \newcommand{\SN}{S$_N$}
 \renewcommand{\vec}[1]{\bm{#1}} %vector is bold italic
@@ -88,31 +74,45 @@
    \path (#1.west |- #2.north)+(-0.75,0)--(#1.west |- #4.south) node[midway] (#5-w) {};
  \end{pgfonlayer}}
 
-%----------------------------------------------------------------------------------------
+%------------------------------------------------------------------------------
 
-\setlength{\droptitle}{-4\baselineskip} % Move the title up
+\begin{document}
 
-\pretitle{\begin{center}\Large\bfseries} % Article title formatting
-\posttitle{\end{center}} % Article title closing formatting
+%------------------------------------------------------------------------------
+\begin{frontmatter}
+
+\journal{Annals of Nuclear Energy}
+
 \title{High-Order Time Discretization and Nonlinear Iteration Analysis of the Improved Quasi-Static Method\\
 Time-adaptive Multiphysics Reactor Simulations based on the Improved Quasi-Static Method with high-order temporal discretization\\
 Multiphysics Reactor-core Simulations Using the Improved Quasi-Static Method\\
 } % Article title
-\author{%
-Zachary M. Prince\thanks{Corresponding author, \newline\indent\indent Phone: +1-360-362-6622 \newline\indent\indent email: zachmprince@tamu.edu} \qquad Jean C. Ragusa  \\
-\normalsize Texas A\& M University, College Station, TX \\
-}
-\renewcommand{\maketitlehookd}{%
+
+
+\author[tamu]{Zachary M. Prince}
+\ead{zachmprince@tamu.edu}
+
+\author[tamu]{Jean C. Ragusa}
+\ead{jean.ragusa@tamu.edu}
+
+\address[tamu]{Texas A\&M University,
+  Department of Nuclear Engineering,
+  College Station, TX 77840, USA}
+
 \begin{abstract}
-\noindent The improved quasi-static method (IQS) is a rigorous space/time multiscale approach whereby the neutron flux is represented by a time-dependent amplitude and a time-space-energy dependent shape. The objective of the IQS factorization is to evaluate amplitude and shape on different time scales in order to reduce computational burden associated with solving the multi-dimensional flux equations, while maintaining solution accuracy. IQS factorization leads to a nonlinear system of equations that requires iteration of shape and amplitude. IQS iteration techniques involve fixed-point (Picard) iteration with various convergence criteria and Newton iteration, namely preconditioned Jacobian-free Newton Krylov (PJFNK) method. Nonlinear convergence of each of these techniques is investigated. Validation of IQS with analysis of time step convergence is also investigated. Proper time step convergence is vital for implementation of time adaptive methods and error prediction. The time derivative of the shape function is discretized through fourth order using implicit-Euler, Crank-Nicolson, backward difference formulae (BDF), and singly-diagonally-implicit Runge-Kutta (SDIRK) methods.
+The improved quasi-static method (IQS) is a rigorous space/time multiscale approach whereby the neutron flux is represented by a time-dependent amplitude and a time-space-energy dependent shape. The objective of the IQS factorization is to evaluate amplitude and shape on different time scales in order to reduce computational burden associated with solving the multi-dimensional flux equations, while maintaining solution accuracy. IQS factorization leads to a nonlinear system of equations that requires iteration of shape and amplitude. IQS iteration techniques involve fixed-point (Picard) iteration with various convergence criteria and Newton iteration, namely preconditioned Jacobian-free Newton Krylov (PJFNK) method. Nonlinear convergence of each of these techniques is investigated. Validation of IQS with analysis of time step convergence is also investigated. Proper time step convergence is vital for implementation of time adaptive methods and error prediction. The time derivative of the shape function is discretized through fourth order using implicit-Euler, Crank-Nicolson, backward difference formulae (BDF), and singly-diagonally-implicit Runge-Kutta (SDIRK) methods.
 \end{abstract}
-}
+
+\begin{keyword}
+Reactor dynamics \sep reactor kinetics \sep Improved quasi-static method \sep temporal convergence 
+\end{keyword}
+
+\end{frontmatter}
+%------------------------------------------------------------------------------
 
 %----------------------------------------------------------------------------------------
 
-\begin{document}
 
-\maketitle
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -976,8 +976,8 @@ End (3 s) & 109.66 & 2.3650e-4 & 603 & 109.65 & 3.0622e-4 & 97 \\
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\bibliographystyle{abbrvnat}
-\bibliography{references_IQS}
+\bibliographystyle{elsarticle-num}
+\bibliography{references_IQS.bib}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
