@@ -164,7 +164,7 @@ IQS has yet to be rigorously tested with high-order discretization \question{jcr
 To test IQS and IQS P-C nonlinear iteration, time step convergence, and time adaptation performance (five?) problems were applied. (Three?) problems are purely neutronics and involve varying magnitudes of reactor size and complexity. Two problems involve temperature feedback and test an intermediate time scale for temperature evaluation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Theory}
+\section{Background Theory on IQS}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In this Section, we recall the equations for the IQS method, starting from multi-group neutron conservation statements in operator form:
@@ -260,7 +260,7 @@ It is important to note that the PRKE parameters are evaluated at each macro ste
 error convergence rate of high order temporal discretization schemes for shape, higher order interpolation of the parameters will be required.
 
 %---------------------------------------------------------------------------------------%
-\subsection{Iteration Methods}
+\subsection{IQS Iterative Schemes}
 \label{sect:iter}
 %---------------------------------------------------------------------------------------%
 
@@ -307,13 +307,15 @@ These techniques are by no means an exhaustive list of the possible iteration te
 \[
 \left(\rho/\Lambda\right)^{(k+1)} - \left(\rho/\Lambda\right)^{(k)} < \epsilon_{\rho}
 \]
+\comm{why no time subscripts?}
 \item Amplitude convergence: 
 \[
-p_n^{k+1} - p_n^{k} < \epsilon_p
+p_n^{(k+1)} - p_n^{(k)} < \epsilon_p
 \]
+\comm{why is this not a relative error criterion like the others? what's the rationale?}
 \item Uniqueness consistency: 
 \[
-(K_n^{(k+1)} - K_0)/K_0 < \epsilon_K
+\frac{K_n^{(k+1)} - K_0}{K_0} < \epsilon_K
 \]
 where $k$ denotes the nonlinear iteration index within a given macro time step interval.
 %\be
@@ -322,36 +324,50 @@ where $k$ denotes the nonlinear iteration index within a given macro time step i
 \end{itemize}
 \comm{why not $n+1$ in the subscripts? that would make more sense since you use n+1 as the end-time afterwards}
 
-In order to preserve the uniqueness criteria, it is beneficial to scale the shape such that the $K_n$ is constant, shown in \eqt{eq:shape_scale}.  
-This scaling can also be done after each iteration, to insure that the uniqueness criteria is satisfied whenever the shape is evaluated.
+In order to ensure that uniqueness criteria is preserved, some authors (\comm{which ones?})
+explicitly scale the shape solution, either at each nonlinear iteration or upon exiting the nonlinear loop
+on the macro time time step. This re-scaling is simply
 \be 
-\varphi^{g}_n = \varphi^{g,(\text{last})}_n \frac{K_0}{K^{(\text{last})}_{n}}
+\varphi^{g}_n \leftarrow \varphi^{g,(\text{last})}_n \frac{K_0}{K^{(\text{last})}_{n}} \,.
 \label{eq:shape_scale}
 \ee
+\comm{so, how does this jive with situations when the criterion on $K$ is employed?}
 
 %---------------------------------------------------------------------------------------%
-\subsection{IQS Predictor-Corrector}
+\subsection{IQS Predictor-Corrector Scheme}
 %---------------------------------------------------------------------------------------%
+\comm{make sure the intro has a decent overview -ie no equation, just words- on the IQS-PC. Dulla and Ravetto will likely review this paper}
 
-The Predictor-Corrector (P-C) version of IQS factorizes the flux and derives the PRKE the same way as the standard version, but the solution of the coupled system of equations is different.  In the IQS P-C version, the flux equations (not the shape equations) are solved (represented by \eqts{eq:flux}{eq:precursor}) in order to obtain a predicted flux solution. This predicted flux is then converted to a shape by rescaling it as follows:
+The Predictor-Corrector version of the IQS method (IQS-PC) also relies on a shape and amplitude factorization of the flux.
+The PRKE derivation is identical to that of the standard (nonlinear) version of the IQS scheme, in the sense that shape solutions
+at the beginning and end times of the macro time step are used (and interpolated in between).
+However, the manner in which the shape function is obtained is different.  In the IQS-PC version, the flux equations (not the shape equations) 
+are first solved (represented by \eqts{eq:flux}{eq:precursor}) in order to obtain a {\it predicted} flux solution at the end of the 
+macro time step. This predicted flux is then converted to a shape by normalizing it as follows:
 \be
-\varphi^g_{n+1} = \underbrace{\phi^g_{n+1}}_{\text{predicted}} \frac{K_0}{K_{n+1}}
+\varphi^g_{n+1} = \underbrace{\phi^g_{n+1}}_{\text{predicted}} \frac{K_0}{K_{n+1}} \,,
 \label{eq:rescale}
 \ee
 where the scaling factors are given by
+\begin{subequations}
 \be
-K_{n+1} =\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\phi^g_{n+1}\right)
+K_{n+1} =\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\phi^g_{n+1}\right) \,,
 \ee
 \be
-K_{0} =\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g_{n+1}\right)=\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\phi^g_{0}\right)
+K_{0} =\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g_{n+1}\right)=\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\phi^g_{0}\right) \,.
 \ee
+\end{subequations}
 
-The PRKE parameters are then computed with this shape using \eqtss{eq:rmb}{eq:l} and interpolated over the macro step, then the PRKE ODE system is solved on the micro time scale.  With the newly computed amplitude, the shape is rescaled into a flux and the final corrected flux is given by:
+The PRKE parameters are then computed with this shape using \eqtss{eq:rmb}{eq:l} and interpolated over the macro step, then the 
+PRKE ODE system is solved on the micro time scale.  With the newly computed amplitude, the shape is rescaled into a flux and 
+the final {\it corrected} flux is given by:
 \be
 \underbrace{\phi^g_{n+1}}_{\text{corrected}} = p_{n+1} \times \varphi^g_{n+1} \,.
 \ee
 
-The advantage to the predictor-corrector method is there is no iteration necessary for this method and, in turn, is much simpler and faster than the standard IQS.  Ikeda et al. in \cite{Ikeda_2001} and Goluoglu et al. in \cite{Goluoglu_2001} both use IQS P-C for complex, three-dimensional problems.  Their results prove IQS P-C to be impressively effective, despite the de-coupling of the system.  Dulla et al. in \cite{Dulla2008} also describes an in depth comparison of IQS P-C with traditional IQS.
+The advantage to the predictor-corrector method is there is no iteration necessary for this method and, in turn, 
+is much simpler and can be faster than the standard IQS.  Ikeda et al. in \cite{Ikeda_2001} and Goluoglu et al. 
+in \cite{Goluoglu_2001} both use IQS-PC for complex, three-dimensional problems.  Their results prove IQS P-C to be impressively effective, despite the de-coupling of the system.  Dulla et al. in \cite{Dulla2008} also describes an in depth comparison of IQS P-C with traditional IQS.
 
 %---------------------------------------------------------------------------------------%
 \subsection{Temperature Feedback Treatment}
