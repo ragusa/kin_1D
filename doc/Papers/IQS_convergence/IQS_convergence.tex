@@ -159,7 +159,7 @@ although one may argue that such a denomination does not make it immediately cle
 
 Nonlinear problems are solved in an iterative manner, typically using either a fixed-point (Picard) approach or Newton's iterations. Sissaoui et al. \cite{Sissaoui_1995}, Koclas et al. \cite{Koclas_1996}, Devooght et al. \cite{Devooght_1984}, and Monier \cite{Monier_diss} all use fixed-point iterative techniques for their IQS simulations, the main difference among them being their criteria for convergence.  Devooght et al. in \cite{Devooght_1984} proposed a Newton-based iteration technique. This \comm{This? Ours? his? I suppose you mean ours. If so, you need to complete the lit review\\ by talking about IQS-PC from Dulla and then their time-adaptive IQS work.\\ After that, start a new paragraph focusing on your paper} paper discusses the different nonlinear iteration techniques and tests the rigor of their implementation. IQS can also be linearized by using the IQS Predictor-Corrector method (IQS P-C) \cite{dulla2006}. IQS P-C entails evaluating the flux equation then correcting its amplitude using an amplitude evaluation. This method has proven to be effective for problems requiring a significant amount of shape updates when IQS is implemented \cite{Dulla2008}. 
 
-IQS has yet to be rigorously tested with high-order discretization \question{jcr}{zep}{spatial discretization?} of the shape equation. All \comm{all?}publications that test IQS do not go beyond first-order time discretization \comm{I thought the Canadians used theta scheme, hence crank nicholson, hence 2nd order ....}. Testing IQS with higher-order schemes for proper time step error convergence is essential for implementation of time adaptive methods and quantification of model uncertainty \comm{explain a bit or rephase}. This paper discusses implementation of up though fourth-order time discretization for the shape equation of IQS and the flux equation of IQS P-C. Step doubling time adaptation is also implemented to test IQS and IQS P-C  performance with adaptation of shape/flux evaluation.
+IQS has yet to be rigorously tested with high-order discretization \question{jcr}{zep}{spatial discretization?} of the shape equation. All \comm{all?}publications that test IQS do not go beyond first-order time discretization \comm{I thought the Canadians used theta scheme, hence crank nicholson, hence 2nd order ....; furthermore, I think Hebert also used a generalized RK method, no?}. Testing IQS with higher-order schemes for proper time step error convergence is essential for implementation of time adaptive methods and quantification of model uncertainty \comm{explain a bit or rephase}. This paper discusses implementation of up though fourth-order time discretization for the shape equation of IQS and the flux equation of IQS P-C. Step doubling time adaptation is also implemented to test IQS and IQS P-C  performance with adaptation of shape/flux evaluation.
 
 To test IQS and IQS P-C nonlinear iteration, time step convergence, and time adaptation performance (five?) problems were applied. (Three?) problems are purely neutronics and involve varying magnitudes of reactor size and complexity. Two problems involve temperature feedback and test an intermediate time scale for temperature evaluation.
 
@@ -214,10 +214,11 @@ the initial adjoint multigroup flux ($\phi^{*g}$), and then integrated over the 
 For brevity, the inner product over space will be represented with parenthetical notation ($\left(\phi^{*g},f^g\right) = \int_D \phi^{*g}(\vec{r})f^g(\vec{r})d^3r
 $). In order to impose uniqueness of the factorization, one requires that 
 \be
-K(t) = \sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g(t) \right)
+\label{eq:normalization}
+K(t) = \sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g(t) \right) 
 \ee
-to be constant (hence $K(t)=K_0$).  
-After some manipulation, the point reactor kinetics equations (PRKE) for the amplitude solution are finally obtained:
+to be constant (hence $K(t)=K(t_0)=K_0$).  
+After some manipulations, the point reactor kinetics equations (PRKE) for the amplitude solution are obtained:
 \begin{subequations}
 \be
 \frac{dp}{dt}=\left[\frac{\rho-\bar{\beta}}{\Lambda}\right]p+\sum_{i=1}^I\bar{\lambda}_i\xi_i
@@ -336,11 +337,11 @@ on the macro time time step. This re-scaling is simply
 %---------------------------------------------------------------------------------------%
 \subsection{IQS Predictor-Corrector Scheme}
 %---------------------------------------------------------------------------------------%
-\comm{make sure the intro has a decent overview -ie no equation, just words- on the IQS-PC. Dulla and Ravetto will likely review this paper}
+\comm{make sure the intro has a decent overview -i.e., no equation, just words- on the IQS-PC. Dulla and Ravetto will likely review this paper}
 
 The Predictor-Corrector version of the IQS method (IQS-PC) also relies on a shape and amplitude factorization of the flux.
 The PRKE derivation is identical to that of the standard (nonlinear) version of the IQS scheme, in the sense that shape solutions
-at the beginning and end times of the macro time step are used (and interpolated in between).
+at the beginning and end times of the macro time interval are used (with interpolation in between).
 However, the manner in which the shape function is obtained is different.  In the IQS-PC version, the flux equations (not the shape equations) 
 are first solved (represented by \eqts{eq:flux}{eq:precursor}) in order to obtain a {\it predicted} flux solution at the end of the 
 macro time step. This predicted flux is then converted to a shape by normalizing it as follows:
@@ -348,15 +349,11 @@ macro time step. This predicted flux is then converted to a shape by normalizing
 \varphi^g_{n+1} = \underbrace{\phi^g_{n+1}}_{\text{predicted}} \frac{K_0}{K_{n+1}} \,,
 \label{eq:rescale}
 \ee
-where the scaling factors are given by
-\begin{subequations}
+where the flux scaling factor is given by
 \be
 K_{n+1} =\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\phi^g_{n+1}\right) \,,
 \ee
-\be
-K_{0} =\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g_{n+1}\right)=\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\phi^g_{0}\right) \,.
-\ee
-\end{subequations}
+and $K_0$ is the shape normalization constant (see \eqt{eq:normalization}).
 
 The PRKE parameters are then computed with this shape using \eqtss{eq:rmb}{eq:l} and interpolated over the macro step, then the 
 PRKE ODE system is solved on the micro time scale.  With the newly computed amplitude, the shape is rescaled into a flux and 
@@ -365,35 +362,50 @@ the final {\it corrected} flux is given by:
 \underbrace{\phi^g_{n+1}}_{\text{corrected}} = p_{n+1} \times \varphi^g_{n+1} \,.
 \ee
 
-The advantage to the predictor-corrector method is there is no iteration necessary for this method and, in turn, 
-is much simpler and can be faster than the standard IQS.  Ikeda et al. in \cite{Ikeda_2001} and Goluoglu et al. 
-in \cite{Goluoglu_2001} both use IQS-PC for complex, three-dimensional problems.  Their results prove IQS P-C to be impressively effective, despite the de-coupling of the system.  Dulla et al. in \cite{Dulla2008} also describes an in depth comparison of IQS P-C with traditional IQS.
+The advantage to the predictor-corrector method is that no nonlinear iterations are necessary in this method; it is 
+simpler to implement and can be faster than the standard IQS.  Ikeda et al. in \cite{Ikeda_2001} and Goluoglu et al. 
+in \cite{Goluoglu_2001} both use IQS-PC for complex, three-dimensional problems.  Their results prove IQS-PC to be effective.  Dulla et al. in \cite{Dulla2008} also describes an in depth comparison of IQS-PC with traditional IQS.
+
+\comm{make sure you have an IQS-PC paragraph in the lit review section as well, not just here}
 
 %---------------------------------------------------------------------------------------%
 \subsection{Temperature Feedback Treatment}
 %---------------------------------------------------------------------------------------%
+\comm{have you seen multiphysics simulations with IQS in the literature before? 
+Some of Ott's paper or his old code manual have temperature. so this is something else
+that means to be discussed in the lit review section}
 
-Two problems that are tested with IQS and IQS P-C involve adiabatic temperature feedback. The governing temperature equation is described by \eqt{eq:temp} with cross-section feedback described by \eqt{eq:dopp}.
-
+Here, we consider multiphysics reactor physics simulations.  Fuel temperature feedback mechanisms are included 
+using an adiabatic heat conservation model given in \eqt{eq:temp}.  
 \be
 \rho c_p \frac{\partial T(\vec{r},t)}{\partial t} = \kappa_f \sum^G_{g=1}\Sigma_f^g \phi^g(\vec{r},t)
 \label{eq:temp}
 \ee
-
+The thermal-range cross section's dependence on temperature is described by \eqt{eq:dopp}.
 \be
 \Sigma_a^{thermal}(\vec{r},t) = \Sigma_a^{thermal}(\vec{r},0)\left[1+\gamma\left(\sqrt{T}-\sqrt{T_0}\right)\right]
 \label{eq:dopp}
 \ee
 
-A typical implicit solver would simply use the interpolated flux at end of the temperature time step for the right hand side of the equation, a theta-method discretization.  However, IQS has much more information about the profile of the flux along the time step because of the micro-step amplitude evaluation.  Therefore, it is possible to solve for temperature using a semi-analytical approach, shown by \eqt{eq:temp_an}.
-
+A standard time-implicit solver for the heat equation would simply employ the flux values at 
+the extremities of a time step interval.  However, in an IQS neutronic solve, much more information about 
+space/time  distribution of the flux is known: the shape distributions are typically known at the beginning and end
+of a macro time step interval but the amplitude is known on the micro-step time scale, providing
+a richer space/time information for the neutron flux over the macro-step interval.  
+Thus, it is possible to solve for temperature in \eqt{eq:temp} using a semi-analytical approach, 
+shown in \eqt{eq:temp_an}.
+\comm{you keep mixing superscript and subscript for the temporal index. Fix this throughout.}
 \be
 T^{n+1} = T^n + \frac{\kappa_f}{\rho c_p} \left(a_2 \varphi^{n+1} + a_1 \varphi^{n}\right)
 \label{eq:temp_an}
 \ee
-
-Where $n$ corresponds to the beginning of the temperature step.  $a_1$ and $a_2$ are integration coefficients defined by \eqt{eq:a1} and \eqt{eq:a2}.  Any interpolation of the amplitude along the micro steps is possible for the integration, this application uses piece-wise linear.
-
+where $n$ corresponds to the beginning of the temperature step.  $a_1$ and $a_2$ are integration coefficients 
+given by \eqt{eq:a1} and \eqt{eq:a2}.  The shape function was assumed to vary linearly in time:
+\be
+\varphi(\vec{r},t) = \frac{t_{n}-t}{\Delta t}\varphi^{n+1}(\vec{r}) + \frac{t-t_n}{\Delta t}\varphi^{n+1}(\vec{r})  \,,
+\ee
+which leads to the coefficients' definitions:
+\begin{subequations}
 \be
 a_1 = \int_{t_n}^{t_{n+1}}\left(\frac{t_{n+1}-t'}{\Delta t}\right)p(t')dt'
 \label{eq:a1}
@@ -402,8 +414,20 @@ a_1 = \int_{t_n}^{t_{n+1}}\left(\frac{t_{n+1}-t'}{\Delta t}\right)p(t')dt'
 a_2 = \int_{t_n}^{t_{n+1}}\left(\frac{t'-t_n}{\Delta t}\right)p(t')dt'
 \label{eq:a2}
 \ee
+\end{subequations}
+Because the amplitude $p$ is known on a fine time scale, the integrals \eqt{eq:a1} and \eqt{eq:a2}
+are carried out along the micro steps, using a linear interpolant for the amplitude.
 
-Temperature feedback affects both the shape equation and the reactivity of the PRKE; thus, it is an additional nonlinear component to the already coupled shape-amplitude equations. In foresight to the application of this component, temperature is much more time dependent than the shape, but less so than the amplitude.  Therefore, the evaluation of temperature will have its own time scale.  A possible solution process for a problem with temperature feedback will have time three time scales portrayed in \fig{fig:time}.  The first time scale is the shape solve, the second is the temperature evaluation as well as the computation of PRKE parameters, and the third is the PRKE scale.  It is important to note that the number of time steps in each scale is arbitrary and meant only for visual purposes.
+
+Temperature feedback affects both the shape equation and the reactivity coefficients of the PRKE; thus, 
+it is an additional nonlinear component to the already coupled shape-amplitude equations. In foresight to 
+the application of this component, we expect temperature to be more rapidly varying than the shape, but 
+less so than the amplitude.  Therefore, the evaluation of temperature will have its own time scale, intermediary
+between the amplitude's fine time scale and the shape's coarse time scale.  
+Hence, a possible solution process for a problem with temperature feedback will have three time scales, as
+portrayed in \fig{fig:time}.  The first time scale is the shape solve, the second is the temperature evaluation 
+as well as the computation of PRKE parameters, and the third is the PRKE scale.  It is important to note that the number of time steps in each scale is arbitrary and the number chosen in \fig{fig:time} are only meant for 
+illustrative purposes.
 
 \begin{figure}[htpb!]
 \centering
@@ -457,11 +481,11 @@ Temperature feedback affects both the shape equation and the reactivity of the P
 
 \end{tikzpicture}
 }
-\caption{Time scales and process of IQS with temperature feedback}
+\caption{Time scales and process of IQS solve with temperature feedback}
 \label{fig:time}
 \end{figure}
 
-Iteration processes are needed for each time scale.  The amplitude and temperature need to be iterated on the middle time scale until convergence on each temperature step.  Then another iterative process needs to occur in the shape time scale on all three variables. \fig{fig:proc} shows the programming diagram implement to execute this process. The time increment of $\Delta t/3$ for the temperature solve is arbitrary and is meant only to match \fig{fig:time} where three temperature updates have been used as illustration.
+Iteration processes are needed in between each time scale.  The amplitude and temperature need to be iterated on the middle time scale until convergence on each temperature step.  Then another iterative process needs to occur in the shape time scale on all three variables. \fig{fig:proc} shows the programming diagram implement to execute this process. The time increment of $\Delta t/3$ for the temperature solve is arbitrary and is meant only to match \fig{fig:time} where three temperature updates have been used as illustration.
 
 \begin{figure}[!htpb]
 \centering
@@ -507,62 +531,80 @@ Iteration processes are needed for each time scale.  The amplitude and temperatu
 %---------------------------------------------------------------------------------------%
 \subsection{Delayed Neutron Precursor Treatment}
 %---------------------------------------------------------------------------------------%
+\comm{in the results, will you comment on the differences between using the theta scheme versus
+the semi-analytical integration for the precursors?}
 
-This section presents the time-integration method used to solve coupled flux/shape and precursor equations, represented by Equations~\eqref{eq:flux}/\eqref{eq:shape}~and~\eqref{eq:precursor}/\eqref{eq:prec}. First, we note that we could keep this system of two time-dependent equations and solve it as a coupled system. However, this is unnecessary and a memory expensive endeavor because the precursor equation is only an ODE and not a PDE. Instead, one may discretize in time the shape equation, which typically requires the knowledge of the precursor concentrations at the end of the time step. This precursor value is taken from the solution, numerical or analytical, of the precursors ODE.
+\comm{was this section supposed to be moved up?}
 
-A common precursor evaluation technique is using the theta method; applying this to \eqt{eq:prec}:
+%This section presents the time-integration method used to solve coupled flux/shape and precursor equations, represented by Equations~\eqref{eq:flux}/\eqref{eq:shape}~and~\eqref{eq:precursor}/\eqref{eq:prec}. First, we note that we could keep this system of two time-dependent equations and solve it as a coupled system. However, this is unnecessary and a memory expensive endeavor because the precursor equation is only an ODE and not a PDE. Instead, one may discretize in time the shape equation, which typically requires the knowledge of the precursor concentrations at the end of the time step. This precursor value is taken from the solution, numerical or analytical, of the precursors ODE.
 
+The precursors' equations, \eqt{eq:prec}, form a system of ODES. % ordinary differential equations.
+A theta-scheme is often employed to evaluate the precursor concentrations:
+\comm{temporal indices: superscripts or subscripts?}
 \be
-C^{n+1} = \frac{1-(1-\theta)\Delta t\lambda}{1+\theta\Delta t\lambda}C^n + \frac{(1-\theta)\Delta t \beta}{1+\theta\Delta t\lambda}S_f^n p^n +  \frac{\theta\Delta t \beta}{1+\theta\Delta t\lambda}S_f^{n+1} p^{n+1}
+C^{n+1} = \frac{1-(1-\theta) \lambda\Delta t}{1+\theta \lambda\Delta t}C^n + \frac{(1-\theta) \beta\Delta t}{1+\theta \lambda\Delta t}S_f^n p^n +  \frac{\theta \beta\Delta t}{1+\theta \lambda\Delta t}S_f^{n+1} p^{n+1}
 \label{eq:dnp_theta}
 \ee
-
-Where $S_f$ is the fission source equivalent for shape ($S_f^n=(\nu\Sigma_f)^n\varphi^n$). Another technique to evaluating the precursor equation is to use a exponential operator and integrate the time derivative analytically.  Applying this operation to \eqt{eq:prec} yields:
-
+where $S_f$ is the fission source computed using the shape solution ($S_f^n=(\nu\Sigma_f)^n\varphi^n$). With
+$\theta=1$, this yields the implicit Euler method, while with $\theta=\tfrac 1 2$, we obtain the Crank 
+Nicolson technique. In doing so, however, no micro-scale temporal information for the amplitude is used.
+One can also solve the precursors' equations analytically, yielding:
 \be
 C^{n+1} =  C^n e^{-\lambda (t_{n+1} - t_n) }  + \int_{t_n}^{t_{n+1}} \beta(t') S_f(t') p(t')e^{-\lambda (t_{n+1}-t')}dt'
 \label{eq:prec_an}
 \ee
-
-Again, this can be applied to implicit discretization by altering the definition of the fission source and eliminating $p$.  Because $S_f$ is not known continuously over the time step, the integration can be done using any scheme (Riemann, trapezoid, Simpson's, etc.). However, there is a very accurate representation of $p(t)$ over the macro step from the PRKE solve. In order to utilize this information, another possibility is to interpolate $S_f$ linearly over the macro step.  Such that:
-
+The shape $S_f$ is not known continuously over the time step but we use the beginning/end times values
+and make a linear variation over the macro time step,
 \be
-S_f(t) = \frac{t_{n+1}-t}{t_{n+1}-t_n}S_f^n  + \frac{t-t_n}{t_{n+1}-t_n}S_f^{n+1}  \quad t_n \le t \le t_{n+1}
+S_f(t) = \frac{t_{n+1}-t}{\Delta t}S_f^n  + \frac{t-t_n}{\Delta t}S_f^{n+1}  \quad t_n \le t \le t_{n+1} \,.
 \ee
-Applying this to \eqt{eq:prec_an} yields:
+However, we have a very accurate representation of $p(t)$ over the macro step from the PRKE solve (micro time scale). 
+Using this fine scale information, the analytical solve for the precursor values yields
 \be
-C^{n+1} = C^n e^{-\lambda \Delta t} + \left(\hat{a}_2 S_f^{n+1}+\hat{a}_1 S_f^n\right)\beta
+C^{n+1} = C^n e^{-\lambda \Delta t} + \left(\hat{a}_2 S_f^{n+1}+\hat{a}_1 S_f^n\right)\beta \,,
 \label{eq:dnp_an}
 \ee
-
-With integration coefficients defined as:
-
-\begin{align}
-&\hat{a}_1= \int_{t_n}^{t_{n+1}}\frac{t_{n+1}-t'}{\Delta t}p(t')e^{-\lambda(t_{n+1}-t')}dt' \\
-&\hat{a}_2 = \int_{t_n}^{t_{n+1}}\frac{t'-t_n}{\Delta t}p(t')e^{-\lambda(t_{n+1}-t')}dt'
-\end{align}
+with integration coefficients defined as:
+\begin{subequations}
+\be
+\hat{a}_1= \int_{t_n}^{t_{n+1}}\frac{t_{n+1}-t'}{\Delta t}p(t')e^{-\lambda(t_{n+1}-t')}dt' \,,
+\ee
+\be
+\hat{a}_2 = \int_{t_n}^{t_{n+1}}\frac{t'-t_n}{\Delta t}p(t')e^{-\lambda(t_{n+1}-t')}dt'  \,.
+\ee
+\end{subequations}
 
 
 %---------------------------------------------------------------------------------------%
 \subsection{Step Doubling Time Adaptation}
 %---------------------------------------------------------------------------------------%
 
-Further enhancements to IQS performance can be gained by using time adaptation (or time step control) in order to increase or reduce the macro time step size for the shape evaluation, depending on error estimates. A step-doubling technique is chosen as the time adaptation technique \cite{NumC}. The step doubling technique involves estimating the local error for a certain time step by taking the difference between a solution with one full step ($\varphi^g_{\Delta t}$) and a solution with two half steps ($\varphi^g_{\Delta t/2}$). Note: $\varphi$ is changed to $\phi$ for implicit discretization and IQS P-C.
-
+Further enhancements to the performance of the IQS methods can be gained by using time adaptation 
+(or time step control) in order to increase or reduce the macro time step size for the shape evaluation, 
+depending on error estimates. A step-doubling technique is chosen as the time adaptation technique \cite{NumC}. 
+The step doubling technique involves estimating the local error for a certain time step by taking the 
+difference between a solution with one full step ($\varphi^g_{\Delta t}$) and a solution with two half steps 
+($\varphi^g_{\Delta t/2}$). Note: $\varphi$ is changed to $\phi$ in the case of the IQS-PC tehcnique.
+%
 The relative error is computed as follows:
 \be
-e_n = \frac{\norm{\sum_{g=1}^G\varphi^g_{\Delta t/2} - \sum_{g=1}^G\varphi^g_{\Delta t}}}{\text{max}\left(\norm{\sum_{g=1}^G\varphi^g_{\Delta t/2}},\norm{\sum_{g=1}^G\varphi^g_{\Delta t}}\right)}
+e_n = \frac{\norm{\sum_{g=1}^G\varphi^g_{\Delta t/2} - \sum_{g=1}^G\varphi^g_{\Delta t}}}{\text{max}\left(\norm{\sum_{g=1}^G\varphi^g_{\Delta t/2}},\norm{\sum_{g=1}^G\varphi^g_{\Delta t}}\right)} \,.
 \label{eq:edt2}
 \ee
 If the error is smaller than the user-specified tolerance, $e_{tol}$, the time step is accepted. In addition, a new time step size is estimated as follows:
 \be
-\Delta t_{new} = S \Delta t \left(\frac{e_{tol}}{e_n}\right)^{\frac{1}{1+q}}
+\Delta t_{new} = S \Delta t \left(\frac{e_{tol}}{e_n}\right)^{\frac{1}{1+q}} \,,
 \label{eq:dt2}
 \ee
+where $q$ is the convergence order of the time integration scheme being used and $S\simeq 0.8$ is a safety factor. 
+If the error is larger than the user-specified tolerance, the time step is rejected and new (smaller) macro time 
+step size is estimated using \eqt{eq:edt2} as well. This process can be visualized by \figs{fig:dt2_1}{fig:dt2_2},
+where a step involves a full convergence of shape, amplitude, and any multiphysics on the respective time step.
 
-Where $q$ is the convergence order of the time integration scheme being used and $S\simeq 0.8$ is a safety factor. If the error is larger than the user-specified tolerance, the time step is rejected. A new time step size is estimated using  \eqt{eq:edt2} as well. This process can be visualized by \figs{fig:dt2_1}{fig:dt2_2}.  Where a step involves a full convergence of shape, amplitude, and any multiphysics on the respective time step.
-
-To investigate IQS's performance with step-doubling time adaptation, the adaptation will be applied to implicit discretization method, traditional IQS, and IQS P-C.  Each of these methods will be applied to several diffusion problems; the number of time steps taken and the resulting error will be used to compare the methods.
+To investigate IQS's performance with step-doubling time adaptation, the adaptation will be applied to 
+direct temporal discrezation of the flux equation (no IQS), the standard IQS method, and the IQS-PC version. 
+Each of these methods will be applied to several diffusion problems; the number of time steps taken and 
+the resulting error will be used to compare the methods.
 
 \begin{figure}[htpb!]
 \centering
