@@ -691,12 +691,12 @@ Region & Material Property & 0.0 s & 0.1 s & 0.6 s & 1.0 s & 1.7 s \\
 \centering
 \begin{subfigure}[b]{\linewidth}
 \centering
-\includegraphics[width=\linewidth]{figures/1D_flux.png}
+\includegraphics[height=3in]{figures/1D_flux.png}
 \caption{Flux profile at various times}
 \end{subfigure}
 \begin{subfigure}[b]{\linewidth}
 \centering
-\includegraphics[width=\linewidth]{figures/1D_power_base.png}
+\includegraphics[height=3in]{figures/1D_power_base.png}
 \caption{Power profile over transient}
 \end{subfigure}
 \caption{Baseline flux and power distribution}
@@ -707,13 +707,13 @@ Region & Material Property & 0.0 s & 0.1 s & 0.6 s & 1.0 s & 1.7 s \\
 \centering
 \begin{subfigure}[b]{\linewidth}
 \centering
-\includegraphics[width=\linewidth]{figures/1D_shape2.png}
+\includegraphics[height=3in]{figures/1D_shape2.png}
 \caption{Shape profile at various times}
 \label{fig:1D_shape}
 \end{subfigure}
 \begin{subfigure}[b]{\linewidth}
 \centering
-\includegraphics[width=\linewidth]{figures/1D_iqs_power.png}
+\includegraphics[height=3in]{figures/1D_iqs_power.png}
 \caption{Power and reactivity profile over transient}
 \end{subfigure}
 \caption{IQS flux and power distribution}
@@ -737,21 +737,21 @@ This plot shows that 1-4 have approximately the same convergence behavior, but t
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\linewidth]{figures/iter_renorm.png}
+\includegraphics[height=3in]{figures/iter_renorm.png}
 \caption{\# of iterations for various convergence criteria, tolerance$=10^{-11}$, max iterations$=20$}
 \label{fig:iter}
 \end{figure}
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\linewidth]{figures/iter_error.png}
+\includegraphics[height=3in]{figures/iter_error.png}
 \caption{Final iteration error for K convergence criteria}
 \label{fig:iter_err}
 \end{figure}
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\linewidth]{figures/iter_error_an.png}
+\includegraphics[height=3in]{figures/iter_error_an.png}
 \caption{Final iteration error for K convergence criteria with analytical precursor elimination}
 \label{fig:iter_err_an}
 \end{figure}
@@ -803,12 +803,12 @@ This problem is exactly the same as the previous one-dimensional problem, except
 \centering
 \begin{subfigure}[b]{\linewidth}
 \centering
-\includegraphics[width=\linewidth]{figures/1Dmini_flux.png}
+\includegraphics[height=3in]{figures/1Dmini_flux.png}
 \caption{Flux profile at various times}
 \end{subfigure}
 \begin{subfigure}[b]{\linewidth}
 \centering
-\includegraphics[width=\linewidth]{figures/1Dmini_power_base.png}
+\includegraphics[height=3in]{figures/1Dmini_power_base.png}
 \caption{Power profile over transient}
 \end{subfigure}
 \caption{Mini-core baseline flux and power distribution}
@@ -817,14 +817,14 @@ This problem is exactly the same as the previous one-dimensional problem, except
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\linewidth]{figures/1Dmini_shape.png}
+\includegraphics[height=3in]{figures/1Dmini_shape.png}
 \caption{Shape profile at various times for one-dimensional mini-core}
 \label{fig:1Dmini_shape}
 \end{figure}
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\linewidth]{figures/1Dmini_conv_IE.png}
+\includegraphics[height=3in]{figures/1Dmini_conv_IE.png}
 \caption{Time step convergence for one-dimensional mini-core with implicit Euler discretization}
 \label{fig:1Dmini_conv}
 \end{figure}
@@ -856,7 +856,7 @@ In order to demonstrate asymptotic convergence of IQS, implicit Euler (IE) and s
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\linewidth]{figures/TWIGL_convergence.jpg}
+\includegraphics[height=3in]{figures/TWIGL_convergence.jpg}
 \caption{Error convergence comparison of TWIGL Benchmark}
 \label{fig:TWIGL_conv}
 \end{figure}
@@ -893,14 +893,10 @@ Test & $e_{tol}$ & Error & Steps & Solves & Error & Steps & Solves & Error & Ste
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\linewidth]{figures/TWIGL_power_plot_dt2.png}
+\includegraphics[height=3in]{figures/TWIGL_power_plot_dt2.png}
 \caption{Power level comparison of TWIGL Benchmark with time adaptation}
 \label{fig:TWIGL_power_dt2}
 \end{figure}
-
-%---------------------------------------------------------------------------------------%
-\subsection{LMW Benchmark?}
-%---------------------------------------------------------------------------------------%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Dynamics Results}
@@ -927,7 +923,7 @@ The LRA benchmark is a two-dimensional, two-group neutron diffusion problem with
 \begin{center}
 \caption{LRA baseline verification}
 \label{tab:base}
-\resizebox{\linewidth}{!}{
+%\resizebox{\linewidth}{!}{
 \begin{tabular}{|l|cc|}
 \hline
 Calculation  &  Baseline & Sutton (Spandex 1936) \\
@@ -939,7 +935,7 @@ Time to Peak Power (s) 	& 1.441 	& 1.441 \\
 Peak Power (W/cm$^3$) 	& 5456 		& 5461 \\
 \hline
 \end{tabular}
-}
+%}
 \end{center}
 \end{table}
 
@@ -965,12 +961,12 @@ This section shows the time step error convergence of IQS for the LRA benchmark,
 
 \begin{figure}[htbp!]
 \centering
-\includegraphics[width=\linewidth]{figures/lra_mp.png}
+\includegraphics[height=3in]{figures/lra_mp.png}
 \caption{Error plot with various temperature updates per macro step}
 \label{fig:mp}
 \end{figure}
 
-The convergence plots show that updating temperature and the PRKE parameters within a macro step has a significant effect on the performance of IQS.  With only one update, IQS was only slightly better than implicit discretization, implicit discretization required about 150\% more time steps than IQS for the same error.  While 5 temperature updates showed a much more significant IQS performance, implicit discretization required about 400\% more time steps than IQS for the same error.  \fig{fig:mp} shows that error has a convergent behavior for the number of temperature updates.  This convergence makes sense because temperature can only be so accurate before the error in shape is dominating. Table \ref{tab:ndiff_lra} shows the run time results for the implicit discretization calculations. The number of GMRES linear iterations is included because it is proportional measure of the computational effort. Tables \ref{tab:iqs_lra} and \ref{tab:iqspc_lra} present the IQS run-times with various numbers of temperature updates.  These run-times are based on total alive time of the execution where the diffusion evaluation is distributed over 24 processors. These run-times show a marginal performance for IQS and impressive performance for IQS P-C.  Some of the execution times were able to decrease from implicit discretization with the same number of macro steps because IQS is better equipped to resolve the nonlinearity between temperature and amplitude. Furthermore, there does seem to be an ideal number of temperature updates to optimize execution time: IQS only needs one and IQS P-C seems to be ideal at 4 updates. This discrepancy in the number of updates shows that a adaptive type implementation of the updates would be ideal, and could enforce a constant error over the transient. It is also important to compare the error of implicit discretization with IQS at one update and IQS P-C at 4 updates.  IQS shows an error comparable to implicit discretization at $\Delta t = 0.002$, signifying an actual increase in runtime by -34.1\%.  IQS P-C shows an error less than implicit discretization at $\Delta t = 0.002$, signifying an actual increase in runtime by <-34.9\%.
+The convergence plots show that updating temperature and the PRKE parameters within a macro step has a significant effect on the performance of IQS.  With only one update, IQS was only slightly better than implicit discretization, implicit discretization required about 150\% more time steps than IQS for the same error.  While 5 temperature updates showed a much more significant IQS performance, implicit discretization required about 400\% more time steps than IQS for the same error.  \fig{fig:mp} shows that error has a convergent behavior for the number of temperature updates.  This convergence makes sense because temperature can only be so accurate before the error in shape is dominating. Table \ref{tab:ndiff_lra} shows the run time results for the implicit discretization calculations. The number of GMRES linear iterations is included because it is proportional measure of the computational effort. Tables \ref{tab:iqs_lra} and \ref{tab:iqspc_lra} present the IQS run-times with various numbers of temperature updates.  These run-times are based on total alive time of the execution where the diffusion evaluation is distributed over 24 processors. These run-times show a marginal performance for IQS and impressive performance for IQS P-C.  Some of the execution times were able to decrease from implicit discretization with the same number of macro steps because IQS is better equipped to resolve the nonlinearity between temperature and amplitude. Furthermore, there does seem to be an ideal number of temperature updates to optimize execution time: IQS only needs one and IQS P-C seems to be ideal at 4 updates. This discrepancy in the number of updates shows that a adaptive type implementation of the updates would be ideal, and could enforce a constant error over the transient. It is also important to compare the error of implicit discretization with IQS at one update and IQS P-C at 4 updates.  IQS shows an error comparable to implicit discretization at $\Delta t = 0.002$, signifying an actual increase in runtime by -34.1\%.  IQS P-C shows an error less than implicit discretization at $\Delta t = 0.002$, signifying an actual increase in runtime by $<-34.9\%$.
 
 \begin{table}[!htbp]
 \begin{center}
@@ -1075,13 +1071,64 @@ End (3 s) & 109.66 & 2.3650e-4 & 603 & 109.65 & 3.0622e-4 & 97 \\
 \subsection{TREAT Transient-15 Problem}
 %---------------------------------------------------------------------------------------%
 
+Transient 15 is a test case based on the TREAT core. The purpose of the original creation of this simulation in Rattlesnake is to test the model's fidelity with the thermal feedback of TREAT, but it is not meant to exactly match any previous experiments.  Nevertheless, the goal of the following simulations is to test IQS and its time scale based treatment of temperature with a more complex model. Transient 15 involves an 11-energy group diffusion approximation and is discretized into $355,712$ hexahedral continuous finite elements totaling $4,109,523$ degrees of freedom.  The three-second transient involves a linear ramp decrease in the absorption cross section throughout the control rod region. \fig{fig:Tran15} shows a visualization of the flux profile within the core, hidden is the massive amount of graphite surrounding the core.   
+
+\begin{figure}[htbp!]
+\centering
+\includegraphics[height=3in]{figures/Tran15_core2.png}
+\caption{Transient 15 core power profile at peak power}
+\label{fig:Tran15}
+\end{figure}
+
+The Transient-15 model uses a adiabatic temperature feedback mechanism, similar to the one explored by the LRA. \eqt{eq:temp2} describes the heat up of the fuel.  It is very similar, except the specific heat is now dependent on temperature is described by \eqt{eq:cp}.  The temperature evaluation is identical to the one described in LRA section, except a Newton iteration process is employed to resolve the nonlinearity from the specific heat term.  The feedback to the cross-sections are applied using linear interpolation of tabular data provided by INL.
+
+\be
+\rho c_p(T) \frac{\partial T(\vec{r},t)}{\partial t} = \kappa_f \sum^G_{g=1}\Sigma_f^g \phi^g(\vec{r},t)
+\label{eq:temp2}
+\ee
+
+\be
+c_p = -5.8219e-10T^3 - 4.3694e-7T^2 + 2.8369e-3T -1.009e-2
+\label{eq:cp}
+\ee
+
 %----------------------------------------------------------------------------------------
 \subsubsection{Transient-15 Multiphysics Time Scale Results}
 
-%----------------------------------------------------------------------------------------
-\subsubsection{Transient-15 Time Adaptation}
+In order to test the temperature feedback treatment, six different scenarios were run: a baseline with a very small time step, implicit discretization, IQS with one and 5 temperature updates per macro step, and IQS P-C with one and 5 updates.  \fig{fig:Tran15_profile} shows the baseline power and temperature profile for the Transient-15 example.  \tbl{tab:tran15} shows the error and runtime results.
 
+\begin{figure}[htbp!]
+\centering
+\includegraphics[height=3in]{figures/Tran15_profile.png}
+\caption{Transient-15 total power and average temperature profile during transient}
+\label{fig:Tran15_profile}
+\end{figure}
 
+\begin{table}[htb]
+\begin{center}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{|l|ccccccc|}
+\hline
+ & No.	& Max &	Time at Max &	Max Average &	\% Increase &	Max Power & Linear	\\
+Method & of Steps &	Power (W) &	Power (s) &	Temperature (K) & Runtime$^*$ & Error & Iterations \\
+\hline
+Baseline 			& 3000 	& 3.5039e+08 & 1.901 & 371 &	---		&	---		 & ---		\\
+Implicit Dis. 		& 300 	& 3.5011e+08 & 1.90  & 371 &	---		&	7.875e-4 & 41020	\\
+IQS 				& 300	& 3.5036e+08 & 1.90  & 371 & -11.9\%	&	8.385e-5 & 23949	\\
+IQS (5 updates) 	& 300 	& 3.5040e+08 & 1.90  & 371 &  49.7\%	&	3.687e-5 & 24035	\\
+IQS P-C 			& 300 	& 3.5065e+08 & 1.90  & 371 &  -2.1\%	&	7.527e-4 & 39020	\\
+IQS P-C (5 updates) & 300 	& 3.5043e+08 & 1.90  & 371 &  26.5\%	&	1.227e-4 & 37866	\\
+\hline
+\end{tabular}
+}
+\end{center}
+\vspace{-3mm}
+$^*$ difference in runtime from implicit discretization 
+\caption{Transient-15 Error and Runtime Results}
+\label{tab:tran15}
+\end{table}
+
+The results from \tbl{tab:tran15} show similar performance of IQS with the temperature updates as the LRA. Again, the number of linear GMRES iterations is shown as a measure of computational expense. However, these iterations do not consider the temperature updates, so the iterations of the simulations with multiple updates should be taken with a grain of salt. IQS with 1 temperature update shows a performance that reduces the error to approximately a tenth of the implicit discretization error, and reduces the execution time by about 12\%.  This shows that IQS was able to resolve the nonlinearity between flux and temperature with significantly fewer diffusion evaluations.  Having IQS with 5 updates significantly increased the execution time for the same time step, but the error was reduced.  Comparing this error to a similar implicit discretization error at a smaller time step could show that the runtime was reduced. IQS P-C performed not nearly as well as it did with the LRA benchmark, but still proved to be effective.  Having 5 updates for IQS P-C increased the runtime marginally, but decreased the error significantly.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
