@@ -11,6 +11,7 @@
 \usepackage{natbib}%[2010/09/13]
 \usepackage{changepage}
 \usepackage{tikz} 
+\usepackage[english]{babel}
 
 %%%%%%%%%%%% new commands
  \def\todo#1#2{{\color{green}
@@ -99,10 +100,7 @@
 
 \journal{Annals of Nuclear Energy}
 
-\title{High-Order Time Discretization and Nonlinear Iteration Analysis of the Improved Quasi-Static Method\\
-Time-adaptive Multiphysics Reactor Simulations based on the Improved Quasi-Static Method with high-order temporal discretization\\
-\tcb{Multiphysics Reactor-core Simulations Using the Improved Quasi-Static Method}\\
-} % Article title
+\title{Multiphysics Reactor-core Simulations Using the Improved Quasi-Static Method}
 
 
 \author[tamu]{Zachary M. Prince}
@@ -116,14 +114,7 @@ Time-adaptive Multiphysics Reactor Simulations based on the Improved Quasi-Stati
   College Station, TX 77840, USA}
 
 \begin{abstract}
-The improved quasi-static method (IQS) is a rigorous space/time multiscale approach whereby the neutron flux is represented by a time-dependent amplitude and 
-a time-space-energy dependent shape. The objective of the IQS factorization is to evaluate amplitude and shape on different time scales in order to reduce 
-computational burden associated with solving the multi-dimensional flux equations, while maintaining solution accuracy. IQS factorization leads to a nonlinear 
-system of equations that requires iteration of shape and amplitude. IQS iteration techniques involve fixed-point (Picard) iteration with various convergence criteria 
-and Newton iteration, namely preconditioned Jacobian-free Newton Krylov (PJFNK) method. Nonlinear convergence of each of these techniques is investigated. 
-\tcb{Verification of IQS with analysis of time step convergence} is also investigated. Proper time step convergence is vital for implementation of time adaptive 
-methods and error prediction. The time derivative of the shape function is discretized through fourth order using implicit-Euler, Crank-Nicholson, backward 
-difference formulae (BDF), and singly-diagonally-implicit Runge-Kutta (SDIRK) methods.
+The improved quasi-static method (IQS) is a rigorous space/time multiscale approach whereby the neutron flux is represented by a time-dependent amplitude and a time-space-energy dependent shape. The objective of the IQS factorization is to evaluate amplitude and shape on different time scales in order to reduce computational burden associated with solving the multi-dimensional flux equations, while maintaining solution accuracy. IQS factorization leads to a nonlinear system of equations that requires iteration of shape and amplitude. IQS iteration techniques involve fixed-point (Picard) iteration with various convergence criteria and Newton iteration, namely preconditioned Jacobian-free Newton Krylov (PJFNK) method. Nonlinear convergence of each of these techniques is investigated. Verification of IQS with analysis of time step convergence is also investigated. Proper time step convergence is vital for implementation of time adaptive methods and error prediction. The time derivative of the shape function is discretized through fourth order using implicit-Euler, Crank-Nicholson, backward difference formulae (BDF), and singly-diagonally-implicit Runge-Kutta (SDIRK) methods.
 \end{abstract}
 
 \begin{keyword}
@@ -134,9 +125,6 @@ Reactor dynamics \sep reactor kinetics \sep Improved quasi-static method \sep te
 %------------------------------------------------------------------------------
 
 %----------------------------------------------------------------------------------------
-
-
-\todo{Zach}{I change the template to that of an elsevier journal but I get a ton of bibtex errors. can you look into that?}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
@@ -157,11 +145,13 @@ shape and amplitude in a quasi-static nature, but did not include the time deriv
 shape in the equation, yielding better results but requiring a fixed-point approach to resolve the nonlinearities. This also led to the technique's name: the Improved Quasi-Static method
 although one may argue that such a denomination does not make it immediately clear that the technique fully solves a time-dependent problem. 
 
-Nonlinear problems are solved in an iterative manner, typically using either a fixed-point (Picard) approach or Newton's iterations. Sissaoui et al. \cite{Sissaoui_1995}, Koclas et al. \cite{Koclas_1996}, Devooght et al. \cite{Devooght_1984}, and Monier \cite{Monier_diss} all use fixed-point iterative techniques for their IQS simulations, the main difference among them being their criteria for convergence.  Devooght et al. in \cite{Devooght_1984} proposed a Newton-based iteration technique. This \comm{This? Ours? his? I suppose you mean ours. If so, you need to complete the lit review\\ by talking about IQS-PC from Dulla and then their time-adaptive IQS work.\\ After that, start a new paragraph focusing on your paper} paper discusses the different nonlinear iteration techniques and tests the rigor of their implementation. IQS can also be linearized by using the IQS Predictor-Corrector method (IQS P-C) \cite{dulla2006}. IQS P-C entails evaluating the flux equation then correcting its amplitude using an amplitude evaluation. This method has proven to be effective for problems requiring a significant amount of shape updates when IQS is implemented \cite{Dulla2008}. 
+Nonlinear problems are solved in an iterative manner, typically using either a fixed-point (Picard) approach or Newton's iterations. Sissaoui et al. \cite{Sissaoui_1995}, Koclas et al. \cite{Koclas_1996}, Devooght et al. \cite{Devooght_1984}, and Monier \cite{Monier_diss} all use fixed-point iterative techniques for their IQS simulations, the main difference among them being their criteria for convergence.  Devooght et al. in \cite{Devooght_1984} proposed a Newton-based iteration technique. Another approach is to linearize the equations, so that no nonlinear iteration is necessary. IQS can be linearized using the IQS Predictor-Corrector method (IQS P-C) \cite{dulla2006}. IQS P-C entails evaluating the flux equation then correcting its amplitude using an amplitude evaluation. This method has proven to be effective for problems requiring a significant amount of shape updates when IQS is implemented \cite{Dulla2008}. Dulla also investigates shape time adaptation with IQS with Caron in \cite{caron2017}.
 
-IQS has yet to be rigorously tested with high-order discretization \question{jcr}{zep}{spatial discretization?} of the shape equation. All \comm{all?}publications that test IQS do not go beyond first-order time discretization \comm{I thought the Canadians used theta scheme, hence crank nicholson, hence 2nd order ....; furthermore, I think Hebert also used a generalized RK method, no?}. Testing IQS with higher-order schemes for proper time step error convergence is essential for implementation of time adaptive methods and quantification of model uncertainty \comm{explain a bit or rephase}. This paper discusses implementation of up though fourth-order time discretization for the shape equation of IQS and the flux equation of IQS P-C. Step doubling time adaptation is also implemented to test IQS and IQS P-C  performance with adaptation of shape/flux evaluation.
+In order for IQS to be a truly useful reactor simulation method, it needs to be effective with multiphysics simulations. Meneley and Ott first implemented IQS into the one-dimensional fast-reactor code QX1 \cite{Meneley_1971}. This implementation does simple adiabatic heat up with tabular cross-section feedback. Later, Kereszt\'{u}ri et al. describe IQS implementation into KIKO3D, a three-dimensional pressurized water reactor code, in \cite{KIKO3D_2003}. This implementation computes fuel heat transfer and thermal hydraulic feedback. Ikeda and Takeda developed in the nodal expansion method code EPISODE which uses IQS P-C with adiabatic fuel heat and Doppler feedback \cite{Ikeda_2001}. 
 
-To test IQS and IQS P-C nonlinear iteration, time step convergence, and time adaptation performance (five?) problems were applied. (Three?) problems are purely neutronics and involve varying magnitudes of reactor size and complexity. Two problems involve temperature feedback and test an intermediate time scale for temperature evaluation.
+This paper discusses the different nonlinear iteration techniques and tests the rigor of their implementation.  Additionally, IQS has yet to be rigorously tested with high-order temporal discretization of the shape equation. All publications that test IQS do not go beyond first-order time discretization \comm{I thought the Canadians used theta scheme, hence crank nicholson, hence 2nd order ....; furthermore, I think Hebert also used a generalized RK method, no?} \answer{zmp}{the Canadians use the theta scheme for the precursors, but only first order for shape}. Testing IQS with higher-order schemes would show the method's effectiveness and stability with more rigorous temporal discretization. This paper discusses implementation of up though fourth-order time discretization for the shape equation of IQS and the flux equation of IQS P-C. Step doubling time adaptation is also implemented to test IQS and IQS P-C  performance with adaptation of shape/flux evaluation; although, Caron et al. in \cite{caron2017} performs a more comprehensive shape time adaptation analysis. Step doubling is also applied to amplitude evaluation and amplitude-based adaptation was applied to reactivity updates. In regards to multiphysics simulation, this paper continues the analysis of IQS with adiabatic heat up and cross-section feedback. We develop a semi-analytical approach to evaluating fuel temperature and implement an intermediate time scale for temperature evaluation.
+
+To test IQS and IQS P-C nonlinear iteration, time step convergence, and time adaptation performance four problems were applied. Two problems are purely neutronics and involve varying magnitudes of reactor size and complexity. Two problems involve temperature feedback and test an intermediate time scale for temperature evaluation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Background Theory on IQS}
@@ -194,10 +184,10 @@ multigroup shape ($\varphi$):
 After reporting the above factorization in the balance equations, the shape diffusion equations result:
 \begin{subequations}
 \be
-\frac{1}{v^g}\frac{\partial \varphi^g}{\partial t} = \sum_{g'=1}^G \left(H^{g'\to g} + P_p^{g' \to g} \right) \varphi^{g'} - \left(L^g \tcr{+} \boxed{\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}}\right)\varphi^g + \boxed{\frac{1}{p}}S_{d}^g
+\frac{1}{v^g}\frac{\partial \varphi^g}{\partial t} = \sum_{g'=1}^G \left(H^{g'\to g} + P_p^{g' \to g} \right) \varphi^{g'} - \left(L^g + \boxed{\frac{1}{v^g}\frac{1}{p}\frac{dp}{dt}}\right)\varphi^g + \boxed{\frac{1}{p}}S_{d}^g
 \label{eq:shape}
 \ee 
-\comm{see the red + above. I think you had a typo}
+
 \be
 \frac{dC_i}{dt} = \boxed{p}\sum_{g=1}^G P_{d,i}^g \varphi^{g} - \lambda_i C_i \ , \quad 1 \le i \le I 
 \label{eq:prec}
@@ -242,23 +232,18 @@ where the functional coefficients are calculated using the space-/time-dependent
 \ee
 \end{subequations}
 
-Solving for the shape in \eqt{eq:shape} can become expensive, especially in two or three spatial dimensions, and even more so when 
-using the transport equations in lieu of the diffusion equations.  Using IQS, one expects the time dependence of the shape to be 
-weaker than that of the flux itself, thus allowing for larger time step sizes in updating the shape. The PRKE equations form a 
-small ODE system and can be solved using a much smaller time step size. In transients where the shape varies much less than the 
-flux, IQS can be very computationally effective. The two-time scale solution process, a micro scale for the PRKE and a macro scale for the shape, 
-is illustrated in \fig{fig:iqsviz}.  
+Solving for the shape in \eqt{eq:shape} can become expensive, especially in two or three spatial dimensions, and even more so when using the transport equations in lieu of the diffusion equations.  Using IQS, one expects the time dependence of the shape to be weaker than that of the flux itself, thus allowing for larger time step sizes in updating the shape. The PRKE equations form a small ODE system and can be solved using a much smaller time step size. In transients where the shape varies much less than the flux, IQS can be very computationally effective. 
+%The two-time scale solution process, a micro scale for the PRKE and a macro scale for the shape, is illustrated in \fig{fig:iqsviz}.  
 \comm{technically there is an intermediate step for reactivity updates. a reviewer will criticize you easily for not mentioning it}
 
-\begin{figure}[!htbp]
-\centering
-\includegraphics[width=\linewidth]{figures/IQS_visualization.jpg}
-\caption{IQS method visualization}
-\label{fig:iqsviz}
-\end{figure}
+%\begin{figure}[!htbp]
+%\centering
+%\includegraphics[width=\linewidth]{figures/IQS_visualization.jpg}
+%\caption{IQS method visualization}
+%\label{fig:iqsviz}
+%\end{figure}
 
-It is important to note that the PRKE parameters are evaluated at each macro step and interpolated for the PRKE evaluation. In order to preserve the 
-error convergence rate of high order temporal discretization schemes for shape, higher order interpolation of the parameters will be required.
+It is important to note that the PRKE parameters are evaluated at each macro step and interpolated for the PRKE evaluation. In order to preserve the error convergence rate of high order temporal discretization schemes for shape, higher order interpolation of the parameters will be required.
 
 %---------------------------------------------------------------------------------------%
 \subsection{IQS Iterative Schemes}
@@ -283,68 +268,53 @@ iterative techniques for their IQS implementations.  They all undergo a similar 
 \end{itemize}
 \end{adjustwidth*}
 
-The major difference between the methods of these authors is the convergence criteria used.  Sissaoui and Koclas \cite{Sissaoui_1995, Koclas_1996} use 
-fixed point iteration where the criteria is the simply the normalized difference between the last two computed shapes.  Monier in \cite{Monier_diss} also 
-employs fixed point iterations with the same criteria, except that the solution is rescaled by 
-$\frac{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g(t_{n})\right)}{\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g(t_{n+1})\right)}$ after each iteration. 
-\comm{can you give a small numerical insight into the scaling in addition to mentioning it; it would make this flow better}
-\comm{also, isn't the scaling simply $K_n/K_{n+1}$?}
-\comm{finally, wasn't there another option where the shape is renormalized after so many iterations and the procedure moves on to the next macro interval?}
-Devooght in \cite{Devooght_1984} uses a Newton-SOR iteration where the residual of the shape function evaluation is the convergence criteria and next iteration's 
+The major difference between the methods of these authors is the convergence criteria used.  Sissaoui and Koclas \cite{Sissaoui_1995, Koclas_1996} use fixed point iteration where the criteria is the simply the normalized difference between the last two computed shapes.  Monier in \cite{Monier_diss} also employs fixed point iterations with the same criteria, except that the solution is rescaled by $K_n/K_{n+1}$ after each iteration. Dulla in \cite{Dulla2008} does the same fixed-point iteration, but the shape is scaled by $K_0/K_{n+1}$ at the end of each macro time step. Renormalizing the shape is essential for preserving the uniqueness condition ($K_{n+1} = K_0$); this condition is not inherently conserved, even when the solution has converged from shape iterations. Devooght in \cite{Devooght_1984} uses a Newton-SOR iteration where the residual of the shape function evaluation is the convergence criteria and next iteration's 
 solution is computed using Newton-Raphson method.
 
 These techniques are by no means an exhaustive list of the possible iteration techniques for IQS. Dulla et al. in \cite{Dulla2008} provide an in depth analysis of the fixed point iteration technique most similar to Sissaoui and Koclas, involving convergence rates and solution results.  However, no comprehensive analysis of iteration techniques exists, comparing both Newton and fixed-point convergence rates.  The following describes each iteration convergence criterion investigated in this paper:
 \comm{you never show Newton results, do you?}
+\answer{zmp}{no, never figured out how to do it, plus Devooght actually uses GQS for his results.}
 \begin{itemize}
-\item $L^\infty$ norm of shape: 
+\item $L^\infty$ norm of shape \cite{Monier_diss}: 
 \[
-\frac{\text{max}\left|\varphi_{n}^{(k+1)} - \varphi_{n}^{(k)}\right|}{\text{max}\left|\varphi_{n}^{(k+1)}\right|} < \epsilon_{\varphi}
+\frac{\text{max}\left|\varphi_{n+1}^{(k+1)} - \varphi_{n+1}^{(k)}\right|}{\text{max}\left|\varphi_{n+1}^{(k+1)}\right|} < \epsilon_{\varphi}
 \]
 \item $L^2$ norm of shape: 
 \[
-\frac{\norm{\varphi_{n}^{(k+1)} - \varphi_{n}^{(k)}}}{\norm{\varphi_{n}^{(k+1)}}} < \epsilon_{\varphi}
+\frac{\norm{\varphi_{n+1}^{(k+1)} - \varphi_{n+1}^{(k)}}}{\norm{\varphi_{n+1}^{(k+1)}}} < \epsilon_{\varphi}
 \]
-\item Reactivity convergence: 
+\item Reactivity convergence \cite{Monier_diss}: 
 \[
-\left(\rho/\Lambda\right)^{(k+1)} - \left(\rho/\Lambda\right)^{(k)} < \epsilon_{\rho}
+\left(\rho/\Lambda\right)^{(k+1)}_{n+1} - \left(\rho/\Lambda\right)^{(k)}_{n+1} < \epsilon_{\rho}
 \]
-\comm{why no time subscripts?}
-\item Amplitude convergence: 
+\item Amplitude convergence \cite{Monier_diss}: 
 \[
-p_n^{(k+1)} - p_n^{(k)} < \epsilon_p
+p_{n+1}^{(k+1)} - p_{n+1}^{(k)} < \epsilon_p
 \]
 \comm{why is this not a relative error criterion like the others? what's the rationale?}
-\item Uniqueness consistency: 
+\answer{zmp}{I copied all of the above from \cite{Monier_diss}, not sure the rationale though}
+\item Uniqueness consistency \cite{Monier_diss}: 
 \[
-\frac{K_n^{(k+1)} - K_0}{K_0} < \epsilon_K
+\frac{K_{n+1}^{(k+1)} - K_0}{K_0} < \epsilon_K
 \]
 where $k$ denotes the nonlinear iteration index within a given macro time step interval.
-%\be
-%K_n=\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\varphi^g\right)
-%\ee
 \end{itemize}
-\comm{why not $n+1$ in the subscripts? that would make more sense since you use n+1 as the end-time afterwards}
 
-In order to ensure that uniqueness criteria is preserved, some authors (\comm{which ones?})
-explicitly scale the shape solution, either at each nonlinear iteration or upon exiting the nonlinear loop
-on the macro time time step. This re-scaling is simply
+In order to ensure that uniqueness criteria is preserved, some authors (\cite{Monier_diss,Dulla2008}) explicitly scale the shape solution, either at each nonlinear iteration or upon exiting the nonlinear loop on the macro time time step. This re-scaling is simply
 \be 
 \varphi^{g}_n \leftarrow \varphi^{g,(\text{last})}_n \frac{K_0}{K^{(\text{last})}_{n}} \,.
 \label{eq:shape_scale}
 \ee
 \comm{so, how does this jive with situations when the criterion on $K$ is employed?}
+\answer{zmp}{if the criteria is satisfied, it doesn't rescale; if it isn't, the solution is rescaled and another iteration is performed, the resulting solution isn't guaranteed to satisfy the criteria}
 
 %---------------------------------------------------------------------------------------%
 \subsection{IQS Predictor-Corrector Scheme}
 %---------------------------------------------------------------------------------------%
 \comm{make sure the intro has a decent overview -i.e., no equation, just words- on the IQS-PC. Dulla and Ravetto will likely review this paper}
 
-The Predictor-Corrector version of the IQS method (IQS-PC) also relies on a shape and amplitude factorization of the flux.
-The PRKE derivation is identical to that of the standard (nonlinear) version of the IQS scheme, in the sense that shape solutions
-at the beginning and end times of the macro time interval are used (with interpolation in between).
-However, the manner in which the shape function is obtained is different.  In the IQS-PC version, the flux equations (not the shape equations) 
-are first solved (represented by \eqts{eq:flux}{eq:precursor}) in order to obtain a {\it predicted} flux solution at the end of the 
-macro time step. This predicted flux is then converted to a shape by normalizing it as follows:
+The Predictor-Corrector version of the IQS method (IQS-PC) is a linearized version of IQS, where no nonlinear iterations are required. The method relies on the shape and amplitude factorization of the flux and uniqueness condition. The PRKE derivation is identical to that of the standard (nonlinear) version of the IQS scheme, in the sense that shape solutions at the beginning and end times of the macro time interval are used (with interpolation in between).
+However, the manner in which the shape function is obtained is different.  In the IQS-PC version, the flux equations (not the shape equations) are first solved (represented by \eqts{eq:flux}{eq:precursor}) in order to obtain a {\it predicted} flux solution at the end of the macro time step. This predicted flux is then converted to a shape by normalizing it as follows:
 \be
 \varphi^g_{n+1} = \underbrace{\phi^g_{n+1}}_{\text{predicted}} \frac{K_0}{K_{n+1}} \,,
 \label{eq:rescale}
@@ -356,24 +326,16 @@ K_{n+1} =\sum_{g=1}^G\left(\phi^{*g},\frac{1}{v^g}\phi^g_{n+1}\right) \,,
 and $K_0$ is the shape normalization constant (see \eqt{eq:normalization}).
 
 The PRKE parameters are then computed with this shape using \eqtss{eq:rmb}{eq:l} and interpolated over the macro step, then the 
-PRKE ODE system is solved on the micro time scale.  With the newly computed amplitude, the shape is rescaled into a flux and 
-the final {\it corrected} flux is given by:
+PRKE ODE system is solved on the micro time scale.  With the newly computed amplitude, the shape is rescaled into a flux and the final {\it corrected} flux is given by:
 \be
 \underbrace{\phi^g_{n+1}}_{\text{corrected}} = p_{n+1} \times \varphi^g_{n+1} \,.
 \ee
 
-The advantage to the predictor-corrector method is that no nonlinear iterations are necessary in this method; it is 
-simpler to implement and can be faster than the standard IQS.  Ikeda et al. in \cite{Ikeda_2001} and Goluoglu et al. 
-in \cite{Goluoglu_2001} both use IQS-PC for complex, three-dimensional problems.  Their results prove IQS-PC to be effective.  Dulla et al. in \cite{Dulla2008} also describes an in depth comparison of IQS-PC with traditional IQS.
-
-\comm{make sure you have an IQS-PC paragraph in the lit review section as well, not just here}
+The advantage to the predictor-corrector method is that no nonlinear iterations are necessary in this method; it is simpler to implement and can be faster than the standard IQS.  Ikeda et al. in \cite{Ikeda_2001} and Goluoglu et al. in \cite{Goluoglu_2001} both use IQS-PC for complex, three-dimensional problems.  Their results prove IQS-PC to be effective.  Dulla et al. in \cite{Dulla2008} also describes an in depth comparison of IQS-PC with traditional IQS, which originally brought the method to light.
 
 %---------------------------------------------------------------------------------------%
 \subsection{Temperature Feedback Treatment}
 %---------------------------------------------------------------------------------------%
-\comm{have you seen multiphysics simulations with IQS in the literature before? 
-Some of Ott's paper or his old code manual have temperature. so this is something else
-that means to be discussed in the lit review section}
 
 Here, we consider multiphysics reactor physics simulations.  Fuel temperature feedback mechanisms are included 
 using an adiabatic heat conservation model given in \eqt{eq:temp}.  
@@ -394,15 +356,15 @@ of a macro time step interval but the amplitude is known on the micro-step time 
 a richer space/time information for the neutron flux over the macro-step interval.  
 Thus, it is possible to solve for temperature in \eqt{eq:temp} using a semi-analytical approach, 
 shown in \eqt{eq:temp_an}.
-\comm{you keep mixing superscript and subscript for the temporal index. Fix this throughout.}
+
 \be
-T^{n+1} = T^n + \frac{\kappa_f}{\rho c_p} \left(a_2 \varphi^{n+1} + a_1 \varphi^{n}\right)
+T_{n+1} = T_n + \frac{\kappa_f}{\rho c_p} \left(a_2 \varphi_{n+1} + a_1 \varphi_{n}\right)
 \label{eq:temp_an}
 \ee
 where $n$ corresponds to the beginning of the temperature step.  $a_1$ and $a_2$ are integration coefficients 
 given by \eqt{eq:a1} and \eqt{eq:a2}.  The shape function was assumed to vary linearly in time:
 \be
-\varphi(\vec{r},t) = \frac{t_{n}-t}{\Delta t}\varphi^{n+1}(\vec{r}) + \frac{t-t_n}{\Delta t}\varphi^{n+1}(\vec{r})  \,,
+\varphi(\vec{r},t) = \frac{t_{n+1}-t}{\Delta t}\varphi_{n}(\vec{r}) + \frac{t-t_n}{\Delta t}\varphi_{n+1}(\vec{r})  \,,
 \ee
 which leads to the coefficients' definitions:
 \begin{subequations}
@@ -533,35 +495,37 @@ Iteration processes are needed in between each time scale.  The amplitude and te
 %---------------------------------------------------------------------------------------%
 \comm{in the results, will you comment on the differences between using the theta scheme versus
 the semi-analytical integration for the precursors?}
+\answer{zmp}{yes I do}
 
 \comm{was this section supposed to be moved up?}
+\answer{zmp}{I think we decided to put it after temperature, to make multiphysics seem more important}
 
 %This section presents the time-integration method used to solve coupled flux/shape and precursor equations, represented by Equations~\eqref{eq:flux}/\eqref{eq:shape}~and~\eqref{eq:precursor}/\eqref{eq:prec}. First, we note that we could keep this system of two time-dependent equations and solve it as a coupled system. However, this is unnecessary and a memory expensive endeavor because the precursor equation is only an ODE and not a PDE. Instead, one may discretize in time the shape equation, which typically requires the knowledge of the precursor concentrations at the end of the time step. This precursor value is taken from the solution, numerical or analytical, of the precursors ODE.
 
 The precursors' equations, \eqt{eq:prec}, form a system of ODES. % ordinary differential equations.
 A theta-scheme is often employed to evaluate the precursor concentrations:
-\comm{temporal indices: superscripts or subscripts?}
+
 \be
-C^{n+1} = \frac{1-(1-\theta) \lambda\Delta t}{1+\theta \lambda\Delta t}C^n + \frac{(1-\theta) \beta\Delta t}{1+\theta \lambda\Delta t}S_f^n p^n +  \frac{\theta \beta\Delta t}{1+\theta \lambda\Delta t}S_f^{n+1} p^{n+1}
+C_{n+1} = \frac{1-(1-\theta) \lambda\Delta t}{1+\theta \lambda\Delta t}C_n + \frac{(1-\theta) \beta\Delta t}{1+\theta \lambda\Delta t}S_{f,n} p_n +  \frac{\theta \beta\Delta t}{1+\theta \lambda\Delta t}S_{f,n+1} p_{n+1}
 \label{eq:dnp_theta}
 \ee
-where $S_f$ is the fission source computed using the shape solution ($S_f^n=(\nu\Sigma_f)^n\varphi^n$). With
+where $S_f$ is the fission source computed using the shape solution ($S_{f,n}=(\nu\Sigma_f)_n\varphi_n$). With
 $\theta=1$, this yields the implicit Euler method, while with $\theta=\tfrac 1 2$, we obtain the Crank 
 Nicolson technique. In doing so, however, no micro-scale temporal information for the amplitude is used.
 One can also solve the precursors' equations analytically, yielding:
 \be
-C^{n+1} =  C^n e^{-\lambda (t_{n+1} - t_n) }  + \int_{t_n}^{t_{n+1}} \beta(t') S_f(t') p(t')e^{-\lambda (t_{n+1}-t')}dt'
+C_{n+1} =  C_n e^{-\lambda (t_{n+1} - t_n) }  + \int_{t_n}^{t_{n+1}} \beta(t') S_f(t') p(t')e^{-\lambda (t_{n+1}-t')}dt'
 \label{eq:prec_an}
 \ee
 The shape $S_f$ is not known continuously over the time step but we use the beginning/end times values
 and make a linear variation over the macro time step,
 \be
-S_f(t) = \frac{t_{n+1}-t}{\Delta t}S_f^n  + \frac{t-t_n}{\Delta t}S_f^{n+1}  \quad t_n \le t \le t_{n+1} \,.
+S_f(t) = \frac{t_{n+1}-t}{\Delta t}S_{f,n}  + \frac{t-t_n}{\Delta t}S_{f,n+1}  \quad t_n \le t \le t_{n+1} \,.
 \ee
 However, we have a very accurate representation of $p(t)$ over the macro step from the PRKE solve (micro time scale). 
 Using this fine scale information, the analytical solve for the precursor values yields
 \be
-C^{n+1} = C^n e^{-\lambda \Delta t} + \left(\hat{a}_2 S_f^{n+1}+\hat{a}_1 S_f^n\right)\beta \,,
+C_{n+1} = C_n e^{-\lambda \Delta t} + \left(\hat{a}_2 S_{f,n+1}+\hat{a}_1 S_{f,n}\right)\beta \,,
 \label{eq:dnp_an}
 \ee
 with integration coefficients defined as:
@@ -906,7 +870,7 @@ In order to demonstrate asymptotic convergence of IQS, implicit Euler (IE) and s
 \begin{center}
 \caption{TWIGL step doubling results}
 \label{tab:TWIGLdt2}
-%\resizebox{\linewidth}{!}{
+\resizebox{\linewidth}{!}{
 \begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|}
 \hline
   &  & \multicolumn{3}{|c|}{Implicit Discretization} & \multicolumn{3}{|c|}{IQS} & \multicolumn{3}{|c|}{IQS P-C} \\
@@ -923,7 +887,7 @@ Test & $e_{tol}$ & Error & Steps & Solves & Error & Steps & Solves & Error & Ste
 8 &	1.0e-05 &	8.0564e-05 &	263 &	794 &	7.7103e-05 &	379 &	5729 &	9.8321e-07 &	48 &	210 \\
 \hline
 
-\end{tabular}%}
+\end{tabular}}
 \end{center}
 \end{table*}
 
@@ -1128,7 +1092,7 @@ End (3 s) & 109.66 & 2.3650e-4 & 603 & 109.65 & 3.0622e-4 & 97 \\
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{elsarticle-num}
-\bibliography{references_IQS.bib}
+\bibliography{references_IQS}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
