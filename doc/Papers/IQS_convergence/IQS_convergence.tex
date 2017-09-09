@@ -678,16 +678,22 @@ the resulting error will be used to compare the methods.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Kinetics Results}
+\section{Neutronics-only Transient Results}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-This section describes kinetics examples that IQS is tested with and analysis of its performance.  The examples range in complexity and application.  The first is a one-dimensional problem, designed for the prototype code in MATLAB.  The next one is from the Argonne National Lab (ANL) Benchmark Problem Book (BPB), and is a common problem for testing codes and developing methods \cite{ANL_BPB}.
+In this section, we analyze various convergence criteria proposed in the nonlinear solution tehcnique for the IQDS method.
+We also investigate the use of higher-temporal discretization for the shape equations.
+Both series of tests are carried out using neutronics-only problems.  The first test case uses a one-dimensional problem.  
+The second test is from the ANL Benchmark Problem Book (BPB) \cite{ANL_BPB}.
 
 %---------------------------------------------------------------------------------------%
 \subsection{One-Dimensional Problem}
 %---------------------------------------------------------------------------------------%
 
-This example is very simple and computes quickly; it entails a one dimensional, homogeneous 400 cm slab with a heterogenous perturbation in absorption cross section.  \fig{fig:slab} shows how the regions of the slab are divided and \tbl{tab:1Dmat} shows the initial material properties.  Regions 2, 3, and 4 have slope perturbations at different points in time, \tbl{tab:1Dslope} shows the values of the absorption cross-section in each region at the times of interest.  The values of $\Sigma_a$ between these times of interest are linear interpolations between the given values.
+This one-dimensional problem uses a 400-cm slab. This initial configuration is homogeneous and the transient is initiated by a perturbation in absorption cross section. 
+\fig{fig:slab} shows problem layout and \tbl{tab:1Dmat} contains the material properties; one-group values are used for this problem. 
+Regions 2, 3, and 4 have linear ramp perturbations at different moments in time, \tbl{tab:1Dslope} shows the values of the absorption cross-section in each region at the 
+times of interest.  The values of $\Sigma_a$ between these times of interest vary linearly between the given values.
 
 \begin{figure}[!htbp]
 \begin{center}
@@ -700,7 +706,7 @@ This example is very simple and computes quickly; it entails a one dimensional, 
 \hline \hline \hline
 \end{tabular}
 }
-\caption{1-D slab region identification}
+\caption{1-D slab: Region identification number}
 \label{fig:slab}
 \end{center}
 \end{figure}
@@ -740,55 +746,64 @@ Region & Material Property & 0.0 s & 0.1 s & 0.6 s & 1.0 s & 1.7 s \\
 \end{center}
 \end{table}
 
-\fig{fig:1D_flux} shows the resulting baseline flux and relative power profile of the one-dimensional problem.  The baseline was computed using MATLAB's ode15s function which is a embedded Runge-Kutta time adaptive method for stiff problems, the error tolerance was set very tightly ($10^{-12}$).  The flux distribution shows that the core is relatively large, thus different regions are weakly coupled. This baseline computation is used to compute the error of the other time discretization methods.  \fig{fig:1D_shape} shows the shape profile at various times during the transient.  It is apparent that the shape is very time-dependent, so it is expected that IQS has marginal accuracy gain for a given time step size.
+\fig{fig:1D_flux} shows the reference flux solution at different instants as well as total power as a function of time.  The baseline reference solution 
+was computed by solving the flux equation (not the IQS formulation) using time-step control with a tight relative error tolerance of $10^{-12}$.  
+The problem being relatively large, the various zones are weakly coupled
+and the flux perturbation is not global. This baseline computation is used to compute the error of the other time discretization methods.  
+\fig{fig:1D_shape} shows the shape profile at various times during the transient.  
+% It is apparent that the shape is time-dependent, so it is expected that IQS has marginal accuracy gain for a given time step size.
 
 \begin{figure}[!htbp]
 \centering
-\begin{subfigure}[b]{\linewidth}
+\begin{subfigure}[b]{0.49\textwidth}
 \centering
-\includegraphics[height=3in]{figures/1D_flux.png}
+\includegraphics[width=0.99\textwidth]{figures/1D_flux.png}
 \caption{Flux profile at various times}
 \end{subfigure}
-\begin{subfigure}[b]{\linewidth}
+\begin{subfigure}[b]{0.49\textwidth}
 \centering
-\includegraphics[height=3in]{figures/1D_power_base.png}
+\includegraphics[width=0.99\textwidth]{figures/1D_power_base.png}
 \caption{Power profile over transient}
 \end{subfigure}
 \caption{Baseline flux and power distribution}
 \label{fig:1D_flux}
 \end{figure}
+\jcr{the editor will like complain that the figure do not have the same height. you must have save them in matlab after playing with them. i recommend you save them witht he size and aspect ratio produced by matlab.}
 
 \begin{figure}[!htbp]
 \centering
-\begin{subfigure}[b]{\linewidth}
+\begin{subfigure}[b]{0.49\textwidth}
 \centering
-\includegraphics[height=3in]{figures/1D_shape2.png}
+\includegraphics[width=0.99\textwidth]{figures/1D_shape2.png}
 \caption{Shape profile at various times}
 \label{fig:1D_shape}
 \end{subfigure}
-\begin{subfigure}[b]{\linewidth}
+\begin{subfigure}[b]{0.49\textwidth}
 \centering
-\includegraphics[height=3in]{figures/1D_iqs_power.png}
+\includegraphics[width=0.99\textwidth]{figures/1D_iqs_power.png}
 \caption{Power and reactivity profile over transient}
 \end{subfigure}
 \caption{IQS flux and power distribution}
 \label{fig:1D_res}
 \end{figure}
+\jcr{not sure that the Fig.7b is useful}
 
-
-%----------------------------------------------------------------------------------------
-\subsubsection{Iteration Analysis}
-
-IQS, as previously stated, is a system of nonlinear equations between shape and amplitude. These equations needed to be iterated to numerically converge to an accurate solution.  \sct{sect:iter} lists various iteration techniques for fixed-point and Newton schemes. \fig{fig:iter} shows the number of fixed-point iterations required for a $10^{-11}$ tolerance over the transient. The criteria listed in the legend correspond to the list as such:
-\begin{enumerate}
-\item $L^{\infty} \rightarrow$ 1.
-\item $L^{2} \rightarrow$ 2.
-\item Reactivity $\rightarrow$ 3.
-\item Amplitude $\rightarrow$ 4.
-\item K criteria $\rightarrow$ 5.
-\item All properties $\rightarrow$ 3.-5.
-\end{enumerate}
-This plot shows that 1-4 have approximately the same convergence behavior, but the K criteria converges to a certain error. \fig{fig:iter_err} shows the resulting error the K criteria converges to for different points of rescaling the shape. The rescaling is described by \eqt{eq:shape_scale}. Rescaling shape more frequently helps the error.  However, rescaling every iteration is somewhat artificial because it does not consider changes spatially. Regardless, an error of $~10^{-5}$ is quite large and it is expected that the magnitude is due to the explicit treatment of precursors (\eqt{eq:dnp_theta}). Switching to an analytical elimination (\eqt{eq:dnp_an}) does not converge as well, but the error is much smaller, seen in \fig{fig:iter_err_an}.
+In the standard IQS technique, a nonlinear system of equations is to be solved for the shape and the amplitude solutions. \sct{sect:iter} lists various iteration stopping criteria typically employed with IQS.
+\fig{fig:iter} gives the number of fixed-point iterations required to reach tolerance of $10^{-11}$ as a function of time during the transient. A theta-scheme is employed for the precurosrs equations (\jcr{recall the eq}).
+%The criteria listed in the legend correspond to the list as such:
+%\begin{enumerate}
+%\item $L^{\infty} \rightarrow$ 1.
+%\item $L^{2} \rightarrow$ 2.
+%\item Reactivity $\rightarrow$ 3.
+%\item Amplitude $\rightarrow$ 4.
+%\item $K$ criteria $\rightarrow$ 5.
+%\item The last 3 criteria combined $\rightarrow$ 3.-5.
+%\end{enumerate}
+This figures shows that criteria based on the  $L^{\infty}$ norm of the shape, the $L^2$ norm of the shape, the reactivity change, and the amplitude have approximately the same convergence behavior, but the criteria 
+based on the uniqueness constant $K$ never reaches the tight tolerance and runs up to the maximum number of iterations allowed (20 in this case). 
+\fig{fig:iter_err} shows the error in the factor $K$ saturates to different levels, whether the shape is rescaled or not. Rescaling (described by \eqt{eq:shape_scale}) 
+%Rescaling shape more frequently helps the error.  However, rescaling every iteration is somewhat artificial because it does not consider changes spatially. Regardless, an error of $~10^{-5}$ is quite large and it is expected that the magnitude is due to the explicit treatment of precursors (\eqt{eq:dnp_theta}). 
+However, switching the precursors solve to be performed semi-analytically (\eqt{eq:dnp_an}) significantly improves the convergence in the uniqueness factor $K$, see \fig{fig:iter_err_an}.
 
 \begin{figure}[!htbp]
 \centering
@@ -796,34 +811,53 @@ This plot shows that 1-4 have approximately the same convergence behavior, but t
 \caption{\# of iterations for various convergence criteria, tolerance$=10^{-11}$, max iterations$=20$}
 \label{fig:iter}
 \end{figure}
-
 \begin{figure}[!htbp]
 \centering
 \includegraphics[height=3in]{figures/iter_error.png}
-\caption{Final iteration error for K convergence criteria}
+\caption{Final iteration error for $K$ factor convergence criteria}
 \label{fig:iter_err}
 \end{figure}
-
 \begin{figure}[!htbp]
 \centering
 \includegraphics[height=3in]{figures/iter_error_an.png}
-\caption{Final iteration error for K convergence criteria with analytical precursor elimination}
+\caption{Final iteration error for $K$ convergence criteria with analytical precursor elimination}
 \label{fig:iter_err_an}
 \end{figure}
+\jcr{can you make subfigures with the last 2 figures to group them. otherwise, they will be scattered around by the editorial staff}
+
+\clearpage
+\newpage
 
 %----------------------------------------------------------------------------------------
-\subsubsection{One-Dimensional Problem Time Step Convergence Analysis}
+%\subsubsection{One-Dimensional Problem Time Step Convergence Analysis}
 
-Time step convergence analysis involves evaluating a problem with various refinements in step size and comparing the resulting errors with the time step size. Plotting error versus $\Delta t$ on a log-scale should produce a relatively strait line with a slope equal to the order of the time discretization method. In order to evaluate the performance and error convergence of IQS, the slab was simulated with varying time discretization methods and time step sizes.  \fig{fig:1D_conv} shows these convergence plots of five different discretization methods for implicit discretization, IQS, and \iqspc.  These plots were generated from the results using the MATLAB prototype program.  The plots show that IQS and \iqspc are convergent through fourth order BDF.  Third order SDIRK did not show third order convergence, but, through extensive testing, SDIRK shows non-convergent behavior for too stiff of problems.  
+Next, we investigate the use of higher-order temporal methods to solve the shape equations (IQS and \iqspc). We compare these results with the same high-order discretization for the flux equations.
+%Time step convergence analysis involves evaluating a problem with various refinements in step size and comparing the resulting errors with the time step size. Plotting error versus $\Delta t$ on a log-scale should produce a relatively strait line with a slope equal to the order of the time discretization method. In order to evaluate the performance and error convergence of IQS, the slab was simulated with varying time discretization methods and time step sizes.
+\fig{fig:1D_conv} shows the convergence results for four different time-implicit discretization: backward difference formulae (for order 1, which is the same as the implicit Euler, to order 4) 
+\jcr{give refs for BDF methods of any order, do not pick wikipedia!}. % as well as a 3rd-order implicit Runge-Kutta method, SDIRK33. \jcr{also give a ref}
+The plots show that IQS and \iqspc converge with the expected order (1 through 4) using BDF1 through BDF4. Recall that in the amplitude equations, the PRKE parameters
+are interpolated using the shape solutions. We used higher-order interpolants in time for the shape solution when a higher-order method was used
+(the convergence rates were degraded for higher-order BDF methods when the PRKE parameters were only linearly interpolated over the macro step). Lagrange
+and Hermite interpolants yielded the same results. Likewise, we used semi-analytical integration of the precursors equations, along with the same higher-order
+interpolation of the shape values when a higher-order method was used. Without using the same order interpolants as the BDF formula, the error in the
+PRKE parameters and the precursors led to loss of convergence rate.
 
-There are higher discretization order that can be tested, but most practical application do not go beyond second order.  This paper shows an analysis of the first publicized application of IQS with higher than second order discretization, which exposed unforeseen properties of IQS.  When using higher order techniques, the interpolation of PRKE parameters and shape for precursor integration become important to consider.  Every other application that was investigated linearly interpolates parameters for the PRKE evaluation.  Similarly, the shape used for the integration of the ODE for the precursors needs to have higher order interpolation to preserve high order error convergence.  This interpolation was done using Lagragian and Hermite methods, both leading to successful convergence.
+% The Third-order SDIRK method did not show third order convergence, but, through extensive testing, SDIRK shows non-convergent behavior for too stiff of problems.  
+\jcr{I am removing sdirk, the point we want to make is that high-order methods do not buy anything for iqs. the sdirk issue is unrelated so why confuse the audience}
+
+The convergence rates for the straightforward discretization of the flux equations are also shown in \fig{fig:1D_conv} and they followed the same expected convergence rates.
+The flux results are indicated by the legend ``Implicit Dis.''. It is worthy to note that, for lower order discretization, the error in the flux equations is always much higher 
+than that in the IQS results. However, as the temporal order is increased, the gap between the discretization error in the flux equations and the IQS equations vanishes. 
+In previous publications, she shape solve int he IQS method always employed a lower-order temporal discretization. Our results seem to indicate that a high-order discretization 
+of the flux equations reduces the usefulness of the IQS approach.
+%This paper shows an analysis of the first publicized application of IQS with higher than second order discretization, which exposed unforeseen properties of IQS.  When using higher order techniques, the interpolation of PRKE parameters and shape for precursor integration become important to consider.  Every other application that was investigated linearly interpolates parameters for the PRKE evaluation.  Similarly, the shape used for the integration of the ODE for the precursors needs to have higher order interpolation to preserve high order error convergence.  This interpolation was done using Lagragian and Hermite methods, both leading to successful convergence.
 
 \begin{figure*}[!htbp]
 \centering
 \begin{subfigure}[b]{0.49\textwidth}
 \centering
 \includegraphics[width=\linewidth]{figures/1D_conv_IE.png}
-\caption{Implicit Euler}
+\caption{Implicit Euler (BDF1)}
 \end{subfigure}
 \begin{subfigure}[b]{0.49\textwidth}
 \centering
@@ -840,18 +874,18 @@ There are higher discretization order that can be tested, but most practical app
 \includegraphics[width=\linewidth]{figures/1D_conv_BDF4.png}
 \caption{BDF4}
 \end{subfigure}
-\begin{subfigure}[b]{0.49\textwidth}
-\centering
-\includegraphics[width=\linewidth]{figures/1D_conv_SDIRK33.png}
-\caption{SDIRK33}
-\end{subfigure}
+%\begin{subfigure}[b]{0.49\textwidth}
+%\centering
+%\includegraphics[width=\linewidth]{figures/1D_conv_SDIRK33.png}
+%\caption{SDIRK33}
+%\end{subfigure}
 \caption{Error convergence plots of implicit discretization, IQS, and \iqspc with various time discretization schemes}
 \label{fig:1D_conv}
 \end{figure*}
 
 %----------------------------------------------------------------------------------------
 \subsubsection{One-Dimensional Mini-Core Problem}
-
+\jcr{i do not understand the purpose of the entire section. shouldn't the mini core be doen with bdf4 too, not just bdf1? and aren't the twigl results already such a demonstration so why not move on to twigl right away?}
 This problem is exactly the same as the previous one-dimensional problem, except the the core was reduced to 80 cm in length. The purpose of testing this problem is to determine if a more tightly coupled core will yield better performance for IQS. \fig{fig:1Dmini_flux} shows the resulting baseline flux and relative power profile of the one-dimensional mini-core problem. This plot shows that the perturbed regions affect the domain more evidently. \fig{fig:1Dmini_shape} shows the shape profile at various times during the transient. This plot shows that the shape is much less time-dependent than the previous large core. \fig{fig:1Dmini_conv} shows that IQS performs significantly better with this example than the large core.
 
 \begin{figure}[!htbp]
@@ -888,7 +922,7 @@ This problem is exactly the same as the previous one-dimensional problem, except
 \subsection{TWIGL Benchmark}
 %---------------------------------------------------------------------------------------%
 
-This benchmark problem originates from the Argonne National Lab Benchmark Problem Book \cite{ANL_BPB}.  It is a 2D, 2-group reactor core model with no reflector region \cite{TWIGL_benchmark}.  This example is meant to be of progressive complexity from the previous example.  The transient of this reactor is very geometrically symmetrical with very little temporal shape change.  Therefore, IQS is expected to perform significantly better than the implicit discretization method. Figs. \ref{fig:TWIGL_power} show the IQS  solution as compared with the implicit discretization solution. This shows that IQS is consistent in more complex, higher dimensional problems. These plots also serve to illustrate that IQS has a much more accurate solution, even at a significantly larger time step than the implicit discretization.
+This benchmark problem originates from the ANL Benchmark Problem Book \cite{ANL_BPB}.  It is a 2D, 2-group reactor core model with no reflector region \cite{TWIGL_benchmark}.  This example is meant to be of progressive complexity from the previous example.  The transient of this reactor is very geometrically symmetrical with very little temporal shape change.  Therefore, IQS is expected to perform significantly better than the implicit discretization method. Figs. \ref{fig:TWIGL_power} show the IQS  solution as compared with the implicit discretization solution. This shows that IQS is consistent in more complex, higher dimensional problems. These plots also serve to illustrate that IQS has a much more accurate solution, even at a significantly larger time step than the implicit discretization.
 
 \begin{figure}[!htbp]
 \centering
@@ -905,7 +939,7 @@ This benchmark problem originates from the Argonne National Lab Benchmark Proble
 \end{figure}
 
 %----------------------------------------------------------------------------------------
-\subsubsection{TWIGL Time Step Convergence Analysis}
+%\subsubsection{TWIGL Time Step Convergence Analysis}
 
 In order to demonstrate asymptotic convergence of IQS, implicit Euler (IE) and second order BDF (BDF2) were applied to the TWIGL simulation. \fig{fig:TWIGL_conv} plots the error convergence of IQS and the implicit discretization methods.  The curves show the impressive convergence of IQS for the highly transient TWIGL example. The slope indicated in the legend are the linear slope of curves on the log plot, these slopes should be similar to the order of the method (1 for IE and 2 for BDF2).  IQS shows a increased order because the PRKE is performing much of accuracy convergence and it is computed using SDIRK33, a third order method.
 
@@ -917,7 +951,7 @@ In order to demonstrate asymptotic convergence of IQS, implicit Euler (IE) and s
 \end{figure}
 
 %----------------------------------------------------------------------------------------
-\subsubsection{TWIGL Time Adaptation}
+%\subsubsection{TWIGL Time Adaptation}
 
 \tbl{tab:TWIGLdt2} and \fig{fig:TWIGL_power_dt2} show the results for TWIGL with time adaptation.  The results show that both IQS methods perform exceptionally well compared to implicit discretization.  It also shows that traditional IQS performed better with large $e_{tol}$, while \iqspc was better with smaller $e_{tol}$.
 
@@ -939,7 +973,7 @@ Test & $e_{tol}$ & Error & Steps & Solves & Error & Steps & Solves & Error & Ste
 5 &	0.0005  &	0.00099778 &	39  &	131 &	0.00143781 &	6   &	55   &	1.4185e-05 &	16 &	74  \\
 6 &	0.0001  &	0.00019510 &	78  &	236 &	0.00016175 &	8   &	65   &	6.2903e-06 &	19 &	78  \\
 7 &	5.0e-05 &	0.00018372 &	112 &	342 &	6.0328e-05 &	12  &	163  &	1.5247e-06 &	24 &	92  \\
-8 &	1.0e-05 &	8.0564e-05 &	263 &	794 &	7.7103e-05 &	379 &	5729 &	9.8321e-07 &	48 &	210 \\
+% 8 &	1.0e-05 &	8.0564e-05 &	263 &	794 &	7.7103e-05 &	379 &	5729 &	9.8321e-07 &	48 &	210 \\
 \hline
 
 \end{tabular}}
@@ -954,16 +988,23 @@ Test & $e_{tol}$ & Error & Steps & Solves & Error & Steps & Solves & Error & Ste
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Dynamics Results}
+\section{Multiphysics Results}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-This section describes two dynamics examples, including the LRA benchmark and a TREAT experiment.  These examples are of increased complexity from the previous kinetics examples.  This section also analyzes IQS's performance with these, which is vital for verification of IQS in real-world problems.
+This section describes two multiphysics examples with adiabatic heat up: the LRA benchmark from the  ANL Benchmark Problem Book \cite{ANL_BPB} 
+and a modelisation of an experiment carried out of the Transient Reactor Experimental Facility, TREAT \jcr{provide a reference for this model; it could be an INL report or one of your conference paper}. 
+% These examples are of increased complexity from the previous kinetics examples.  This section also analyzes IQS's performance with these, which is vital for verification of IQS in real-world problems.
 
 %---------------------------------------------------------------------------------------%
 \subsection{LRA Benchmark}
 %---------------------------------------------------------------------------------------%
 
-The LRA benchmark is a two-dimensional, two-group neutron diffusion problem with adiabatic heat-up and Doppler feedback in thermal reactor.  It is a super prompt-critical transient. The execution of the benchmark was performed by the Rattlesnake/MOOSE framework at Idaho National Laboratory (INL) \cite{wang2013}.  The spacial discretization was performed using continuous finite element method with first order Lagrangian basis functions. The mesh consisted of blocks $11\times 11$ with five uniform refinements, totaling $165,165$ elements and $124,609$ nodes. Three different temporal techniques were applied: implicit discretization of the flux equation, IQS, and \iqspc. Crank-Nicholson time discretization scheme was used for the diffusion evaluation of each technique.  Third order Runge-Kutta discretization with step doubling adaptation was used for the PRKE evaluation.  The performance of IQS and the temperature updates were measured by its improvement in accuracy at peak power over the implicit discretization method.
+The LRA benchmark is a two-dimensional, two-group neutron diffusion problem with adiabatic heat-up and Doppler feedback in thermal reactor.  It is a super prompt-critical transient. 
+The execution of the benchmark was performed by the Rattlesnake/MOOSE framework at Idaho National Laboratory (INL) \cite{wang2013}.  The spatial discretization uses continuous finite elements
+with first-order Lagrangian basis functions. The mesh consists of blocks $11\times 11$ with five uniform refinements, totaling $165,165$ elements and $124,609$ nodes. Three different temporal techniques are
+applied: implicit discretization of the flux equation, IQS, and \iqspc. Crank-Nicolson \jcr{check spelling for CN emthod throughout} time discretization scheme is used for the diffusion evaluation of each technique.  
+Third order Runge-Kutta discretization with step doubling adaptation was used for the PRKE evaluation.  \jcr{actually, you never say what is used for the PRKE solve. this shoild be moved way up because it applies to everything!}
+The performance of IQS and the temperature updates were measured by its improvement in accuracy at peak power over the implicit discretization method.
 
 \fig{fig:lra_profile} shows the baseline power and temperature transient profile for the LRA benchmark. The baseline results are compared to the results achieved by Sutton and Aviles in \cite{Sutton_1996} and presented in \tbl{tab:base}.  The relative difference in the magnitude of the peak power ($t\approx1.44 s$) from the baseline was used for error comparison.  
 
@@ -979,10 +1020,10 @@ The LRA benchmark is a two-dimensional, two-group neutron diffusion problem with
 \caption{LRA baseline verification}
 \label{tab:base}
 %\resizebox{\linewidth}{!}{
-\begin{tabular}{|l|cc|}
+\begin{tabular}{|l||c|c|}
 \hline
-Calculation  &  Baseline & Sutton (Spandex 1936) \\
-\hline
+Calculation   &  Baseline Rattlesnake & Sutton (Spandex 1936) \\
+\hline\hline
 No. of Spatial Nodes	& 3872 		& 1936 \\
 Eigenvalue 				& 0.99637	& 0.99637 \\
 No. of Time Steps 		& 6000 		& 23,890 \\
