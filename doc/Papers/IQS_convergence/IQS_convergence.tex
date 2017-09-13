@@ -1097,7 +1097,7 @@ Transient 15 is a test case based on the TREAT core. The purpose of the original
 \label{fig:Tran15}
 \end{figure}
 
-The Transient-15 model uses a adiabatic temperature feedback mechanism, similar to the one explored by the LRA. \eqt{eq:temp2} describes the heat up of the fuel.  It is very similar, except the specific heat is now dependent on temperature is described by \eqt{eq:cp}.  The temperature evaluation is identical to the one described in LRA section, except a Newton iteration process is employed to resolve the nonlinearity from the specific heat term.  The feedback to the cross-sections are applied using linear interpolation of tabular data provided by INL.
+The Transient-15 model uses an adiabatic temperature feedback mechanism, similar to the one explored by the LRA. \eqt{eq:temp2} describes the heat up of the fuel.  It is very similar, except the specific heat is now dependent on temperature is described by \eqt{eq:cp}.  The temperature evaluation is identical to the one described in LRA section, except a Newton iteration process is employed to resolve the nonlinearity from the specific heat term.  The feedback to the cross-sections are applied using linear interpolation of tabular data provided by INL.
 
 \be
 \rho c_p(T) \frac{\partial T(\vec{r},t)}{\partial t} = \kappa_f \sum^G_{g=1}\Sigma_f^g \phi^g(\vec{r},t)
@@ -1112,7 +1112,7 @@ c_p = -5.8219e-10T^3 - 4.3694e-7T^2 + 2.8369e-3T -1.009e-2
 %----------------------------------------------------------------------------------------
 \subsubsection{Transient-15 Multiphysics Time Scale Results}
 
-In order to test the temperature feedback treatment, six different scenarios were run: a baseline with a very small time step, implicit discretization, IQS with one and 5 temperature updates per macro step, and \iqspc with one and 5 updates.  \fig{fig:Tran15_profile} shows the baseline power and temperature profile for the Transient-15 example.  \tbl{tab:tran15} shows the error and runtime results.
+In order to test the temperature feedback treatment, six different scenarios were run: a baseline with a very small time-step, implicit discretization, IQS with one and 5 temperature updates per macro step, and \iqspc with one and 5 updates.  \fig{fig:Tran15_profile} shows the baseline power and temperature profile for the Transient-15 example.  \tbl{tab:tran15} shows the error and runtime results.
 
 \begin{figure}[htbp!]
 \centering
@@ -1152,6 +1152,21 @@ The results from \tbl{tab:tran15} show similar performance of IQS with the tempe
 \section{Conclusions}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+The goal of this paper was to continue the investigation and development of the improved quasi-static method for the optimization of transient reactor simulations. In pursuit of this goal, this paper (i) discussed the different nonlinear iteration techniques for IQS and tests the rigor of their implementation, (ii) investigates high-order temporal discretization of the shape equation, and (iii) analyzes IQS coupled with adiabatic heat up and cross-section feedback.
+
+IQS is a nonlinear system of equations; therefore, fixed-point iteration was used to evaluate shape and amplitude. Investigating these iteration techniques is important for understanding the behavior of IQS, as well as determining the most appropriate technique for optimal performance. The iteration techniques were applied to a one-dimensional prototype problem for testing. For fixed-point iteration, five different criteria were tested: 
+\begin{enumerate}
+\item $L^\infty$ norm of the change in shape between iterations
+\item $L^2$ norm of the change in shape between iterations
+\item Difference in reactivity between iterations
+\item Difference in amplitude between iterations
+\item IQS uniqueness consistency criteria
+\end{enumerate}
+The results showed that criteria 1-4 had relatively equivalent convergence behavior. However, iteration with the criteria 5 could not converge without a highly-accurate analytical treatment of the precursor equation. This criteria proved to be the most rigorous and thorough convergence criteria and is recommended for any application of IQS.
+
+IQS effectiveness with high-order temporal discretization schemes was also investigated. Implicit Euler and BDF discretization schemes were applied to the one-dimensional prototype problem. IQS showed proper error convergence up through fourth order BDF schemes. Implicit Euler and second order BDF schemes were applied to the TWIGL benchmark, where IQS showed normal error convergence. Step doubling adaptation was also applied to TWIGL, where IQS performed impressively, reducing the number of diffusion evaluations considerably. The Crank-Nicholson scheme was applied to the LRA benchmark with IQS. IQS again showed expected second order convergence and was able to reduce the number of diffusion evaluations with time adaptation by more than a factor of 6. The results of the TWIGL and LRA benchmarks proved that IQS is capable of proper convergence and time adaptation behavior for more complex problems. However, with high-order schemes, IQS becomes less and less effective, demonstrating almost the same performance as implicit discretization at fourth order discretization.
+
+Full transient reactor simulation requires the implementation of multiphysics solution methods. In order to test IQS with these types of simulations, it was implemented into the MOOSE/Rattlesnake framework. The LRA benchmark and a full core TREAT model were evaluated as test cases for multiphysics treatment. These examples involve a adiabatic heat up of the fuel with Doppler broadening feedback of cross-sections. The evaluation of temperature was integrated in the quasi-static process by introducing an intermediate time scale for temperature and PRKE parameter evaluation. The results of the LRA benchmark showed that quasi-static approach to temperature greatly improved the accuracy for a given time step size. However, the increase in computation time due to the extra temperature evaluations was significant. Therefore, for this benchmark, IQS with one update and IQS P-C with four updates is optimal. The results of the TREAT example showed similar behavior, except the updates only produced a marginal increase in accuracy. These examples' results show that performing a variant number of updates during the transient could further improve the performance of this quasi-static process. In conclusion, IQS and the quasi-static treatment of temperature can significantly improve the computational efficiency for burdensome full transient reactor simulations.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
