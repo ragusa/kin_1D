@@ -13,6 +13,7 @@
 \usepackage{tikz} 
 \usepackage[english]{babel}
 \usepackage{xspace} 
+\usepackage{color, colortbl}
 
 %%%%%%%%%%%% new commands
  \def\todo#1#2{{\color{green}
@@ -70,6 +71,7 @@
 \newcommand{\tcp}[1]{\textcolor{violet}{#1}}
 \newcommand{\tcg}[1]{\textcolor{britishracinggreen}{#1}}
 \newcommand{\jcr}[1]{\textcolor{red}{jcr: #1}}
+\newcommand{\zmp}[1]{\textcolor{blue}{zmp: #1}}
 
 % tikz stuff
 \usetikzlibrary{shapes,arrows,positioning}
@@ -605,7 +607,7 @@ To investigate IQS's performance with step-doubling time adaptation, the adaptat
 Both the standard IQS and \iqspc methods have been implemented in the Multiphysics Object-Oriented Simulation Environment, MOOSE \cite{moose}, as part of its radiation transport solver, Rattlesnake \cite{wang2013}. All multi-dimensional results presented here have been computed using the diffusion solver of Rattlesnake. The sequence of 
 calculations in MOOSE (temporal loops, nonlinear loops, linear solves) with appropriate entry points at any level in the simulation allows for a relatively straightforward implementation of the IQS methodologies. MOOSE's nonlinear solvers (fixed-point iterations and Jacobian-free Newton-Krylov) are well suited to handle the nonlinear solve of the traditional IQS method during a macro time step. \iqspc's implementation in MOOSE is even simpler. We briefly describe the implementation next. 
 
-First, the IQS shape equation was represented by the gathering of appropriate finite ELement kernels. Most of the shape equation kernels are the same as the flux kernels already implemented in Rattlesnake for its standard diffusion (or transport) solution, and only two kernels had to be modified. \eqt{eq:kernels} shows which kernels needed to be written or amended (denoted by an $\star$) to solve the shape equation in MOOSE. The PRKE ODE was written as a sub-function in the Transient executioner, which advances the simulation in time and determines when to perform a shape (or flux for \iqspc) solve. This executioner has breakpoints that allows specified calls to the PRKE, PRKE parameter evaluation, and other multiphysics. The PRKE parameters are written as user-objects, looping over cells to evaluate them. Similarly, the semi-analytic treatment of fuel temperature and precursors are auxiliary kernels that do a node-by-node evaluation of the variable upon requests of the transient executioner. Additional information pertaining to these MOOSE objects can be found in \cite{PrinceTR2016}.
+First, the IQS shape equation was represented by the gathering of appropriate finite element kernels. Most of the shape equation kernels are the same as the flux kernels already implemented in Rattlesnake for its standard diffusion (or transport) solution, and only two kernels had to be modified. \eqt{eq:kernels} shows which kernels needed to be written or amended (denoted by an $\star$) to solve the shape equation in MOOSE. The PRKE ODE was written as a sub-function in the Transient executioner, which advances the simulation in time and determines when to perform a shape (or flux for \iqspc) solve. This executioner has breakpoints that allows specified calls to the PRKE, PRKE parameter evaluation, and other multiphysics. The PRKE parameters are written as user-objects, looping over cells to evaluate them. Similarly, the semi-analytic treatment of fuel temperature and precursors are auxiliary kernels that do a node-by-node evaluation of the variable upon requests of the transient executioner. Additional information pertaining to these MOOSE objects can be found in \cite{PrinceTR2016}.
 
 \begin{align}
 \frac{1}{v^g}\frac{\partial\varphi^g}{\partial t}=&\underbrace{\frac{\chi_p^g}{\keff} \sum_{g'=1}^G (1-\beta) \nu^{g'} \Sigma_f^{g'} \varphi^{g'}}_{Prompt Production Kernel} + \underbrace{\sum_{g'\neq g}^G\Sigma_s^{g'\to g} \varphi^{g'}}_{Scattering Kernel} - \underbrace{\left( -\div D^g \grad \right)\varphi^g}_{Diffusion Kernel} - \underbrace{\Sigma_r^g\varphi^g}_{Reaction Kernel} \nonumber \\
@@ -627,7 +629,7 @@ First, the IQS shape equation was represented by the gathering of appropriate fi
 \section{Neutronics-only Transient Results}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-In this section, we analyze various convergence criteria proposed in the nonlinear solution technique for the IQDS method. We also investigate the use of higher-temporal discretization for the shape equations. Both series of tests are carried out using neutronics-only problems.  The first test case uses a one-dimensional problem. The second test is from the ANL Benchmark Problem Book (BPB) \cite{ANL_BPB}.
+In this section, we analyze various convergence criteria proposed in the nonlinear solution technique for the IQS method. We also investigate the use of higher-temporal discretization for the shape equations. Both series of tests are carried out using neutronics-only problems.  The first test case uses a one-dimensional problem. The second test is from the ANL Benchmark Problem Book (BPB) \cite{ANL_BPB}.
 
 %---------------------------------------------------------------------------------------%
 \subsection{A One-Dimensional Problem}
@@ -918,17 +920,18 @@ Test & $e_{tol}$ & Error & Steps & Solves & Error & Steps & Solves & Error & Ste
 \section{Multiphysics Results}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-This section describes two multiphysics examples with adiabatic heat-up: the LRA benchmark from the  ANL Benchmark Problem Book \cite{ANL_BPB} 
+This section describes two transient multiphysics examples with adiabatic heat-up and Doppler feedback in a thermal reactor: the LRA benchmark from the  ANL Benchmark Problem Book \cite{ANL_BPB} 
 and a modelisation of an experiment carried out at the Transient Reactor Test Facility, TREAT \cite{mammoth, Tran15}. 
-% These examples are of increased complexity from the previous kinetics examples.  This section also analyzes IQS's performance with these, which is vital for verification of IQS in real-world problems.
+Both examples were performed using the Rattlesnake/MOOSE framework at INL. The spatial discretization uses continuous finite elements with first-order Lagrangian basis functions.
 
 %---------------------------------------------------------------------------------------%
 \subsection{LRA Benchmark}
 %---------------------------------------------------------------------------------------%
 
-The LRA benchmark is a two-dimensional, two-group neutron diffusion problem with adiabatic heat-up and Doppler feedback in thermal reactor.  
-\jcr{already said before}
-It is a super prompt-critical transient. The execution of the benchmark was performed by the Rattlesnake/MOOSE framework at Idaho National Laboratory (INL) \cite{wang2013}.  The spatial discretization uses continuous finite elements with first-order Lagrangian basis functions \jcr{move up and say only one. I believe all rattlesnake results use FEM order 1}. The mesh consists of blocks $11\times 11$ with five uniform refinements, totaling $165,165$ elements and $124,609$ nodes. Three different temporal solution techniques are used: implicit discretization of the flux equations, IQS formulation, and \iqspc. Crank-Nicolson time discretization scheme is used for the space-time equations. \jcr{when you recall all common numerical options, make sure you recall that the PRKE ODE are done with high-order implicit RK. Put all info that is common to all results in 1 location at the beginning}. The performance of IQS with temperature feedback is assessed by comparing the solution accuracy at peak power.
+The LRA benchmark is a two-dimensional, two-group neutron diffusion problem.  
+It is a super prompt-critical transient. The execution of the benchmark was performed by the Rattlesnake/MOOSE framework at Idaho National Laboratory (INL) \cite{wang2013}.  The spatial discretization uses continuous finite elements with first-order Lagrangian basis functions. The mesh consists of blocks $11\times 11$ with five uniform refinements, totaling $165,165$ elements and $124,609$ nodes. Three different temporal solution techniques are used: implicit discretization of the flux equations, IQS formulation, and \iqspc. Crank-Nicolson time discretization scheme is used for the space-time equations. \jcr{when you recall all common numerical options, make sure you recall that the PRKE ODE are done with high-order implicit RK. Put all info that is common to all results in 1 location at the beginning}. 
+\zmp{I put the PRKE evaluation detail in the theory section. Should I put it again here?}
+The performance of IQS with temperature feedback is assessed by comparing the solution accuracy at peak power.
 
 \fig{fig:lra_profile} shows the baseline power and temperature transient profile for the LRA benchmark. The baseline results are compared to the results achieved by Sutton and Aviles in \cite{Sutton_1996} and presented in \tbl{tab:base}.  The relative difference in the magnitude of the peak power ($t\approx1.44 s$) from the baseline was used for error comparison.  
 
@@ -986,11 +989,11 @@ This section shows the time step error convergence of IQS for the LRA benchmark,
 \label{fig:mp}
 \end{figure}
 
-The convergence plots show that updating temperature and the PRKE parameters within a macro step has a significant effect on the performance of IQS.  With only one update, IQS was only slightly better than the implicit flux discretization which required about 150\% \jcr{2.5 more then? I think you mean +50\%}more time steps than IQS for the same error.  While 5 temperature updates showed a much improved performance for IQS, with the implicit flux discretization required about 400\% more time steps than IQS for the same error level.  \fig{fig:mp} shows that the solution converges with an increase in the number of temperature updates. 
+The convergence plots show that updating temperature and the PRKE parameters within a macro step has a significant effect on the performance of IQS.  With only one update, IQS was only slightly better than the implicit flux discretization which required about 50\% more time steps than IQS for the same error.  While 5 temperature updates showed a much improved performance for IQS, with the implicit flux discretization required about 400\% more time steps than IQS for the same error level.  \fig{fig:mp} shows that the solution converges with an increase in the number of temperature updates. 
 %
 Table \ref{tab:ndiff_lra} shows the run time results for the implicit discretization calculations. The number of GMRES linear iterations is included because it is a proportional measure of the computational effort. Tables \ref{tab:iqs_lra} and \ref{tab:iqspc_lra} present the IQS run-times with various numbers of temperature updates.  These run-times are based on total alive time of the execution where the diffusion evaluation is distributed over 24 processors. These run-times show a marginal performance for IQS and superior performance for \iqspc.  Some of the execution times were able to decrease from implicit discretization with the same number of macro steps because IQS is better equipped to resolve the nonlinearity between temperature and amplitude. Furthermore, there seems to be an optimal number of temperature updates to minimize execution time for a given accuracy.
 %: IQS only needs one and \iqspc seems to be ideal at 4 updates. This discrepancy in the number of updates shows that an adaptive type implementation of the updates would be ideal, and could enforce a constant error over the transient. 
-It is also important to compare the error of implicit discretization with IQS at one update and \iqspc at 4 updates.  IQS shows an error comparable to implicit discretization at $\Delta t = 0.002$ \jcr{where's that table with that time step? or do you mean it's not there and you just talk about results that are not in the paper? which would be a strange way of conveying information}, signifying an actual increase in runtime by -34.1\%.  \iqspc shows an error less than implicit discretization at $\Delta t = 0.002$, signifying an actual increase in runtime by $<-34.9\%$. \jcr{where do I need to look for the -34.1 and -34.9 values?}
+It is also important to compare the error of implicit discretization with IQS at one update and \iqspc at 4 updates.  IQS shows an error comparable to implicit discretization at $\Delta t = 0.002$, signifying an actual increase in runtime by -34.1\%.  \iqspc shows an error less than implicit discretization at $\Delta t = 0.002$, signifying an actual increase in runtime by $<-34.9\%$. These specific runs are highlighted in Tables \ref{tab:ndiff_lra} - \ref{tab:iqspc_lra}.
 
 \begin{table}[!htbp]
 \begin{center}
@@ -1001,7 +1004,7 @@ It is also important to compare the error of implicit discretization with IQS at
 Run  &  $\Delta t$ & Error & Runtime (hr) & Linear Iter.\\
 \hline
 1	& 4.0e-3	& 1.407e-2 	& 4.11	& 7.13e4	\\
-2	& 2.0e-3	& 3.174e-3 	& 6.01	& 9.49e4 	\\
+\rowcolor{yellow} 2	& 2.0e-3	& 3.174e-3 	& 6.01	& 9.49e4 	\\
 3 	& 1.0e-3 	& 7.690e-4 	& 10.38	& 1.45e5	\\
 4 	& 5.0e-4 	& 1.892e-4 	& 21.91	& 2.08e5	\\
 5 	& 2.5e-4	& 4.590e-5 	& 25.23	& 3.16e5	\\
@@ -1019,7 +1022,7 @@ Run  &  $\Delta t$ & Error & Runtime (hr) & Linear Iter.\\
 	&  Temperature 	&  		& Runtime 	& \% Increase	\\
 Run	&  Updates 	& Error & (hr)		& in Runtime$^*$\\
 \hline
-1	& 1		& 2.612e-3 	& 3.96 	& -3.18\%	\\
+\rowcolor{yellow} 1	& 1		& 2.612e-3 	& 3.96 	& -3.18\%	\\
 2	& 2		& 9.893e-4 	& 6.02	&  47.1\%	\\
 3 	& 4 	& 5.796e-4 	& 7.87	&  92.3\%	\\
 4 	& 8 	& 4.772e-4 	& 12.61	& 207.9\% 	\\
@@ -1042,7 +1045,7 @@ Run	&  Updates 	& Error & (hr)		& in Runtime$^*$\\
 \hline
 1	& 1		& 3.488e-3 	& 2.91 	& -28.9\%	\\
 2	& 2		& 1.349e-3 	& 3.73	& -9.00\%	\\
-3 	& 4 	& 9.161e-4 	& 3.97	& -3.04\%	\\
+\rowcolor{yellow} 3 	& 4 	& 9.161e-4 	& 3.97	& -3.04\%	\\
 4 	& 8 	& 8.052e-4 	& 5.39	&  31.7\%	\\
 5 	& 16	& 7.905e-4 	& 8.19	&  100\%	\\
 \hline
@@ -1056,7 +1059,7 @@ $^*$ difference in run-time from $\Delta t = 0.004$ implicit discretization
 %----------------------------------------------------------------------------------------
 \subsubsection{IQS Results for the LRA Benchmark with Time Adaptivity}
 
-\fig{fig:lra_dt2} shows the power profile of the LRA with time a of implicit discretization and \iqspc, and \tbl{tab:lra_dt2} compiles the results. These adaptivity results show the significant decrease in the number of macro time steps required for \iqspc. The power profiles were obtaining with only one temperature update per macro step; so based on previous results, the \iqspc performance would improve even more with more updates. \jcr{feels strange to suppose results behavior. if i were a reviewer, I'd ask for them to be included}
+\fig{fig:lra_dt2} shows the power profile of the LRA with time a of implicit discretization and \iqspc, and \tbl{tab:lra_dt2} compiles the results. These adaptivity results show the significant decrease in the number of macro time steps required for \iqspc. The power profiles were obtaining with only one temperature update per macro step.
 
 \begin{figure}[!htbp]
 \centering
@@ -1095,7 +1098,7 @@ End (3 s) & 109.66 & 2.3650e-4 & 603 & 109.65 & 3.0622e-4 & 97 \\
 \subsection{TREAT Transient-15 Problem}
 %---------------------------------------------------------------------------------------%
 
-Transient-15 is a test case based on the TREAT core at the INL \jcr{some ref for TREAT? The batman report maybe?}. 
+Transient-15 is a test case based on the TREAT core at the INL \cite{mammoth, Tran15}. 
 This test case is not meant to model an actual TREAT experiment but was created to evaluate Rattlesnake’s physics 
 models for TREAT transient with feedback.  However, the model was complex enough and representative enough to test 
 the performance of IQS and its time scale based treatment of temperature. Transient-15 involves an 11-energy group diffusion approximation and the geometry is discretized into $355,712$ hexahedral continuous finite elements totaling $4,109,523$ degrees of freedom.  The three-second transient involves a linear ramp decrease in the absorption cross section throughout the control rod region (to simulate a rod movement out of the core). \fig{fig:Tran15} shows a visualization of the flux profile within the core (the graphite reflector has been removed in the picture to show only the active core).   
@@ -1103,7 +1106,7 @@ the performance of IQS and its time scale based treatment of temperature. Transi
 \begin{figure}[htbp!]
 \centering
 \includegraphics[height=2.5in]{figures/Tran15_core2.png}
-\caption{Transient-15 core power profile at peak power ($t=???$ \jcr{fill in the blanks})}
+\caption{Transient-15 core power profile at peak power ($t=1.90 s$)}
 \label{fig:Tran15}
 \end{figure}
 
@@ -1185,7 +1188,7 @@ Several multi-dimensional test cases were investigated. IQS showed the expected 
 Multi-dimensional test cases with temperature feedback were performed as well (the LRA benchmark and a representative case of the TREAT core). 
 These examples involve a adiabatic heat up of the fuel with Doppler broadening feedback of the cross sections. The evaluation of temperature was integrated in the quasi-static process by introducing an intermediate time scale for temperature and PRKE parameter evaluation. The results of the LRA benchmark showed that quasi-static approach to temperature greatly improved the accuracy for a given time step size. However, the increase in computation time due to the extra temperature evaluations was significant. The results of the TREAT example showed similar behavior, except the temperature updates only produced a smaller increase in accuracy. These examples show that performing a variant number of updates during the transient could further improve the performance of this quasi-static process. 
 
-\jcr{you need an outlook. what should be next? and then you're done}
+This work shows how effective IQS can be with different problem and time-discretization types. Possible future work would be to further optimize IQS for multi-physics problems in a more general sense. This proposed work would include an adaptation-like approach to the quasi-static evaluation of the non-neutronics physics. For instance, instead of a fixed number of temperature evaluations per macro step, adapting the number of these evaluations through the transient could improve results. This adaption could also be applied to other physics like thermal hydraulic and structural feedback.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{elsarticle-num}
