@@ -238,7 +238,8 @@ solved using a much smaller time step size. In transients where the shape varies
 %\end{figure}
 %
 Note that the PRKE parameters are evaluated at each macro step and interpolated for the PRKE evaluation. In order to preserve 
-the error convergence rate of high order temporal discretization schemes for shape, higher order interpolation of the parameters will be required. Third order implicit Runge-Kutta discretization with time step adaptation was used for the PRKE evaluation, to insure a negligibly small error in the amplitude solution.
+the error convergence rate of high order temporal discretization schemes for shape, higher order interpolation of the parameters is required. A third-order implicit Runge-Kutta \cite{sdirk33} discretization with time-step adaptation is used for all PRKE evaluations in this paper in 
+order to ensure a negligibly small error in the amplitude solution.
 
 %---------------------------------------------------------------------------------------%
 \subsection{IQS Iterative Schemes}
@@ -929,8 +930,7 @@ Both examples were performed using the Rattlesnake/MOOSE framework at INL. The s
 %---------------------------------------------------------------------------------------%
 
 The LRA benchmark is a two-dimensional, two-group neutron diffusion problem.  
-It is a super prompt-critical transient. The execution of the benchmark was performed by the Rattlesnake/MOOSE framework at Idaho National Laboratory (INL) \cite{wang2013}.  The spatial discretization uses continuous finite elements with first-order Lagrangian basis functions. The mesh consists of blocks $11\times 11$ with five uniform refinements, totaling $165,165$ elements and $124,609$ nodes. Three different temporal solution techniques are used: implicit discretization of the flux equations, IQS formulation, and \iqspc. Crank-Nicolson time discretization scheme is used for the space-time equations. \jcr{when you recall all common numerical options, make sure you recall that the PRKE ODE are done with high-order implicit RK. Put all info that is common to all results in 1 location at the beginning}. 
-\zmp{I put the PRKE evaluation detail in the theory section. Should I put it again here?}
+It is a super prompt-critical transient. The execution of the benchmark was performed by the Rattlesnake/MOOSE framework at Idaho National Laboratory (INL) \cite{wang2013}.  The spatial discretization uses continuous finite elements with first-order Lagrangian basis functions. The mesh consists of blocks $11\times 11$ with five uniform refinements, totaling $165,165$ elements and $124,609$ nodes. Three different temporal solution techniques are used: implicit discretization of the flux equations, IQS formulation, and \iqspc. Crank-Nicolson time discretization scheme is used for the space-time equations. 
 The performance of IQS with temperature feedback is assessed by comparing the solution accuracy at peak power.
 
 \fig{fig:lra_profile} shows the baseline power and temperature transient profile for the LRA benchmark. The baseline results are compared to the results achieved by Sutton and Aviles in \cite{Sutton_1996} and presented in \tbl{tab:base}.  The relative difference in the magnitude of the peak power ($t\approx1.44 s$) from the baseline was used for error comparison.  
@@ -1194,8 +1194,7 @@ This work shows how effective IQS can be with different problem and time-discret
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Acknowledgments}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-This work was supported by the Department of Energy, Idaho National Laboratory, and the Integrated University Program Fellowship.  We thank Mark Dehart, Yaqi Wang, the NEAMS program, and INL's MOOSE/Rattlesnake team for their support. This research did not receive any specific grant from funding agencies in the public, commercial, or
-not-for-profit sectors.
+This work was supported by the Department of Energy through grant DE-AC07-05ID14517 (Idaho National Laboratory) and the Integrated University Program Fellowship (Cooperative Agreement DE-NE0000112).  We thank Mark D. Dehart, Yaqi Wang, and INL's MOOSE/Rattlesnake team for their support. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{elsarticle-num}
