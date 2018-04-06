@@ -238,7 +238,8 @@ solved using a much smaller time step size. In transients where the shape varies
 %\end{figure}
 %
 Note that the PRKE parameters are evaluated at each macro step and interpolated for the PRKE evaluation. In order to preserve 
-the error convergence rate of high order temporal discretization schemes for shape, higher order interpolation of the parameters will be required. Third order implicit Runge-Kutta discretization with time step adaptation was used for the PRKE evaluation, to insure a negligibly small error in the amplitude solution.
+the error convergence rate of high order temporal discretization schemes for shape, higher order interpolation of the parameters is required. A third-order implicit Runge-Kutta \cite{sdirk33} discretization with time-step adaptation is used for all PRKE evaluations in this paper in 
+order to ensure a negligibly small error in the amplitude solution.
 
 %---------------------------------------------------------------------------------------%
 \subsection{IQS Iterative Schemes}
@@ -929,8 +930,7 @@ Both examples were performed using the Rattlesnake/MOOSE framework at INL. The s
 %---------------------------------------------------------------------------------------%
 
 The LRA benchmark is a two-dimensional, two-group neutron diffusion problem.  
-It is a super prompt-critical transient. The execution of the benchmark was performed by the Rattlesnake/MOOSE framework at Idaho National Laboratory (INL) \cite{wang2013}.  The spatial discretization uses continuous finite elements with first-order Lagrangian basis functions. The mesh consists of blocks $11\times 11$ with five uniform refinements, totaling $165,165$ elements and $124,609$ nodes. Three different temporal solution techniques are used: implicit discretization of the flux equations, IQS formulation, and \iqspc. Crank-Nicolson time discretization scheme is used for the space-time equations. \jcr{when you recall all common numerical options, make sure you recall that the PRKE ODE are done with high-order implicit RK. Put all info that is common to all results in 1 location at the beginning}. 
-\zmp{I put the PRKE evaluation detail in the theory section. Should I put it again here?}
+It is a super prompt-critical transient. The execution of the benchmark was performed by the Rattlesnake/MOOSE framework at Idaho National Laboratory (INL) \cite{wang2013}.  The spatial discretization uses continuous finite elements with first-order Lagrangian basis functions. The mesh consists of blocks $11\times 11$ with five uniform refinements, totaling $165,165$ elements and $124,609$ nodes. Three different temporal solution techniques are used: implicit discretization of the flux equations, IQS formulation, and \iqspc. Crank-Nicolson time discretization scheme is used for the space-time equations. 
 The performance of IQS with temperature feedback is assessed by comparing the solution accuracy at peak power.
 
 \fig{fig:lra_profile} shows the baseline power and temperature transient profile for the LRA benchmark. The baseline results are compared to the results achieved by Sutton and Aviles in \cite{Sutton_1996} and presented in \tbl{tab:base}.  The relative difference in the magnitude of the peak power ($t\approx1.44 s$) from the baseline was used for error comparison.  
@@ -1188,7 +1188,13 @@ Several multi-dimensional test cases were investigated. IQS showed the expected 
 Multi-dimensional test cases with temperature feedback were performed as well (the LRA benchmark and a representative case of the TREAT core). 
 These examples involve a adiabatic heat up of the fuel with Doppler broadening feedback of the cross sections. The evaluation of temperature was integrated in the quasi-static process by introducing an intermediate time scale for temperature and PRKE parameter evaluation. The results of the LRA benchmark showed that quasi-static approach to temperature greatly improved the accuracy for a given time step size. However, the increase in computation time due to the extra temperature evaluations was significant. The results of the TREAT example showed similar behavior, except the temperature updates only produced a smaller increase in accuracy. These examples show that performing a variant number of updates during the transient could further improve the performance of this quasi-static process. 
 
-This work shows, to a degree, how effective IQS can be with different problem and time-discretization types. Possible future work would be to further optimize IQS for multi-physics problems in a more general sense. This proposed work would include an adaptation-like approach to the quasi-static evaluation of the non-neutronics physics. For instance, instead of a fixed number of temperature evaluations per macro step, adapting the number of these evaluations through the transient could improve results. This adaption could be applied to other physics like thermal hydraulic and structural feedback.
+This work investigated the effectiveness of for several time discretizations. Extension to this work could include a further optimization of the IQS algorithm for multi-physics problems by extending, for instance,  the use of adaptivity in the evaluation of the other physic components. For example, instead of a fixed number of temperature evaluations per macro time-step, adapting the number of these evaluations during the transient could further reduce simulation times. This adaption could be applied to coupled physics such as thermal-hydraulic and structural feedback.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Acknowledgments}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+This work was supported by the Department of Energy through grant DE-AC07-05ID14517 (Idaho National Laboratory) and the Integrated University Program Fellowship (Cooperative Agreement DE-NE0000112).  We thank Mark D. Dehart, Yaqi Wang, and INL's MOOSE/Rattlesnake team for their support. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{elsarticle-num}
