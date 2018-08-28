@@ -1,0 +1,159 @@
+\documentclass{elsarticle}
+
+\usepackage[letterpaper, margin=1in]{geometry}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{graphicx,amsmath, amssymb, amsthm, amsfonts,subcaption}
+\usepackage[usenames, dvipsnames]{xcolor}
+
+\newcommand{\fix}{\textsquare}
+\newcommand{\working}{$\boxdot$}
+\newcommand{\nofix}{?}
+\newcommand{\done}{\checkmark}
+
+\newcommand{\easy}[1]{\textcolor{ForestGreen}{#1}}
+\newcommand{\medm}[1]{\textcolor{BurntOrange}{#1}}
+\newcommand{\hard}[1]{\textcolor{Red}{#1}}
+
+\begin{document}
+
+\section*{Major Issues}
+
+\begin{itemize}
+
+\item[\fix] \medm{ Justify page 8: "we expect temperature to be more rapidly varying than the shape but less so than the amplitude" }
+\begin{itemize}
+\item Should we produce some kind of mathematical observation, or can we allude to the dynamical time constant data that we can include for the LRA and TREAT?
+\end{itemize}
+
+\item[\fix] \easy{ Justify page 5: "Using IQS, one expects the time dependence of the shape to be weaker than that of the flux itself, this allowing for larger time step sizes in updating the shape". }
+\begin{itemize}
+\item Reference first IQS paper
+\end{itemize}
+
+\item[\fix] \easy{  Results are often just stated and not discussed, e.g. page 19 "It also shows that traditional IQS performed better with large etol, while IQS-PC was better with smaller etol". The statement simply bloats the manuscripts; discuss the reasons and implications or remove it. Another example is page 15, "However, switching the precursors solve to be performed semi-analytically…".  In this case, the authors should take the time to discuss the implications of this finding. }
+\begin{itemize}
+\item I will remove the first referenced quote.
+\item I will add that if one expecting a certain tolerance to be reached in the iterative process, the semi-analytical integration of the precursors is necessary. Since, in the majority of cases, this evaluation is negligible compared to the evaluation of the shape, it is fortuitous to apply this technique in all cases.
+\end{itemize}
+
+\item[\fix] \medm{ For the comparison of LRA and TREAT results, the efficiency [how accurate can you be given a fixed execution time or given an accuracy how much execution time do you need] is a very important quantity; the authors discuss it for LRA and TREAT. However, the authors first present results for the errors and then runtime results. Then they try to synthesize efficiency by comparing different cases that have different runtimes and different errors, e.g. page 23 right before Table 5 "IQS-PC shows and error less than implicit discretization at delta t = 0.002, signifying …". I suggest the authors create error vs. execution time plots for different cases and based on these curves discuss efficiency. The manner efficiency is discussed is very confusing and not very useful for the reader. }
+\begin{itemize}
+\item Is just a plot of error vs. runtime sufficient?
+\end{itemize}
+
+\item[\fix] \easy{ In the results section, Error is sometimes used without introducing it, e.g. page 25, "Table 9 shows the error ….". Further "Error" is often used as y-label in plots., e.g. in the discussion of Figure 10 in which "convergence results" are presented; the sentence is not clear in this context because it was not stated if this is iterative convergence or convergence to the right solution as the time step is reduced. In some instances error is defined but it is tedious for the reader to find the corresponding passage in the text, figures, or tables. }
+\begin{itemize}
+\item Figure 9: Error is value of K error after 20 iterations
+\item Figure 10,12,15,16,19 + Table 5,6,7,8: Error is relative difference in the peak power from highly refined solution
+\end{itemize}
+
+\item[\fix] \hard{ LRA and TREAT only compare errors computed with the peak powers. Peak powers are an integral quantity and may favor IQS over spatial kinetics. The authors should also compare power distributions or similar distributed quantities. }
+\begin{itemize}
+\item This would require a rerun of all simulations. There is a postprocessor in MOOSE that could do it, but the simulations would be ridiculously tedious.
+\end{itemize}
+
+\item[\fix] \medm{  Whenever errors are computed, baseline calculations are performed. How do the authors know that these baseline calculations are accurate enough to measure the error w.r.t. them? }
+\begin{itemize}
+\item Can we just say that a proper error convergence means that the baseline is good enough?
+\end{itemize}
+
+\end{itemize}
+
+\section*{Minor Issues}
+
+\begin{itemize}
+
+\item[\fix] \easy{ Page 1: "… the amplitude, and a space- and time-dependent component, the shape [1,2,3,4,5]". What about energy? }
+\begin{itemize}
+\item space-, time-, energy-dependent component...
+\end{itemize}
+
+\item[\fix] \easy{ Is $\phi^g$ the scalar flux or scalar flux moments in Eq 1a? }
+\begin{itemize}
+\item Multigroup scalar flux
+\end{itemize}
+
+\item[\nofix] \easy{ All quantities in Eq. 1a and 1b need to be defined. }
+\begin{itemize}
+\item I thought we did in the paragraph below it?
+\end{itemize}
+
+\item[\nofix] \easy{ Eq. 3a: $S_d^g$ is not defined. }
+\begin{itemize}
+\item It is in the paragraph below Eq. (1)
+\end{itemize}
+
+\item[\fix] \easy{ For the uninitiated reader the term phase-space domain may not be familiar. The authors could introduce the term phase space. IQS may be interesting for people in other fields. }
+\begin{itemize}
+\item I guess we can include a definition in the first paragraph
+\item Neutron flux lives in a 7 dimensional phase-space, dependent on time, space, energy, and direction. The neutron diffusion equation reduces this phase space by eliminating direction. IQS factorizes neutron flux into a time-only-dependent component, the amplitude, and a full phase-space dependent component, the shape...  
+\end{itemize}
+
+\item[\fix] \easy{ Algorithm in section 2.1 on page 5. Step 2: "linearly interpolate". It is later stated that interpolation of higher order is done for high order schemes. }
+\begin{itemize}
+\item Just remove linearly and state later that linear interpolation was used unless otherwise stated.
+\end{itemize}
+
+\item[\nofix] \easy{ For the Linf nor of the shape: why is the maximum difference over the maximum value used and not the maximum relative difference ($1 - \phi^{k+1}/\phi^k$). }
+\begin{itemize}
+\item I could include the reference for this error estimation, since I basically copied and there is no other reason why not to do a relative difference.
+\end{itemize}
+
+
+\item[\fix] \medm{ Eq (11) is restated in Eq (24). Why not just make Eq. 11 more general. Also, in Eq. (24) cp(T(t)) and originally the heat equation reads d(rho * cp(T) * T). Hence, the cp(T) cannot be pulled out so Eq. (24) is incorrect. }
+\begin{itemize}
+\item Eq. (11) is the linear case of Eq. (24) and makes the derivation of the semi-analytical integration much simpler.
+\item Correcting Eq. (24) seems unnecessary, but it's easy so I'll fix it.
+\end{itemize}
+
+\item[\fix] \easy{ Figure 2. uses the delta t / 3 step that was claimed to be only for illustration purposes in Fig. 1. }
+\begin{itemize}
+\item I'll change the 3 to $N_{T}$ in Figure 2, which is the number of temperature solves within a macro step
+\end{itemize}
+
+\item[\fix] \medm{ Statement page 9: "Furthermore, a very accurate representation of p(t) over the macro step is available from the PRKE solve…". I think it should be precise or else one would have to show that the equations are solved accurately. Second, what does "very accurate" mean, "very accurate" is comparison to what? }
+\begin{itemize}
+\item We should say that it much more accurate to use the full point distribution than assuming an interpolation of the value between macro steps.
+\end{itemize}
+
+\item[\fix] \medm{ Implementation uses code specific jargon: kernels, auxkernels, Transient executioner, user-object. These need to be explained or cast in more general terms. }
+\begin{itemize}
+\item Two options I think: (1) Just reference a MOOSE paper that explains each term. (2) Itemize the definitions of all the terms used
+\end{itemize}
+
+\item[\fix] \easy{ Page 13 top of the page "looping over cells to evaluate", what cells, mesh cells? }
+\begin{itemize}
+\item Spatial mesh cells
+\end{itemize}
+
+\item[\fix] \easy{ LRA benchmark: the number of elements makes no sense 11x11 = 121 and when using five uniform refinement steps one would end up with 123,904 elements. }
+\begin{itemize}
+\item  Not sure how we got these numbers, but he's right
+\end{itemize}
+
+\item[\fix] \easy{ LRA benchmark description does not state what equations are solved, if that is provided in the ANL benchmark book it should be made clear. Equations could also be stated directly. }
+\begin{itemize}
+\item  Seems tedious to provide them, so will reference the book
+\end{itemize}
+
+\item[\fix] \easy{ In plots where delta t is plotted on the x-axis, it should be made clear that it is the macroscopic time step. }
+\begin{itemize}
+\item I would hate to alter all the plots, so I will just state in the intro of the results that $\Delta t$ is the macro step
+\end{itemize}
+
+\item[\fix] \easy{ Conclusions, page 27: incomplete sentence "IQS showed expected error convergence up". }
+\begin{itemize}
+\item ...through fourth-order discretization 
+\end{itemize}
+
+\item[\fix] \easy{ Timing estimates for LRA: the author should make clear how they execute the LRA problem, i.e. number of processors and processor model. Given the long runtimes, it appears that a single processor is used. Is this to avoid problems with asynchronous behavior in parallel? }
+\begin{itemize}
+\item I forgot how many were used. But my reasoning would be that longer runtimes give a more accurate representations of the actual runtime and that the parallel properties of MOOSE are somewhat of a black box. 
+\item I'm not sure how relevant this is though. Can't we just say they are all on the same computer?
+\end{itemize}
+
+\end{itemize}
+
+
+\end{document}
