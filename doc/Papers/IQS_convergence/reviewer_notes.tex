@@ -21,17 +21,17 @@
 
 \begin{itemize}
 
-\item[\fix] \medm{ Justify page 8: "we expect temperature to be more rapidly varying than the shape but less so than the amplitude" }
+\item[\done] \medm{ Justify page 8: "we expect temperature to be more rapidly varying than the shape but less so than the amplitude" }
 \begin{itemize}
-\item Should we produce some kind of mathematical observation, or can we allude to the dynamical time constant data that we can include for the LRA and TREAT?
+\item This idea stems from the fact that in a adiabatic temperature model, the temperature's spatial variation follows the neutron flux shape, while the temperature amplitude follows the flux amplitude. Because of the heat capacity of the fuel, the temperature amplitude is more slowly varying in time than the heat inflow from the flux amplitude, while still considerably faster than the time variance of the flux shape. This logic is empirically defended in the results of Section 5.
 \end{itemize}
 
-\item[\fix] \easy{ Justify page 5: "Using IQS, one expects the time dependence of the shape to be weaker than that of the flux itself, this allowing for larger time step sizes in updating the shape". }
+\item[\done] \easy{ Justify page 5: "Using IQS, one expects the time dependence of the shape to be weaker than that of the flux itself, this allowing for larger time step sizes in updating the shape". }
 \begin{itemize}
 \item Reference first IQS paper
 \end{itemize}
 
-\item[\fix] \easy{  Results are often just stated and not discussed, e.g. page 19 "It also shows that traditional IQS performed better with large etol, while IQS-PC was better with smaller etol". The statement simply bloats the manuscripts; discuss the reasons and implications or remove it. Another example is page 15, "However, switching the precursors solve to be performed semi-analytically…".  In this case, the authors should take the time to discuss the implications of this finding. }
+\item[\fix] \medm{  Results are often just stated and not discussed, e.g. page 19 "It also shows that traditional IQS performed better with large etol, while IQS-PC was better with smaller etol". The statement simply bloats the manuscripts; discuss the reasons and implications or remove it. Another example is page 15, "However, switching the precursors solve to be performed semi-analytically…".  In this case, the authors should take the time to discuss the implications of this finding. }
 \begin{itemize}
 \item I will remove the first referenced quote.
 \item I will add that if one expecting a certain tolerance to be reached in the iterative process, the semi-analytical integration of the precursors is necessary. Since, in the majority of cases, this evaluation is negligible compared to the evaluation of the shape, it is fortuitous to apply this technique in all cases.
@@ -42,10 +42,9 @@
 \item Is just a plot of error vs. runtime sufficient?
 \end{itemize}
 
-\item[\fix] \easy{ In the results section, Error is sometimes used without introducing it, e.g. page 25, "Table 9 shows the error ….". Further "Error" is often used as y-label in plots., e.g. in the discussion of Figure 10 in which "convergence results" are presented; the sentence is not clear in this context because it was not stated if this is iterative convergence or convergence to the right solution as the time step is reduced. In some instances error is defined but it is tedious for the reader to find the corresponding passage in the text, figures, or tables. }
+\item[\done] \easy{ In the results section, Error is sometimes used without introducing it, e.g. page 25, "Table 9 shows the error ….". Further "Error" is often used as y-label in plots., e.g. in the discussion of Figure 10 in which "convergence results" are presented; the sentence is not clear in this context because it was not stated if this is iterative convergence or convergence to the right solution as the time step is reduced. In some instances error is defined but it is tedious for the reader to find the corresponding passage in the text, figures, or tables. }
 \begin{itemize}
-\item Figure 9: Error is value of K error after 20 iterations
-\item Figure 10,12,15,16,19 + Table 5,6,7,8: Error is relative difference in the peak power from highly refined solution
+\item Included an explicit definition of error in each of the plots and tables
 \end{itemize}
 
 \item[\fix] \hard{ LRA and TREAT only compare errors computed with the peak powers. Peak powers are an integral quantity and may favor IQS over spatial kinetics. The authors should also compare power distributions or similar distributed quantities. }
@@ -64,65 +63,70 @@
 
 \begin{itemize}
 
-\item[\fix] \easy{ Page 1: "… the amplitude, and a space- and time-dependent component, the shape [1,2,3,4,5]". What about energy? }
+\item[\done] \easy{ Page 1: "… the amplitude, and a space- and time-dependent component, the shape [1,2,3,4,5]". What about energy? }
 \begin{itemize}
-\item space-, time-, energy-dependent component...
+\item IQS involves factorizing the neutron flux solution into a time-only-dependent component, the amplitude, and a full phase-space component, the shape
 \end{itemize}
 
-\item[\fix] \easy{ Is $\phi^g$ the scalar flux or scalar flux moments in Eq 1a? }
+\item[\done] \easy{ Is $\phi^g$ the scalar flux or scalar flux moments in Eq 1a? }
 \begin{itemize}
-\item Multigroup scalar flux
+\item Note that $\phi^g$ for neutron transport is the angular neutron flux ($\phi^g(\vec r, \vec\Omega, t)$), while for neutron diffusion it is scalar flux ($\phi^g(\vec r, t)$).
 \end{itemize}
 
-\item[\nofix] \easy{ All quantities in Eq. 1a and 1b need to be defined. }
+\item[\working] \easy{ All quantities in Eq. 1a and 1b need to be defined. }
 \begin{itemize}
-\item I thought we did in the paragraph below it?
+\item Created a table of the operator definitions (Table 1)
+\item Do I need to include a definition of all the properties?
 \end{itemize}
 
-\item[\nofix] \easy{ Eq. 3a: $S_d^g$ is not defined. }
+\item[\done] \easy{ Eq. 3a: $S_d^g$ is not defined. }
 \begin{itemize}
-\item It is in the paragraph below Eq. (1)
+\item See Table 1
 \end{itemize}
 
-\item[\fix] \easy{ For the uninitiated reader the term phase-space domain may not be familiar. The authors could introduce the term phase space. IQS may be interesting for people in other fields. }
+\item[\done] \easy{ For the uninitiated reader the term phase-space domain may not be familiar. The authors could introduce the term phase space. IQS may be interesting for people in other fields. }
 \begin{itemize}
-\item I guess we can include a definition in the first paragraph
-\item Neutron flux lives in a 7 dimensional phase-space, dependent on time, space, energy, and direction. The neutron diffusion equation reduces this phase space by eliminating direction. IQS factorizes neutron flux into a time-only-dependent component, the amplitude, and a full phase-space dependent component, the shape...  
+\item In neutron transport, the neutron flux solution lives in a seven dimensional phase-space, dependent on time, space, energy, and direction. The neutron diffusion equation reduces this phase-space by elimnating direction.
 \end{itemize}
 
-\item[\fix] \easy{ Algorithm in section 2.1 on page 5. Step 2: "linearly interpolate". It is later stated that interpolation of higher order is done for high order schemes. }
+\item[\done] \easy{ Algorithm in section 2.1 on page 5. Step 2: "linearly interpolate". It is later stated that interpolation of higher order is done for high order schemes. }
 \begin{itemize}
-\item Just remove linearly and state later that linear interpolation was used unless otherwise stated.
+\item Removed linearly from step 2
+\item It should be noted that Step 2 of the process generally involves a linear interpolation; however, for greater than second order shape discretizations, a higher-order Hermite interpolation is necessary. 
 \end{itemize}
 
 \item[\nofix] \easy{ For the Linf nor of the shape: why is the maximum difference over the maximum value used and not the maximum relative difference ($1 - \phi^{k+1}/\phi^k$). }
 \begin{itemize}
-\item I could include the reference for this error estimation, since I basically copied and there is no other reason why not to do a relative difference.
+\item I included the reference for this error estimation.
 \end{itemize}
 
-
-\item[\fix] \medm{ Eq (11) is restated in Eq (24). Why not just make Eq. 11 more general. Also, in Eq. (24) cp(T(t)) and originally the heat equation reads d(rho * cp(T) * T). Hence, the cp(T) cannot be pulled out so Eq. (24) is incorrect. }
+\item[\done] \medm{ Eq (11) is restated in Eq (24). Why not just make Eq. 11 more general. Also, in Eq. (24) cp(T(t)) and originally the heat equation reads d(rho * cp(T) * T). Hence, the cp(T) cannot be pulled out so Eq. (24) is incorrect. }
 \begin{itemize}
-\item Eq. (11) is the linear case of Eq. (24) and makes the derivation of the semi-analytical integration much simpler.
-\item Correcting Eq. (24) seems unnecessary, but it's easy so I'll fix it.
+\item For the purposes of this derivation, the adiabatic model, given in Eq. (11), has linear heat capacity. However, a nonlinear heat capacity can easily be implemented with a iterative procedure.
+\item Put $\rho C_p(T)$ inside the derivative 
 \end{itemize}
 
-\item[\fix] \easy{ Figure 2. uses the delta t / 3 step that was claimed to be only for illustration purposes in Fig. 1. }
+\item[\done] \easy{ Figure 2. uses the delta t / 3 step that was claimed to be only for illustration purposes in Fig. 1. }
 \begin{itemize}
 \item I'll change the 3 to $N_{T}$ in Figure 2, which is the number of temperature solves within a macro step
 \end{itemize}
 
-\item[\fix] \medm{ Statement page 9: "Furthermore, a very accurate representation of p(t) over the macro step is available from the PRKE solve…". I think it should be precise or else one would have to show that the equations are solved accurately. Second, what does "very accurate" mean, "very accurate" is comparison to what? }
+\item[\done] \medm{ Statement page 9: "Furthermore, a very accurate representation of p(t) over the macro step is available from the PRKE solve…". I think it should be precise or else one would have to show that the equations are solved accurately. Second, what does "very accurate" mean, "very accurate" is comparison to what? }
 \begin{itemize}
-\item We should say that it much more accurate to use the full point distribution than assuming an interpolation of the value between macro steps.
+\item Furthermore, a highly refined representation of $p(t)$ over the macro step is available from the PRKE solve (micro time scale). Using this fine scale information yields a more precise integration of amplitude than assuming an interpolation of the amplitude between macro step points.
 \end{itemize}
 
-\item[\fix] \medm{ Implementation uses code specific jargon: kernels, auxkernels, Transient executioner, user-object. These need to be explained or cast in more general terms. }
+\item[\done] \medm{ Implementation uses code specific jargon: kernels, auxkernels, Transient executioner, user-object. These need to be explained or cast in more general terms. }
 \begin{itemize}
-\item Two options I think: (1) Just reference a MOOSE paper that explains each term. (2) Itemize the definitions of all the terms used
+\item Kernel - Evaluation of the weak-form residual for a particular piece of physics.
+\item Executioner - Establishes the type of simulation. The Transient type moves the simulation in time conducting spatial evaluations at each step.
+\item Auxiliary variable and kernel - "Optional" variables that live on the same mesh as the solution and are computed using auxiliary kernels. 
+\item Postprocessor - Computes scalar values over the entire spatial mesh, usually in an integral sense.
+\item User-object - A generic type of postprocessor that allows connectivity of relevant quantities between different MOOSE objects.
+\item A more detailed and comprehensive description of MOOSE objects can be found in [18]
 \end{itemize}
 
-\item[\fix] \easy{ Page 13 top of the page "looping over cells to evaluate", what cells, mesh cells? }
+\item[\done] \easy{ Page 13 top of the page "looping over cells to evaluate", what cells, mesh cells? }
 \begin{itemize}
 \item Spatial mesh cells
 \end{itemize}
@@ -132,25 +136,24 @@
 \item  Not sure how we got these numbers, but he's right
 \end{itemize}
 
-\item[\fix] \easy{ LRA benchmark description does not state what equations are solved, if that is provided in the ANL benchmark book it should be made clear. Equations could also be stated directly. }
+\item[\done] \easy{ LRA benchmark description does not state what equations are solved, if that is provided in the ANL benchmark book it should be made clear. Equations could also be stated directly. }
 \begin{itemize}
 \item  Seems tedious to provide them, so will reference the book
 \end{itemize}
 
-\item[\fix] \easy{ In plots where delta t is plotted on the x-axis, it should be made clear that it is the macroscopic time step. }
+\item[\done] \easy{ In plots where delta t is plotted on the x-axis, it should be made clear that it is the macroscopic time step. }
 \begin{itemize}
-\item I would hate to alter all the plots, so I will just state in the intro of the results that $\Delta t$ is the macro step
+\item Put a note at the end of the intro of each results section
 \end{itemize}
 
-\item[\fix] \easy{ Conclusions, page 27: incomplete sentence "IQS showed expected error convergence up". }
+\item[\done] \easy{ Conclusions, page 27: incomplete sentence "IQS showed expected error convergence up". }
 \begin{itemize}
-\item ...through fourth-order discretization 
+\item ...through fourth-order discretization of the shape
 \end{itemize}
 
-\item[\fix] \easy{ Timing estimates for LRA: the author should make clear how they execute the LRA problem, i.e. number of processors and processor model. Given the long runtimes, it appears that a single processor is used. Is this to avoid problems with asynchronous behavior in parallel? }
+\item[\nofix] \easy{ Timing estimates for LRA: the author should make clear how they execute the LRA problem, i.e. number of processors and processor model. Given the long runtimes, it appears that a single processor is used. Is this to avoid problems with asynchronous behavior in parallel? }
 \begin{itemize}
-\item I forgot how many were used. But my reasoning would be that longer runtimes give a more accurate representations of the actual runtime and that the parallel properties of MOOSE are somewhat of a black box. 
-\item I'm not sure how relevant this is though. Can't we just say they are all on the same computer?
+\item Already stated: These run-times are based on total alive time of the execution where the diffusion evaluation is distributed over 24 processors.
 \end{itemize}
 
 \end{itemize}
