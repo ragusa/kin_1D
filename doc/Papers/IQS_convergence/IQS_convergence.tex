@@ -1031,6 +1031,7 @@ The convergence plots show that updating temperature and the PRKE parameters wit
 Table \ref{tab:ndiff_lra} shows the run time results for the implicit discretization calculations. The number of GMRES linear iterations is included because it is a proportional measure of the computational effort. Tables \ref{tab:iqs_lra} and \ref{tab:iqspc_lra} present the IQS run-times with various numbers of temperature updates.  These run-times are based on total alive time of the execution where the diffusion evaluation is distributed over 24 processors. These run-times show a marginal performance for IQS and superior performance for \iqspc.  Some of the execution times were able to decrease from implicit discretization with the same number of macro steps because IQS is better equipped to resolve the nonlinearity between temperature and amplitude. Furthermore, there seems to be an optimal number of temperature updates to minimize execution time for a given accuracy.
 %: IQS only needs one and \iqspc seems to be ideal at 4 updates. This discrepancy in the number of updates shows that an adaptive type implementation of the updates would be ideal, and could enforce a constant error over the transient. 
 It is also important to compare the error of implicit discretization with IQS at one update and \iqspc at 4 updates.  IQS shows an error comparable to implicit discretization at $\Delta t = 0.002$, signifying an actual increase in runtime by -34.1\%.  \iqspc shows an error less than implicit discretization at $\Delta t = 0.002$, signifying an actual increase in runtime by $<-34.9\%$. These specific runs are highlighted in Tables \ref{tab:ndiff_lra} - \ref{tab:iqspc_lra}.
+\fig{fig:lra_rt_vs_err} visualizes the dependence of runtime on error. This figure shows that IQS and IQS P-C generally has a lower runtime for certain error than implicit discretization.
 
 \begin{table}[!htbp]
 \begin{center}
@@ -1094,6 +1095,13 @@ Run	&  Updates 	& Error$^*$ & (hr)		& in Runtime$^{\dagger}$\\
 \footnotesize{$^{\dagger}$ difference in run-time from $\Delta t = 0.004$ implicit discretization} 
 \end{center}
 \end{table}
+
+\begin{figure}[htbp!]
+\centering
+\includegraphics[height=3in]{figures/lra_rt_vs_err.png}
+\caption{Runtime vs. error for various number of temperature updates of IQS and IQS P-C, and various time step sizes of Implicit Dis. (lower is better)}
+\label{fig:lra_rt_vs_err}
+\end{figure}
 
 
 %----------------------------------------------------------------------------------------

@@ -5,6 +5,7 @@
 \usepackage{enumitem}
 \usepackage{graphicx,amsmath, amssymb, amsthm, amsfonts,subcaption}
 \usepackage[usenames, dvipsnames]{xcolor}
+\usepackage{float}
 
 \newcommand{\fix}{\textsquare}
 \newcommand{\working}{$\boxdot$}
@@ -37,10 +38,13 @@
 \item I will add that if one expecting a certain tolerance to be reached in the iterative process, the semi-analytical integration of the precursors is necessary. Since, in the majority of cases, this evaluation is negligible compared to the evaluation of the shape, it is fortuitous to apply this technique in all cases.
 \end{itemize}
 
-\item[\fix] \medm{ For the comparison of LRA and TREAT results, the efficiency [how accurate can you be given a fixed execution time or given an accuracy how much execution time do you need] is a very important quantity; the authors discuss it for LRA and TREAT. However, the authors first present results for the errors and then runtime results. Then they try to synthesize efficiency by comparing different cases that have different runtimes and different errors, e.g. page 23 right before Table 5 "IQS-PC shows and error less than implicit discretization at delta t = 0.002, signifying …". I suggest the authors create error vs. execution time plots for different cases and based on these curves discuss efficiency. The manner efficiency is discussed is very confusing and not very useful for the reader. }
+\item[\working] \medm{ For the comparison of LRA and TREAT results, the efficiency [how accurate can you be given a fixed execution time or given an accuracy how much execution time do you need] is a very important quantity; the authors discuss it for LRA and TREAT. However, the authors first present results for the errors and then runtime results. Then they try to synthesize efficiency by comparing different cases that have different runtimes and different errors, e.g. page 23 right before Table 5 "IQS-PC shows and error less than implicit discretization at delta t = 0.002, signifying …". I suggest the authors create error vs. execution time plots for different cases and based on these curves discuss efficiency. The manner efficiency is discussed is very confusing and not very useful for the reader. }
 \begin{itemize}
-\item Is just a plot of error vs. runtime sufficient?
+\item Fig. 17 visualizes the dependence of runtime on error. This figure shows that IQS and IQS P-C generally has a lower runtime for certain error than implicit discretization.
+\item I need help intepreting this result
 \end{itemize}
+\includegraphics[height=3in]{figures/lra_rt_vs_err.png}
+
 
 \item[\done] \easy{ In the results section, Error is sometimes used without introducing it, e.g. page 25, "Table 9 shows the error ….". Further "Error" is often used as y-label in plots., e.g. in the discussion of Figure 10 in which "convergence results" are presented; the sentence is not clear in this context because it was not stated if this is iterative convergence or convergence to the right solution as the time step is reduced. In some instances error is defined but it is tedious for the reader to find the corresponding passage in the text, figures, or tables. }
 \begin{itemize}
