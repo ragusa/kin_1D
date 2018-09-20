@@ -24,7 +24,7 @@ loglog(iqspc.err,iqspc.rt,'o-','LineWidth',lw,'MarkerSize',ms)
 loglog(bf.err,bf.rt,'o-','LineWidth',lw,'MarkerSize',ms)
 set(gca,'YLim',[2.91 40])
 xlabel('Error','Interpreter','latex','FontSize',14)
-ylabel('Runtime (hr)','Interpreter','latex','FontSize',14)
+ylabel('Run-time (hr)','Interpreter','latex','FontSize',14)
 leg = {'IQS, $\Delta t=$0.004, $N_T=$1, 2, 4, 8, 16',...
        'IQS P-C, $\Delta t=$0.004, $N_T=$1, 2, 4, 8, 16',...
        'Implicit Dis., $\Delta t$=4e-3, 2e-3, 1e-3, 0.5e-3, 0.25e-3'};

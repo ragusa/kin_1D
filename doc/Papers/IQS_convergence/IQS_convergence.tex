@@ -166,6 +166,7 @@ In this Section, we recall the equations for the IQS method, starting from multi
 \centering
 \caption{Operator definition of multi-group neutron conservation equations}
 \label{tab:op_def}
+\def\arraystretch{2}
 \begin{tabular}{|c|c|c|c|}
 \hline
 Operator & Description & Transport Def. & Diffusion Def. \\
@@ -293,7 +294,7 @@ also employs fixed point iterations with the same criteria, except that the solu
 \cite{Dulla2008} does the same fixed-point iteration, but the shape is scaled by $K_0/K_{n+1}$ at the end of each macro time step. Renormalizing 
 the shape is essential for preserving the uniqueness condition ($K_{n+1} = K_0$); this condition is not inherently conserved, even when the 
 solution has converged from shape iterations.
-It should be noted that Step 2 of the process generally involves a linear interpolation; however, for greater than second order shape discretizations, a higher-order Hermite interpolation is necessary. 
+It should be noted that Step 2 of the process generally involves a linear interpolation; however, for greater than second order shape discretizations, a higher-order interpolation is necessary. 
 
 These techniques are by no means an exhaustive list of the possible iteration techniques for IQS. Dulla et al. in \cite{Dulla2008} provide an 
 in-depth analysis of the fixed-point iteration technique most similar to Sissaoui and Koclas, involving convergence rates and solution results.  
@@ -404,7 +405,7 @@ it is an additional nonlinear component to the already coupled shape-amplitude e
 the application of this component, we expect temperature to be more rapidly varying than the shape, but 
 less so than the amplitude.  Therefore, the evaluation of temperature will have its own time scale, intermediary
 between the amplitude's fine time scale and the shape's coarse time scale. 
-This idea stems from the fact that in a adiabatic temperature model, the temperature's spatial variation follows the neutron flux shape, while the temperature amplitude follows the flux amplitude. Because of the heat capacity of the fuel, the temperature amplitude is more slowly varying in time than the heat inflow from the flux amplitude, while still considerably faster than the time variance of the flux shape. This logic is empirically defended in the results of Section 5.
+This idea stems from the fact that in an adiabatic temperature model, the temperature's spatial variation follows the neutron flux shape, while the temperature amplitude follows the flux amplitude. Because of the heat capacity of the fuel, the temperature amplitude is more slowly varying in time than the heat inflow from the flux amplitude, while still considerably faster than the time variance of the flux shape. This logic is empirically defended in the results of Section 5.
 Hence, a possible solution process for a problem with temperature feedback will have three time scales, as
 portrayed in \fig{fig:time}.  The first time scale is the shape solve, the second is the temperature evaluation 
 as well as the computation of PRKE parameters, and the third is the PRKE scale.  It is important to note that the 
@@ -520,7 +521,7 @@ Where $N_T$ is the number of temperature updates per macro step.
 
 %This section presents the time-integration method used to solve coupled flux/shape and precursor equations, represented by Equations~\eqref{eq:flux}/\eqref{eq:shape}~and~\eqref{eq:precursor}/\eqref{eq:prec}. First, we note that we could keep this system of two time-dependent equations and solve it as a coupled system. However, this is unnecessary and a memory expensive endeavor because the precursor equation is only an ODE and not a PDE. Instead, one may discretize in time the shape equation, which typically requires the knowledge of the precursor concentrations at the end of the time step. This precursor value is taken from the solution, numerical or analytical, of the precursors ODE.
 
-The precursors' equations, \eqt{eq:prec}, form a system of ODES. % ordinary differential equations.
+The precursors' equations, \eqt{eq:prec}, form a system of ODEs. % ordinary differential equations.
 A theta-scheme is often employed to evaluate the precursor concentrations:
 
 \be
@@ -638,8 +639,8 @@ A brief explanation of the MOOSE-specific objects for the IQS implementation can
 \begin{itemize}
 \item Kernel - Evaluation of the weak-form residual for a particular piece of physics.
 \item Executioner - Establishes the type of simulation. The Transient type moves the simulation in time conducting spatial evaluations at each step.
-\item Auxiliary variable and kernel - "Optional" variables that live on the same mesh as the solution and are computed using auxiliary kernels. 
-\item Postprocessor - Computes scalar values over the entire spatial mesh, usually in an integral sense.
+\item Auxiliary variable and kernel - "Optional" variables that live on the same mesh as the solution and are computed algebraically using auxiliary kernels. 
+\item Postprocessor - Computes scalar values over the entire spatial mesh, usually involves integrated quantities.
 \item User-object - A generic type of postprocessor that allows connectivity of relevant quantities between different MOOSE objects.
 \end{itemize}
 A more detailed and comprehensive description of MOOSE objects can be found in \cite{moose_training}.
@@ -910,7 +911,7 @@ This benchmark problem originates from the ANL Benchmark Problem Book \cite{ANL_
 %\subsubsection{TWIGL Time Step Convergence Analysis}
 
 In order to demonstrate asymptotic convergence of IQS, implicit Euler (IE) and second order BDF (BDF2) were applied to solve the TWIGL problem. \fig{fig:TWIGL_conv} plots the error convergence of IQS and the implicit discretization methods.  The curves show the superior convergence of IQS. The observed convergence rates are indicated in the legend. They show orders 1 for IE and 2 for BDF2 for the flux solves. However, the convergence rates for IQS show higher values, order 2 for IE solves for the shape, and above 2.5 for BDF2 solve of the shape. When there is moderate variation in the shape over the transient, the PRKE parameters are accurately estimated, and the fine-scale PRKE solve provides a well resolved amplitude solution.
-The baseline was computed using the BDF2 scheme on the flux equation with a time step of $10^{-5}$. The proper error convergences show that this solution is accurate enough to compare to for error computation for most of the convergence data points. Smallest time step scheme for IQS shows a break in the linearity of the convergence.
+The baseline was computed using the BDF2 scheme on the flux equation with a time step of $10^{-5}$. The proper error convergences show that this solution is accurate enough to compare to for error computation for most of the convergence data points. The smallest time step scheme for IQS shows a break in the linearity of the convergence.
 These convergence results are consistent with the hypothesis that the performance of IQS is highly dependent on the spatial coupling of the flux.
 
 \begin{figure}[!htbp]
@@ -1007,7 +1008,7 @@ Peak Power (W/cm$^3$) 	& 5456 		& 5461 \\
 %----------------------------------------------------------------------------------------
 \subsubsection{IQS Results for the LRA Benchmark without Time Adaptivity}
 
-This section shows the time step error convergence of IQS for the LRA benchmark, as well as the effect of the intermediate temperature time scale. \fig{fig:lra_bad} is an error convergence plot comparing the three tempoeral solution techniques where temperature is evaluated only once per macro step (1 temperature update).  \fig{fig:lra_mpconv} is an error convergence plot comparing the same three techniques when temperature is evaluated 5 times within a macro step (5 temperature updates).  Finally, \fig{fig:mp} shows the effect of various temperature updates. The dashed lines correspond to implicit flux discretization at different step sizes, while the IQS macro step size is kept constant.
+This section shows the time step error convergence of IQS for the LRA benchmark, as well as the effect of the intermediate temperature time scale. \fig{fig:lra_bad} is an error convergence plot comparing the three temporal solution techniques where temperature is evaluated only once per macro step (1 temperature update).  \fig{fig:lra_mpconv} is an error convergence plot comparing the same three techniques when temperature is evaluated 5 times within a macro step (5 temperature updates).  Finally, \fig{fig:mp} shows the effect of various temperature updates. The dashed lines correspond to implicit flux discretization at different step sizes, while the IQS macro step size is kept constant.
 
 \begin{figure}[!htbp]
 \centering
@@ -1035,8 +1036,8 @@ The convergence plots show that updating temperature and the PRKE parameters wit
 %
 Table \ref{tab:ndiff_lra} shows the run time results for the implicit discretization calculations. The number of GMRES linear iterations is included because it is a proportional measure of the computational effort. Tables \ref{tab:iqs_lra} and \ref{tab:iqspc_lra} present the IQS run-times with various numbers of temperature updates.  These run-times are based on total alive time of the execution where the diffusion evaluation is distributed over 24 processors. These run-times show a marginal performance for IQS and superior performance for \iqspc.  Some of the execution times were able to decrease from implicit discretization with the same number of macro steps because IQS is better equipped to resolve the nonlinearity between temperature and amplitude. Furthermore, there seems to be an optimal number of temperature updates to minimize execution time for a given accuracy.
 %: IQS only needs one and \iqspc seems to be ideal at 4 updates. This discrepancy in the number of updates shows that an adaptive type implementation of the updates would be ideal, and could enforce a constant error over the transient. 
-It is also important to compare the error of implicit discretization with IQS at one update and \iqspc at 4 updates.  IQS shows an error comparable to implicit discretization at $\Delta t = 0.002$, signifying an actual increase in runtime by -34.1\%.  \iqspc shows an error less than implicit discretization at $\Delta t = 0.002$, signifying an actual increase in runtime by $<-34.9\%$. These specific runs are highlighted in Tables \ref{tab:ndiff_lra} - \ref{tab:iqspc_lra}.
-\fig{fig:lra_rt_vs_err} visualizes the dependence of runtime on error. This figure shows that IQS and IQS P-C generally has a lower runtime for certain error than implicit discretization. Furthermore, note that the slopes on the right half of the \iqspc runs are shallower than the implicit discretization slope. This shows that by adding more temperature updates, within the 1-4 temperature updates region, \iqspc suffers a smaller increase in runtime for a decrease in error. However, the error in the shape function saturates the full error after adding more than four updates, leading to an inelastic dependence on runtime. 
+It is also important to compare the error of implicit discretization with IQS at one update and \iqspc at 4 updates.  IQS shows an error comparable to implicit discretization at $\Delta t = 0.002$, signifying an actual increase in run-time by -34.1\%.  \iqspc shows an error less than implicit discretization at $\Delta t = 0.002$, signifying an actual increase in run-time by $<-34.9\%$. These specific runs are highlighted in Tables \ref{tab:ndiff_lra} - \ref{tab:iqspc_lra}.
+\fig{fig:lra_rt_vs_err} visualizes the dependence of run-time on error. This figure shows that IQS and IQS P-C generally has a lower run-time for certain error than implicit discretization. Furthermore, note that the slopes on the right half of the \iqspc runs are shallower than the implicit discretization slope. This shows that by adding more temperature updates, within the 1-4 temperature updates region, \iqspc suffers a lesser increase in run-time for a decrease in error. However, the error in the shape function saturates the full error after adding more than four updates, leading to an inelastic dependence on run-time. 
 
 \begin{table}[!htbp]
 \begin{center}
@@ -1044,7 +1045,7 @@ It is also important to compare the error of implicit discretization with IQS at
 \label{tab:ndiff_lra}
 \begin{tabular}{|l|l|ccc|}
 \hline
-Run  &  $\Delta t$ & Error$^*$ & Runtime (hr) & Linear Iter.\\
+Run  &  $\Delta t$ & Error$^*$ & Run-time (hr) & Linear Iter.\\
 \hline
 1	& 4.0e-3	& 1.407e-2 	& 4.11	& 7.13e4	\\
 \rowcolor{yellow} 2	& 2.0e-3	& 3.174e-3 	& 6.01	& 9.49e4 	\\
@@ -1063,8 +1064,8 @@ Run  &  $\Delta t$ & Error$^*$ & Runtime (hr) & Linear Iter.\\
 \label{tab:iqs_lra}
 \begin{tabular}{|l|l|ccc|}
 \hline
-	&  Temperature 	&  		& Runtime 	& \% Increase	\\
-Run	&  Updates 	& Error$^*$ & (hr)		& in Runtime$^{\dagger}$\\
+	&  Temperature 	&  		& Run-time 	& \% Increase	\\
+Run	&  Updates 	& Error$^*$ & (hr)		& in Run-time$^{\dagger}$\\
 \hline
 \rowcolor{yellow} 1	& 1		& 2.612e-3 	& 3.96 	& -3.18\%	\\
 2	& 2		& 9.893e-4 	& 6.02	&  47.1\%	\\
@@ -1085,8 +1086,8 @@ Run	&  Updates 	& Error$^*$ & (hr)		& in Runtime$^{\dagger}$\\
 \label{tab:iqspc_lra}
 \begin{tabular}{|l|l|ccc|}
 \hline
-	&  Temperature 	&  		& Runtime 	& \% Increase	\\
-Run	&  Updates 	& Error$^*$ & (hr)		& in Runtime$^{\dagger}$\\
+	&  Temperature 	&  		& Run-time 	& \% Increase	\\
+Run	&  Updates 	& Error$^*$ & (hr)		& in Run-time$^{\dagger}$\\
 \hline
 1	& 1		& 3.488e-3 	& 2.91 	& -28.9\%	\\
 2	& 2		& 1.349e-3 	& 3.73	& -9.00\%	\\
@@ -1104,7 +1105,7 @@ Run	&  Updates 	& Error$^*$ & (hr)		& in Runtime$^{\dagger}$\\
 \begin{figure}[htbp!]
 \centering
 \includegraphics[height=3in]{figures/lra_rt_vs_err.png}
-\caption{Runtime vs. error for various number of temperature updates of IQS and IQS P-C, and various time step sizes of Implicit Dis. (lower is better)}
+\caption{Run-time vs. error for various number of temperature updates of IQS and IQS P-C, and various time step sizes of Implicit Dis. (lower is better)}
 \label{fig:lra_rt_vs_err}
 \end{figure}
 
@@ -1129,7 +1130,7 @@ All the values for error in this section are errors in the globally integrated f
 %----------------------------------------------------------------------------------------
 \subsubsection{IQS Results for the LRA Benchmark with Time Adaptivity}
 
-\fig{fig:lra_dt2} shows the power profile of the LRA with time a of implicit discretization and \iqspc, and \tbl{tab:lra_dt2} compiles the results. These adaptivity results show the significant decrease in the number of macro time steps required for \iqspc. The power profiles were obtaining with only one temperature update per macro step.
+\fig{fig:lra_dt2} shows the power profile of the LRA while using time adaptivity for implicit discretization and \iqspc; \tbl{tab:lra_dt2} compiles these results. These adaptivity results show the significant decrease in the number of macro time steps required for \iqspc. The power profiles were obtaining with only one temperature update per macro step.
 
 \begin{figure}[!htbp]
 \centering
@@ -1211,7 +1212,7 @@ In order to test the temperature feedback treatment, six different scenarios wer
 \begin{tabular}{|l|ccccccc|}
 \hline
  & No.	& Max &	Time at Max &	Max Average &	\% Increase &	Max Power & Linear	\\
-Method & of Steps &	Power (W) &	Power (s) &	Temperature (K) & Runtime$^*$ & Error & Iterations \\
+Method & of Steps &	Power (W) &	Power (s) &	Temperature (K) & Run-time$^*$ & Error & Iterations \\
 \hline
 Baseline 			& 3000 	& 3.5039e+08 & 1.901 & 371 &	---		&	---		 & ---		\\
 Implicit Disc. 		& 300 	& 3.5011e+08 & 1.90  & 371 &	---		&	7.875e-4 & 41020	\\
@@ -1225,7 +1226,7 @@ IQS (5 updates) 	& 300 	& 3.5040e+08 & 1.90  & 371 &  49.7\%	&	3.687e-5 & 24035	
 \end{center}
 \vspace{-3mm}
 $^*$ difference in run-time from implicit discretization 
-\caption{Transient-15 Error and Runtime Results}
+\caption{Transient-15 Error and Run-time Results}
 \label{tab:tran15}
 \end{table}
 
