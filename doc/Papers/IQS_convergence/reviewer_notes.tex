@@ -8,6 +8,8 @@
 \usepackage{float}
 \usepackage{tikz}
 
+\newcommand{\iqspc}{IQS-PC}
+
 \newcommand{\fix}{\textsquare}
 \newcommand{\working}{$\boxdot$}
 \newcommand{\nofix}{?}
@@ -33,16 +35,17 @@
 \item Reference first IQS paper
 \end{itemize}
 
-\item[\fix] \medm{  Results are often just stated and not discussed, e.g. page 19 "It also shows that traditional IQS performed better with large etol, while IQS-PC was better with smaller etol". The statement simply bloats the manuscripts; discuss the reasons and implications or remove it. Another example is page 15, "However, switching the precursors solve to be performed semi-analytically…".  In this case, the authors should take the time to discuss the implications of this finding. }
+\item[\working] \medm{  Results are often just stated and not discussed, e.g. page 19 "It also shows that traditional IQS performed better with large etol, while IQS-PC was better with smaller etol". The statement simply bloats the manuscripts; discuss the reasons and implications or remove it. Another example is page 15, "However, switching the precursors solve to be performed semi-analytically…".  In this case, the authors should take the time to discuss the implications of this finding. }
 \begin{itemize}
-\item I will remove the first referenced quote.
-\item I will add that if one expecting a certain tolerance to be reached in the iterative process, the semi-analytical integration of the precursors is necessary. Since, in the majority of cases, this evaluation is negligible compared to the evaluation of the shape, it is fortuitous to apply this technique in all cases.
+\item Page 16: Added "This result implies that uniqueness of the shape and amplitude can only be maintained with a consistent treatment of precursor term in the shape equation.
+\item Page 18: Removed "This illustrates that IQS can yield a much more accurate solution, even at a significantly larger time step than the implicit flux discretization."
+\item Page 20: Added "These convergence results are consistent with the hypothesis that the performance of IQS is highly dependent on the spatial coupling of the flux."
+\item Page 20: Added "This observation implies that the time adaptive options must be chosen differently when applied to a solver for shape versus a solver for flux."
 \end{itemize}
 
-\item[\working] \medm{ For the comparison of LRA and TREAT results, the efficiency [how accurate can you be given a fixed execution time or given an accuracy how much execution time do you need] is a very important quantity; the authors discuss it for LRA and TREAT. However, the authors first present results for the errors and then runtime results. Then they try to synthesize efficiency by comparing different cases that have different runtimes and different errors, e.g. page 23 right before Table 5 "IQS-PC shows and error less than implicit discretization at delta t = 0.002, signifying …". I suggest the authors create error vs. execution time plots for different cases and based on these curves discuss efficiency. The manner efficiency is discussed is very confusing and not very useful for the reader. }
+\item[\done] \medm{ For the comparison of LRA and TREAT results, the efficiency [how accurate can you be given a fixed execution time or given an accuracy how much execution time do you need] is a very important quantity; the authors discuss it for LRA and TREAT. However, the authors first present results for the errors and then runtime results. Then they try to synthesize efficiency by comparing different cases that have different runtimes and different errors, e.g. page 23 right before Table 5 "IQS-PC shows and error less than implicit discretization at delta t = 0.002, signifying …". I suggest the authors create error vs. execution time plots for different cases and based on these curves discuss efficiency. The manner efficiency is discussed is very confusing and not very useful for the reader. }
 \begin{itemize}
-\item Fig. 17 visualizes the dependence of runtime on error. This figure shows that IQS and IQS P-C generally has a lower runtime for certain error than implicit discretization.
-\item I need help intepreting this result
+\item Fig. 17 visualizes the dependence of runtime on error. This figure shows that IQS and IQS P-C generally has a lower runtime for certain error than implicit discretization. Furthermore, note that the slopes on the right half of the \iqspc runs are shallower than the implicit discretization slope. This shows that by adding more temperature updates, within the 1-4 temperature updates region, \iqspc suffers a smaller increase in runtime for a decrease in error. However, the error in the shape function saturates the full error after adding more than four updates, leading to an inelastic dependence on runtime. 
 \end{itemize}
 \includegraphics[height=3in]{figures/lra_rt_vs_err.png}
 
@@ -65,9 +68,10 @@
 \end{tikzpicture}%
 }
 
-\item[\fix] \medm{  Whenever errors are computed, baseline calculations are performed. How do the authors know that these baseline calculations are accurate enough to measure the error w.r.t. them? }
+\item[\done] \medm{  Whenever errors are computed, baseline calculations are performed. How do the authors know that these baseline calculations are accurate enough to measure the error w.r.t. them? }
 \begin{itemize}
-\item Can we just say that a proper error convergence means that the baseline is good enough?
+\item Page 18: Added "It should be noted that the baseline for these error computations was performed using an adaptive method for the flux equations with a tight tolerance. The proper convergence rates seen by the methods with coarser time steps show that this baseline is accurate enough for computing error."
+\item Page 20: Added "The baseline was computed using the BDF2 scheme on the flux equation with a time step of $10^{-5}$. The proper error convergences show that this solution is accurate enough to compare to for error computation for most of the convergence data points. Smallest time step scheme for IQS shows a break in the linearity of the convergence."
 \end{itemize}
 
 \end{itemize}
