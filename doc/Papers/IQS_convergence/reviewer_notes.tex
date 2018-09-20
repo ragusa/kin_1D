@@ -6,6 +6,7 @@
 \usepackage{graphicx,amsmath, amssymb, amsthm, amsfonts,subcaption}
 \usepackage[usenames, dvipsnames]{xcolor}
 \usepackage{float}
+\usepackage{tikz}
 
 \newcommand{\fix}{\textsquare}
 \newcommand{\working}{$\boxdot$}
@@ -51,10 +52,18 @@
 \item Included an explicit definition of error in each of the plots and tables
 \end{itemize}
 
-\item[\fix] \hard{ LRA and TREAT only compare errors computed with the peak powers. Peak powers are an integral quantity and may favor IQS over spatial kinetics. The authors should also compare power distributions or similar distributed quantities. }
+\item[\done] \hard{ LRA and TREAT only compare errors computed with the peak powers. Peak powers are an integral quantity and may favor IQS over spatial kinetics. The authors should also compare power distributions or similar distributed quantities. }
 \begin{itemize}
-\item This would require a rerun of all simulations. There is a postprocessor in MOOSE that could do it, but the simulations would be ridiculously tedious.
+\item All the values for error in this section are errors in the globally integrated flux. However, it is noteworthy to compare the spatial dependence of error. Fig. 18 shows the difference in normalized power at each block of the LRA geometry for each method. The resulting spatially dependent error is in general an order of magnitude lower for IQS and IQS P-C than implicit discretization. This observation corresponds well with the globally integrated flux errors shown in Tables 6-8. 
 \end{itemize}
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[every node/.style = {font=\normalsize}]
+\node[inner sep=0pt, anchor=south](fig) at (0,0) {\includegraphics[height=5in]{figures/lra_block.png}};
+\node[rectangle, draw, align=center,anchor=north east, style={font=\footnotesize}] (des) at (1,0) {\textbf{Normalized Power (Ref.)} \\ Difference (IQS) - $\Delta t = 0.004, \ N_T = 4$ \\ Difference (IQS P-C) - $\Delta t = 0.004, \ N_T = 4$ \\ Difference (Implicit Dis.) - $\Delta t = 0.004$};
+\node[anchor= north west] (dif) at (1,0) {Difference $= \frac{\text{Power}^\text{ref} - \text{Power}}{\text{Power}^\text{ref}}$};
+
+\end{tikzpicture}%
+}
 
 \item[\fix] \medm{  Whenever errors are computed, baseline calculations are performed. How do the authors know that these baseline calculations are accurate enough to measure the error w.r.t. them? }
 \begin{itemize}
@@ -135,9 +144,9 @@
 \item Spatial mesh cells
 \end{itemize}
 
-\item[\fix] \easy{ LRA benchmark: the number of elements makes no sense 11x11 = 121 and when using five uniform refinement steps one would end up with 123,904 elements. }
+\item[\done] \easy{ LRA benchmark: the number of elements makes no sense 11x11 = 121 and when using five uniform refinement steps one would end up with 123,904 elements. }
 \begin{itemize}
-\item  Not sure how we got these numbers, but he's right
+\item  Fixed it to 123,904 elements, number of nodes was originally correct
 \end{itemize}
 
 \item[\done] \easy{ LRA benchmark description does not state what equations are solved, if that is provided in the ANL benchmark book it should be made clear. Equations could also be stated directly. }

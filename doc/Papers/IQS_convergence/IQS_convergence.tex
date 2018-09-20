@@ -967,7 +967,7 @@ Note that any instance of $\Delta t$ in the following figures and commentary sig
 %---------------------------------------------------------------------------------------%
 
 The LRA benchmark is a two-dimensional, two-group neutron diffusion problem.  
-It is a super prompt-critical transient. The equations being solved are explicitly defined in problem 14-A1 of the ANL Benchmark Problem Book \cite{ANL_BPB}. The execution of the benchmark was performed by the Rattlesnake/MOOSE framework at Idaho National Laboratory (INL) \cite{wang2013}.  The spatial discretization uses continuous finite elements with first-order Lagrangian basis functions. The mesh consists of blocks $11\times 11$ with five uniform refinements, totaling $165,165$ elements and $124,609$ nodes. Three different temporal solution techniques are used: implicit discretization of the flux equations, IQS formulation, and \iqspc. Crank-Nicolson time discretization scheme is used for the space-time equations. 
+It is a super prompt-critical transient. The equations being solved are explicitly defined in problem 14-A1 of the ANL Benchmark Problem Book \cite{ANL_BPB}. The execution of the benchmark was performed by the Rattlesnake/MOOSE framework at Idaho National Laboratory (INL) \cite{wang2013}.  The spatial discretization uses continuous finite elements with first-order Lagrangian basis functions. The mesh consists of blocks $11\times 11$ with five uniform refinements, totaling $123,904$ elements and $124,609$ nodes. Three different temporal solution techniques are used: implicit discretization of the flux equations, IQS formulation, and \iqspc. Crank-Nicolson time discretization scheme is used for the space-time equations. 
 The performance of IQS with temperature feedback is assessed by comparing the solution accuracy at peak power.
 
 \fig{fig:lra_profile} shows the baseline power and temperature transient profile for the LRA benchmark. The baseline results are compared to the results achieved by Sutton and Aviles in \cite{Sutton_1996} and presented in \tbl{tab:base}.  The relative difference in the magnitude of the peak power ($t\approx1.44 s$) from the baseline was used for error comparison.  
@@ -1101,6 +1101,23 @@ Run	&  Updates 	& Error$^*$ & (hr)		& in Runtime$^{\dagger}$\\
 \includegraphics[height=3in]{figures/lra_rt_vs_err.png}
 \caption{Runtime vs. error for various number of temperature updates of IQS and IQS P-C, and various time step sizes of Implicit Dis. (lower is better)}
 \label{fig:lra_rt_vs_err}
+\end{figure}
+
+All the values for error in this section are errors in the globally integrated flux. However, it is noteworthy to compare the spatial dependence of error. \fig{fig:lra_block} shows the difference in normalized power at each block of the LRA geometry for each method. The resulting spatially dependent error is in general an order of magnitude lower for IQS and IQS P-C than implicit discretization. This observation corresponds well with the globally integrated flux errors shown in Tables \ref{tab:ndiff_lra}-\ref{tab:iqspc_lra}. 
+
+\begin{figure}[htbp!]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[every node/.style = {font=\normalsize}]
+
+\node[inner sep=0pt, anchor=south](fig) at (0,0) {\includegraphics[height=5in]{figures/lra_block.png}};
+\node[rectangle, draw, align=center,anchor=north east, style={font=\footnotesize}] (des) at (1,0) {\textbf{Normalized Power (Ref.)} \\ Difference (IQS) - $\Delta t = 0.004, \ N_T = 4$ \\ Difference (IQS P-C) - $\Delta t = 0.004, \ N_T = 4$ \\ Difference (Implicit Dis.) - $\Delta t = 0.004$};
+\node[anchor= north west] (dif) at (1,0) {Difference $= \frac{\text{Power}^\text{ref} - \text{Power}}{\text{Power}^\text{ref}}$};
+
+\end{tikzpicture}%
+}
+\caption{Difference in normalized power from reference solution for each fissile block of LRA geometry}
+\label{fig:lra_block}
 \end{figure}
 
 
