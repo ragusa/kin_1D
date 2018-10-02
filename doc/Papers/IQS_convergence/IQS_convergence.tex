@@ -119,7 +119,7 @@
   College Station, TX 77840, USA}
 
 \begin{abstract}
-The improved quasi-static method (IQS) is a rigorous space/time multiscale approach whereby the neutron flux is represented by a time-dependent amplitude and a time-, space-, and energy-dependent shape. The objective of the IQS factorization is to evaluate amplitude and shape on different time scales in order to reduce the computational burden associated with solving the multi-dimensional flux equations, while maintaining solution accuracy. The IQS decomposition leads to a nonlinear system of equations that requires iteration of shape and amplitude. IQS iteration techniques involve fixed-point (Picard) iteration with various convergence criteria and shape rescaling. Nonlinear convergence of each of these techniques is investigated. Verification of IQS with analysis of time step convergence is also \tcr{investigated in order to investigate} the method's effectiveness with high-order schemes. The time derivative of the shape function is discretized through fourth order using implicit-Euler, Crank-Nicolson, and backward difference formulae (BDF).
+The improved quasi-static method (IQS) is a rigorous space/time multiscale approach whereby the neutron flux is represented by a time-dependent amplitude and a time-, space-, and energy-dependent shape. The objective of the IQS factorization is to evaluate amplitude and shape on different time scales in order to reduce the computational burden associated with solving the multi-dimensional flux equations, while maintaining solution accuracy. The IQS decomposition leads to a nonlinear system of equations that requires iteration of shape and amplitude. IQS iteration techniques involve fixed-point (Picard) iteration with various convergence criteria and shape rescaling. Nonlinear convergence of each of these techniques is investigated. Verification of IQS with analysis of time step convergence is also investigated in order to examine the method's effectiveness with high-order schemes. The time derivative of the shape function is discretized through fourth order using implicit-Euler, Crank-Nicolson, and backward difference formulae (BDF).
 \end{abstract}
 
 \begin{keyword}
@@ -143,7 +143,7 @@ Nonlinear problems are solved in an iterative manner, typically using either a f
 
 For use in multiphysics reactor physics applications, the interplay of the IQS solution technique (neutronics) and other physics components (e.g., fuel temperature) needs to be resolved effectively. Meneley and Ott first implemented IQS into the one-dimensional fast-reactor code QX1 \cite{Meneley_1971}. This implementation does simple adiabatic heat up with tabular cross-section feedback. Later, Kereszt\'{u}ri et al. describe IQS implementation into KIKO3D, a three-dimensional pressurized water reactor code, in \cite{KIKO3D_2003}. This implementation computes fuel heat transfer and thermal hydraulic feedback. Ikeda and Takeda developed in the nodal expansion method code EPISODE which uses \iqspc with adiabatic fuel heat and Doppler feedback, as well as full neutronics and thermal-hydraulics coupling \cite{Ikeda_2001}. These multiphysics applications range in complexity and problem type, but seem to neglect the advantage of including the non-neutronics physics into the quasi-static process. Although Meneley and Ikeda hint at using an intermediate time-scale for fuel temperature evaluation, their numerical experiments show that the evaluation is on the same scale as shape. Additionally, these applications only use heat source values at the shape time-scale from the neutronics calculation, while much more information about the transient heat source can be extracted from the amplitude scale.
 
-This paper (i) discusses the different nonlinear iteration techniques for IQS and tests the rigor of their implementation, (ii) investigates high-order temporal discretization of the shape equation, and (iii) analyzes IQS coupled with adiabatic heat up and cross-section feedback. Prior IQS publications \tcr{do not go beyond first-order time discretization for the shape equation\footnote{are you sure? I thought the Canadians used a $\theta$ scheme, thus included 2nd order Crank-Nicolson}}. Here, we test IQS with higher-order schemes (up to fourth order) and investigate the method's effectiveness with such temporal discretizations. Step doubling time adaptation is also implemented to test IQS and \iqspc performance with adaptation of shape/flux evaluation; although, Caron et al. in \cite{caron2017} performs a more comprehensive shape time adaptation analysis. Step doubling is also applied to amplitude evaluation. Regarding multiphysics simulation, we develop a semi-analytical approach to evaluate adiabatic fuel temperature and introduce an intermediate time scale for temperature evaluation. To test IQS and \iqspc nonlinear iteration, time step convergence, and time adaptation performance, four different test cases are employed: two problems are purely neutronics and involve varying magnitudes of reactor size and complexity; two problems involve temperature feedback and test an intermediate time scale for temperature evaluation.
+This paper (i) discusses the different nonlinear iteration techniques for IQS and tests the rigor of their implementation, (ii) investigates high-order temporal discretization of the shape equation, and (iii) analyzes IQS coupled with adiabatic heat up and cross-section feedback. Prior IQS publications \tcr{do not go beyond first-order time discretization for the shape equation\footnote{are you sure? I thought the Canadians used a $\theta$ scheme, thus included 2nd order Crank-Nicolson}}\tcb{\footnote{I am pretty sure of this, the Canadians only do $\theta$ scheme on the precursor equation, they do implicit Euler on the shape}}. Here, we test IQS with higher-order schemes (up to fourth order) and investigate the method's effectiveness with such temporal discretizations. Step doubling time adaptation is also implemented to test IQS and \iqspc performance with adaptation of shape/flux evaluation; although, Caron et al. in \cite{caron2017} performs a more comprehensive shape time adaptation analysis. Step doubling is also applied to amplitude evaluation. Regarding multiphysics simulation, we develop a semi-analytical approach to evaluate adiabatic fuel temperature and introduce an intermediate time scale for temperature evaluation. To test IQS and \iqspc nonlinear iteration, time step convergence, and time adaptation performance, four different test cases are employed: two problems are purely neutronics and involve varying magnitudes of reactor size and complexity; two problems involve temperature feedback and test an intermediate time scale for temperature evaluation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Background Theory on IQS}
@@ -164,7 +164,7 @@ In this Section, we recall the equations for the IQS method, starting from multi
 
 \begin{table}[htbp!]
 \centering
-\caption{Operator definition of multi-group neutron conservation equations\tcr{why do you have transfers in $\chi_p$ for $P$?}}
+\caption{Operator definition of multi-group neutron conservation equations}
 \label{tab:op_def}
 \def\arraystretch{2}
 \begin{tabular}{|c|c|c|c|}
@@ -173,17 +173,16 @@ Operator & Description & Transport Def. & Diffusion Def. \\
 \hline
 $H^{g'\to g}$ & Scattering & $\frac{1}{4\pi}\int_{4\pi}\Sigma_s^{g'\rightarrow g}d\Omega '$ & $\Sigma_s^{g'\rightarrow g}$ \\
 \hline
-$P_p^{g'\to g}$ & Prompt fission & $\frac{1}{4\pi}\chi_p^{g'\rightarrow g}\frac{\nu_p\Sigma_f^{g'}}{\keff}\int_{4\pi}d\Omega '$ & $\chi_p^{g'\rightarrow g}\frac{\nu_p\Sigma_f^{g'}}{\keff}$ \\
+$P_p^{g'\to g}$ & Prompt fission & $\frac{1}{4\pi}\chi_p^{g}\frac{\nu_p\Sigma_f^{g'}}{\keff}\int_{4\pi}d\Omega '$ & $\chi_p^{g}\frac{\nu_p\Sigma_f^{g'}}{\keff}$ \\
 \hline
 $L^g$ & Streaming/Removal & $\vec \Omega \cdot \grad + \Sigma_t^g$ & $-\div D^g \grad + \Sigma_t^g$ \\
 \hline
 $S_d^g$ & Delayed neutron source & $\frac{1}{4\pi}\chi_d^g\sum_{i=1}^I\lambda_iC_i$ & $\chi_d^g\sum_{i=1}^I\lambda_iC_i$ \\
 \hline
-$P_{d,i}^g$ & Precursor production & $\beta_i\frac{\nu\Sigma_f^{g}}{\keff}\int_{4\pi}d\Omega$ & $\beta_i\frac{\nu\Sigma_f^{g}}{\keff}$ \\
+$P_{d,i}^g$ & Precursor production & $\frac{1}{4\pi}\beta_i\frac{\nu\Sigma_f^{g}}{\keff}\int_{4\pi}d\Omega$ & $\beta_i\frac{\nu\Sigma_f^{g}}{\keff}$ \\
 \hline
 \end{tabular}
 \end{table}
-\tcr{in transport, shouldn't $P^g_{d,i}$ also have a $1/4\pi$?}
 %
 \noindent
 where \tbl{tab:op_def} shows the definition of each operator for both the transport and diffusion cases. Note that $\phi^g$ for neutron transport is the angular neutron flux ($\phi^g(\vec r, \vec\Omega, t)$), while for neutron diffusion it is the scalar flux ($\phi^g(\vec r, t)$).  
@@ -314,21 +313,20 @@ each iteration convergence criterion investigated in this paper:
 \]
 \item Reactivity convergence \cite{Monier_diss}: 
 \[
-\left(\rho/\Lambda\right)^{(k+1)}_{n+1} - \left(\rho/\Lambda\right)^{(k)}_{n+1} < \epsilon_{\rho}
+\left|\left(\rho/\Lambda\right)^{(k+1)}_{n+1} - \left(\rho/\Lambda\right)^{(k)}_{n+1}\right| < \epsilon_{\rho}
 \]
 \item Amplitude convergence \cite{Monier_diss}: 
 \[
-p_{n+1}^{(k+1)} - p_{n+1}^{(k)} < \epsilon_p
+\left|p_{n+1}^{(k+1)} - p_{n+1}^{(k)}\right| < \epsilon_p
 \]
 %\comm{why is this not a relative error criterion like the others? what's the rationale?}
 %\answer{zmp}{I copied all of the above from \cite{Monier_diss}, not sure the rationale though}
 \item Uniqueness consistency \cite{Monier_diss}: 
 \[
-\frac{K_{n+1}^{(k+1)} - K_0}{K_0} < \epsilon_K
+\left|\frac{K_{n+1}^{(k+1)} - K_0}{K_0}\right| < \epsilon_K
 \]
 where $k$ denotes the nonlinear iteration index within a given macro time step interval.
 \end{itemize}
-\tcr{Why don't you have absolute values in the last 3 criteria?}
 
 In order to ensure that uniqueness criteria is preserved, some authors \cite{Monier_diss,Dulla2008} explicitly scale the shape solution, 
 either at each nonlinear iteration or upon exiting the nonlinear loop on the macro time time step. This re-scaling is simply
@@ -408,7 +406,7 @@ it is an additional nonlinear component to the already coupled shape-amplitude e
 the application of this component, we expect temperature to be more rapidly varying than the shape, but 
 less so than the amplitude.  Therefore, the evaluation of temperature will have its own time scale, intermediary
 between the amplitude's fine time scale and the shape's coarse time scale. 
-This idea stems from the fact that in an adiabatic temperature model, the temperature's spatial variation follows the neutron flux shape, while the temperature amplitude follows the flux amplitude. Because of the heat capacity of the fuel, the temperature amplitude is more slowly varying in time than the heat \tcr{?inflow?} from the flux amplitude, while still considerably faster than the time \tcr{?variance?} of the flux shape. This logic is empirically defended in the results of Section 5.
+This idea stems from the fact that in an adiabatic temperature model, the temperature's spatial variation follows the neutron flux shape, while the temperature amplitude follows the flux amplitude. Because of the heat capacity of the fuel, the temperature amplitude is often more slowly varying in time than neutron amplitude function itself, while still considerably faster varying than the flux shape. This conjecture is empirically defended in the results of Section 5.
 Hence, a possible solution process for a problem with temperature feedback will have three time scales, as
 portrayed in \fig{fig:time}.  The first time scale is the shape solve, the second is the temperature evaluation 
 as well as the computation of PRKE parameters, and the third is the PRKE scale.  It is important to note that the 
@@ -578,7 +576,7 @@ If the error is smaller than the user-specified tolerance, $e_{tol}$, the time s
 \ee
 where $q$ is the convergence order of the time integration scheme being used and $s\simeq 0.8$ is a safety factor. If the error is larger than the user-specified tolerance, the time step is rejected and new (smaller) macro time step size is estimated using \eqt{eq:edt2} as well. This process can be visualized by \figs{fig:dt2_1}{fig:dt2_2}, where a step involves a full convergence of shape, amplitude, and any multiphysics on the respective time step.
 
-To investigate IQS's performance with step-doubling time adaptation, the adaptation will be applied \tcr{?to direct temporal discretization?} of the flux equation (no IQS), the standard IQS method, and the \iqspc version. Each of these methods will be applied to several diffusion problems; the number of time steps taken and the resulting error will be used to compare the methods.
+To investigate IQS's performance with step-doubling time adaptation, the adaptation is applied to implicit discretization of the flux equation (no IQS), the standard IQS method, and the \iqspc version. Each of these methods will be applied to several diffusion problems; the number of time steps taken and the resulting error will be used to compare the methods.
 
 \begin{figure}[htpb!]
 \centering

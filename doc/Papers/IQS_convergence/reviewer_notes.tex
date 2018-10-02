@@ -1,51 +1,108 @@
-\documentclass{elsarticle}
+\documentclass[11pt]{letter}
 
-\usepackage[letterpaper, margin=1in]{geometry}
-\usepackage{titlesec}
-\usepackage{enumitem}
-\usepackage{graphicx,amsmath, amssymb, amsthm, amsfonts,subcaption}
-\usepackage[usenames, dvipsnames]{xcolor}
-\usepackage{float}
-\usepackage{tikz}
+%%%%%% Letter Size Setup %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        \setlength{\textwidth}{6in}     %% For longer or shorter text width
+        \setlength{\topmargin}{0in}    %% For more or less top margin
+       \setlength{\textheight}{8.6in}    %% For longer or shorter textheight
+        \setlength{\oddsidemargin}{0.25in} %% For odd side margin (twoside)
+                                            %% or margin (oneside)
+        \setlength{\paperwidth}{8.5in}
+        \setlength{\paperheight}{11in}
+        \setlength{\topmargin}{0pt}
+        \setlength{\headheight}{0pt}
+        \setlength{\headsep}{0pt}
+        \setlength{\footskip}{0.4in}
+        \setlength{\marginparwidth}{0in}
+        \setlength{\marginparsep}{0in}
+        \setlength{\hoffset}{0in}
+        \setlength{\voffset}{0in}
+
+\address{Zachary M. Prince\\ 
+Department of Nuclear Engineering \\
+Texas A\&M University\\
+College Station, TX 77843-3133, USA\\
+phone: (360) 362 6622\\
+e-mail: zachmprince@tamu.edu \vspace{0.5cm}}
+
+%%%%%% The Signature  and Date %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\signature{\vspace{-1.25cm}Zachary M. Prince, Jean C. Ragusa}   
+
 \usepackage{xspace} 
 
 \newcommand{\iqspc}{IQS-PC\xspace}
+\newcommand{\section}[1]{\textbf{#1}}
 
-\newcommand{\fix}{\textsquare}
-\newcommand{\working}{$\boxdot$}
-\newcommand{\nofix}{?}
-\newcommand{\done}{\checkmark}
+%\newcommand{\fix}{\textsquare}
+%\newcommand{\working}{$\boxdot$}
+%\newcommand{\nofix}{?}
+%\newcommand{\done}{\checkmark}
+\newcommand{\fix}{$\bullet$}
+\newcommand{\working}{$\bullet$}
+\newcommand{\nofix}{$\bullet$}
+\newcommand{\done}{$\bullet$}
 
 %\newcommand{\easy}[1]{\textcolor{ForestGreen}{#1}}
 %\newcommand{\medm}[1]{\textcolor{BurntOrange}{#1}}
 %\newcommand{\hard}[1]{\textcolor{Red}{#1}}
-\newcommand{\easy}[1]{\textbf{\textit{#1}}}
-\newcommand{\medm}[1]{\textbf{\textit{#1}}}
-\newcommand{\hard}[1]{\textbf{\textit{#1}}}
+\newcommand{\easy}[1]{{\textit{#1}}}
+\newcommand{\medm}[1]{{\textit{#1}}}
+\newcommand{\hard}[1]{{\textit{#1}}}
 
-\usepackage{color}
-\newcommand{\tcr}[1]{\textcolor{red}{#1}}
+%\usepackage{color}
+%\newcommand{\tcr}[1]{\textcolor{red}{#1}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
 %%%%%%%%%%%%%%%%%%%%%%%%
 
-\tcr{The different bullet sizes will be a cause for question. Make the reply to the reviewer uniform. Do NOT forgot to thank them as needed for every good suggestion/recommendation. I've done some of that. People review for free on their free time. We have to be grateful.}
-\section*{Major Issues}
+\begin{letter}{Professor Sara A. Pozzi\\
+    Editor,\\
+    Elsevier Annals of Nuclear Energy\\
+    \bigskip
+    Re: Resubmission of manuscript ``Multiphysics Reactor-core Simulations Using the Improved Quasi-Static Method'', ANUCENE-D-18-00462}
+\date{\today}
+%%%%%% More vertical space can be added here %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         \vspace{3.0cm}
+
+\opening{Dear Professor Pozzi,}
+         \vspace{0.25cm}
+%%%%%% More vertical space can be added here %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Thank you for the opportunity to revise our manuscript, ``Multiphysics Reactor-core Simulations Using the Improved Quasi-Static Method''. We appreciate the prompt review and constructive suggestions. It is our belief that the manuscript is substantially improved after making the suggested edits.
+
+Overall, the comments from the reviewer were positive and pivotal in the improved quality of the manuscript. Following this letter are the review comments in italics with our responses below, including how and where the text was modified.
+
+We hope you will find the revised manuscript suitable for publication. Thank you again for considering this manuscript for publication in the {\it Annals of Nuclear Energy}.
+
+\vspace{0.25cm}
+
+
+%%%%%% More vertical space can be added here %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%% The Closing %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\closing{Sincerely, }
+
+\end{letter}
+
+\large{\textbf{Reviewer Comments}}\hrule\small
+
+\section{Major Issues}
 
 \begin{itemize}
 
 \item[\done] \medm{ Justify page 8: ``we expect temperature to be more rapidly varying than the shape but less so than the amplitude" }
 \begin{itemize}
-\item We have added the following on Page 9: ``This idea stems from the fact that in a adiabatic temperature model, the temperature's spatial variation follows the neutron flux shape, while the temperature amplitude follows the flux amplitude. Because of the heat capacity/diffusivity of the fuel, the temperature amplitude is often more slowly varying in time than neutron amplitude function itself, while still considerably faster varying than the flux shape.'' This conjecture is empirically defended in the results of Section 5, for instance, the new Figure 17.
+\item We have added the following on Page 9: ``This idea stems from the fact that in an adiabatic temperature model, the temperature's spatial variation follows the neutron flux shape, while the temperature amplitude follows the flux amplitude. Because of the heat capacity of the fuel, the temperature amplitude is often more slowly varying in time than neutron amplitude function itself, while still considerably faster varying than the flux shape.'' This conjecture is empirically defended in the results of Section 5, for instance, the new Figure 17.
 \end{itemize}
 
 \item[\done] \easy{ Justify page 5: ``Using IQS, one expects the time dependence of the shape to be weaker than that of the flux itself, this allowing for larger time step sizes in updating the shape". }
 \begin{itemize}
-\item Page 5: References [1] as justification for this statement (and maybe its first empirical numerical verification. However, since K. Ott, many other researchers used and published IQS results. Our literature reviews includes several of these references, some recent, more older.
+\item Page 5: References [1] as justification for this statement and maybe its first empirical numerical verification. However, since K. Ott, many other researchers used and published IQS results. Our literature reviews includes several of these references, some recent, more older.
 \end{itemize}
 
-\item[\working] \medm{  Results are often just stated and not discussed, e.g. page 19 ``It also shows that traditional IQS performed better with large etol, while IQS-PC was better with smaller etol". The statement simply bloats the manuscripts; discuss the reasons and implications or remove it. Another example is page 15, ``However, switching the precursors solve to be performed semi-analytically…".  In this case, the authors should take the time to discuss the implications of this finding. }
+\item[\working] \medm{  Results are often just stated and not discussed, e.g. page 19 ``It also shows that traditional IQS performed better with large etol, while \iqspc was better with smaller etol". The statement simply bloats the manuscripts; discuss the reasons and implications or remove it. Another example is page 15, ``However, switching the precursors solve to be performed semi-analytically…".  In this case, the authors should take the time to discuss the implications of this finding. }
+
 Thank you for the recommendations. The following sentences have been added:
 \begin{itemize}
 \item Page 16: Added ``This result implies that uniqueness of the shape and amplitude can only be maintained with a consistent treatment of precursor term in the shape equation."
@@ -54,12 +111,10 @@ Thank you for the recommendations. The following sentences have been added:
 \item Page 20: Added ``This observation implies that the time adaptive options must be chosen differently when applied to a solver for shape versus a solver for flux."
 \end{itemize}
 
-\item[\done] \medm{ For the comparison of LRA and TREAT results, the efficiency [how accurate can you be given a fixed execution time or given an accuracy how much execution time do you need] is a very important quantity; the authors discuss it for LRA and TREAT. However, the authors first present results for the errors and then runtime results. Then they try to synthesize efficiency by comparing different cases that have different runtimes and different errors, e.g. page 23 right before Table 5 ``IQS-PC shows and error less than implicit discretization at delta t = 0.002, signifying …". I suggest the authors create error vs. execution time plots for different cases and based on these curves discuss efficiency. The manner efficiency is discussed is very confusing and not very useful for the reader. }
+\item[\done] \medm{ For the comparison of LRA and TREAT results, the efficiency [how accurate can you be given a fixed execution time or given an accuracy how much execution time do you need] is a very important quantity; the authors discuss it for LRA and TREAT. However, the authors first present results for the errors and then runtime results. Then they try to synthesize efficiency by comparing different cases that have different runtimes and different errors, e.g. page 23 right before Table 5 ``\iqspc shows and error less than implicit discretization at delta t = 0.002, signifying …". I suggest the authors create error vs. execution time plots for different cases and based on these curves discuss efficiency. The manner efficiency is discussed is very confusing and not very useful for the reader. }
 \begin{itemize}
 \item Thank you for the suggestion. We have added this on Page 24: ``Fig. 17 visualizes the dependence of run-time on error. This figure shows that IQS and IQS P-C generally has a lower run-time for certain error than implicit discretization. Furthermore, note that the slopes on the right half of the \iqspc runs are shallower than the implicit discretization slope. This shows that by adding more temperature updates, in the 1-4 temperature-updates range, \iqspc suffers a lesser increase in run-time for a decrease in error. However, beyond 4 temperature updates, the error in the shape function saturates and no additional benefits can be gained by more frequent temperature updates. "
 \end{itemize}
-%\includegraphics[height=3in]{figures/lra_rt_vs_err.png}
-
 
 \item[\done] \easy{ In the results section, Error is sometimes used without introducing it, e.g. page 25, ``Table 9 shows the error ….". Further ``Error" is often used as y-label in plots., e.g. in the discussion of Figure 10 in which ``convergence results" are presented; the sentence is not clear in this context because it was not stated if this is iterative convergence or convergence to the right solution as the time step is reduced. In some instances error is defined but it is tedious for the reader to find the corresponding passage in the text, figures, or tables. }
 \begin{itemize}
@@ -68,26 +123,21 @@ Thank you for the recommendations. The following sentences have been added:
 
 \item[\done] \hard{ LRA and TREAT only compare errors computed with the peak powers. Peak powers are an integral quantity and may favor IQS over spatial kinetics. The authors should also compare power distributions or similar distributed quantities. }
 \begin{itemize}
-\item Thank you for the suggestion. On Page 24-26, we added: ``Up to now, errors presented in this section were norms (i.e., space-integrated flux errors). However, for reactor physics problems, it is also noteworthy to compare the spatial dependence of error, for example, error in the power distribution. Fig. 18 shows the difference in power for each assembly of the LRA geometry for each method. The resulting spatially dependent error is in general an order of magnitude lower for IQS and IQS-PC than for the implicit flux discretization. This observation agrees well with the integrated flux errors shown in Tables 6-8. "
+\item Thank you for the suggestion. On Page 24-26, we added: ``Up to now, errors presented in this section were norms (i.e., space-integrated flux errors). However, for reactor physics problems, it is also noteworthy to compare the spatial dependence of error, for example, error in the power distribution. Fig. 18 shows the difference in power for each assembly of the LRA geometry for each method. The resulting spatially dependent error is in general an order of magnitude lower for IQS and \iqspc than for the implicit flux discretization. This observation agrees well with the integrated flux errors shown in Tables 6-8. "
 \end{itemize}
-%\resizebox{\textwidth}{!}{%
-%\begin{tikzpicture}[every node/.style = {font=\normalsize}]
-%\node[inner sep=0pt, anchor=south](fig) at (0,0) {\includegraphics[height=5in]{figures/lra_block.png}};
-%\node[rectangle, draw, align=center,anchor=north east, style={font=\footnotesize}] (des) at (1,0) {\textbf{Normalized Power (Ref.)} \\ Difference (IQS) - $\Delta t = 0.004, \ N_T = 4$ \\ Difference (IQS P-C) - $\Delta t = 0.004, \ N_T = 4$ \\ Difference (Implicit Dis.) - $\Delta t = 0.004$};
-%\node[anchor= north west] (dif) at (1,0) {Difference $= \frac{\text{Power}^\text{ref} - \text{Power}}{\text{Power}^\text{ref}}$};
-%
-%\end{tikzpicture}%
-%}
 
 \item[\done] \medm{  Whenever errors are computed, baseline calculations are performed. How do the authors know that these baseline calculations are accurate enough to measure the error w.r.t. them? }
+
+Thank you for suggesting this clarification. We've made the following modifications for justification:
 \begin{itemize}
 \item On Page 18: we added ``It should be noted that the baseline for these error computations was performed using an adaptive method for the flux equations with a tight tolerance. The proper convergence rates seen by the methods with coarser time steps show that this baseline is accurate enough for computing the error."
-\item On Page 20: We added ``The baseline was computed using the BDF2 scheme on the flux equation with a time step of $10^{-5}$. The proper error convergences show that this solution is accurate enough to compare to for error computation for most of the convergence data points. Smallest time step scheme for IQS shows a break in the linearity of the convergence."
+\item On Page 20: we added ``The baseline was computed using the BDF2 scheme on the flux equation with a time step of $10^{-5}$. The proper error convergences show that this solution is accurate enough to compare to for error computation for most of the convergence data points. Smallest time step scheme for IQS shows a break in the linearity of the convergence."
 \end{itemize}
 
 \end{itemize}
 
-\section*{Minor Issues}
+\newpage
+\section{Minor Issues}
 
 \begin{itemize}
 
@@ -98,7 +148,7 @@ Thank you for the recommendations. The following sentences have been added:
 
 \item[\done] \easy{ Is $\phi^g$ the scalar flux or scalar flux moments in Eq 1a? }
 \begin{itemize}
-\item Page 3: ``Note that $\phi^g$ for neutron transport is the angular neutron flux ($\phi^g(\vec r, \vec\Omega, t)$), while for neutron diffusion it is scalar flux ($\phi^g(\vec r, t)$)."
+\item Thank you for catching this discrepancy. On Page 3 we've added: ``Note that $\phi^g$ for neutron transport is the angular neutron flux ($\phi^g(\vec r, \vec\Omega, t)$), while for neutron diffusion it is scalar flux ($\phi^g(\vec r, t)$)."
 \end{itemize}
 
 \item[\working] \easy{ All quantities in Eq. 1a and 1b need to be defined. }
@@ -118,8 +168,8 @@ Thank you for the recommendations. The following sentences have been added:
 
 \item[\done] \easy{ Algorithm in section 2.1 on page 5. Step 2: ``linearly interpolate". It is later stated that interpolation of higher order is done for high order schemes. }
 \begin{itemize}
-\item Page 5: Thank you for catching this. Indeed, we use high-order interpolation when a higher-order scheme is used. We removed ``linearly'' from step 2
-\item Page 6: We added: ``It should be noted that Step 2 of the process generally involves a linear interpolation; however, for greater than second order shape discretizations, a higher-order interpolation is necessary."
+\item Thank you for catching this. Indeed, we use high-order interpolation when a higher-order scheme is used. We removed ``linearly'' from step 2 on Page 5.
+\item We've also add on Page 6: ``It should be noted that Step 2 of the process generally involves a linear interpolation; however, for greater than second order shape discretizations, a higher-order interpolation is necessary."
 \end{itemize}
 
 \item[\nofix] \easy{ For the Linf nor of the shape: why is the maximum difference over the maximum value used and not the maximum relative difference ($1 - \phi^{k+1}/\phi^k$). }
@@ -140,12 +190,12 @@ Thank you for the recommendations. The following sentences have been added:
 
 \item[\done] \medm{ Statement page 9: ``Furthermore, a very accurate representation of p(t) over the macro step is available from the PRKE solve…". I think it should be precise or else one would have to show that the equations are solved accurately. Second, what does ``very accurate" mean, ``very accurate" is comparison to what? }
 \begin{itemize}
-\item Thank you for noting this. We improve the phrasing on Page 11: ``Furthermore, a highly refined representation of $p(t)$ over the macro step is available from the PRKE solve (micro time scale). Using this fine scale information yields a more precise integration of amplitude than assuming an interpolation of the amplitude between macro step points."
+\item Thank you for noting this. We improved the phrasing on Page 11: ``Furthermore, a highly refined representation of $p(t)$ over the macro step is available from the PRKE solve (micro time scale). Using this fine scale information yields a more precise integration of amplitude than assuming an interpolation of the amplitude between macro step points."
 \end{itemize}
 
 \item[\done] \medm{ Implementation uses code specific jargon: kernels, auxkernels, Transient executioner, user-object. These need to be explained or cast in more general terms. }
 \begin{itemize}
-\item We are correct. This has been added on Page 13:
+\item Thank you for the valuable suggestion. This has been added on Page 13:
 \begin{itemize}
 \item Kernel - Evaluation of the weak-form residual for a particular piece of physics.
 \item Executioner - Establishes the type of simulation. The Transient type moves the simulation in time conducting spatial evaluations at each step.
@@ -158,12 +208,12 @@ A more detailed and comprehensive description of MOOSE objects can be found in [
 
 \item[\done] \easy{ Page 13 top of the page ``looping over cells to evaluate", what cells, mesh cells? }
 \begin{itemize}
-\item Page 14: ``The PRKE parameters are written as user-objects, looping over spatial mesh cells to evaluate them."
+\item Thank you for suggesting this clarification. Page 14: ``The PRKE parameters are written as user-objects, looping over spatial mesh cells to evaluate them."
 \end{itemize}
 
 \item[\done] \easy{ LRA benchmark: the number of elements makes no sense 11x11 = 121 and when using five uniform refinement steps one would end up with 123,904 elements. }
 \begin{itemize}
-\item Thank you. On Page 22: Fixed it to 123,904 elements, number of nodes was originally correct.
+\item Thank you, that number is correct. On Page 22: Fixed it to 123,904 elements, number of nodes was originally correct. 
 \end{itemize}
 
 \item[\done] \easy{ LRA benchmark description does not state what equations are solved, if that is provided in the ANL benchmark book it should be made clear. Equations could also be stated directly. }
@@ -188,7 +238,7 @@ A more detailed and comprehensive description of MOOSE objects can be found in [
 
 \end{itemize}
 
-\section*{Bibliography}
+\section{Bibliography}
 
 \begin{itemize}
 
@@ -204,7 +254,7 @@ A more detailed and comprehensive description of MOOSE objects can be found in [
 
 \item[\done] \easy{ The LRA benchmark is extensively discussed in the Rattlesnake user manual, which might be a handy reference to use: INL/EXT-15-37337. }
 \begin{itemize}
-\item Page 22: ``The execution of the benchmark was performed by the Rattlesnake/MOOSE framework at Idaho National Laboratory (INL) [25]"
+\item Thank you for suggesting to include this reference. We've included it on Page 22: ``The execution of the benchmark was performed by the Rattlesnake/MOOSE framework at Idaho National Laboratory (INL) [25]"
 \end{itemize}
 
 \end{itemize}
